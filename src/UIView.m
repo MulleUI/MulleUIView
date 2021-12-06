@@ -1,11 +1,5 @@
 #import "UIView.h"
 
-#import "UIView+CAAnimation.h"
-#import "UIWindow.h"
-#import "UIWindow+UIEvent.h"
-#import "mulle-pointerarray+ObjC.h"
-
-
 #import "import-private.h"
 
 //#define RENDER_DEBUG
@@ -14,11 +8,6 @@
 
 @implementation UIView
 
-+ (Class) layerClass
-{
-   return( [CALayer class]);
-}
-
 
 + (instancetype) viewWithFrame:(CGRect) frame
 {
@@ -26,19 +15,19 @@
 }
 
 
-+ (instancetype) viewWithLayer:(CALayer *) layer
++ (instancetype) viewWithLayer:(id <UILayer>) layer
 {
    return( [[[self alloc] initWithLayer:layer] autorelease]);
 }
 
 
 // designated initializer
-- (instancetype) initWithLayer:(CALayer *) layer
+- (instancetype) initWithLayer:(id <UILayer>) layer
                          frame:(CGRect) frame
 {
    CGRect   frame;
 
-   assert( ! layer || [layer isKindOfClass:[CALayer class]]);
+   assert( ! layer || [layer conformsToProtocol:@protocol( UILayer)]);
 
    if( ! layer)
    {
@@ -62,9 +51,9 @@
 
 - (instancetype) initWithFrame:(CGRect) frame
 {
-   CALayer   *layer;
-   Class     cls;
-   CGRect    rect;
+   id <UILayer>   layer;
+   Class          cls;
+   CGRect         rect;
 
    rect  = CGRectMake( 0.0f, 0.0f, frame.size.width, frame.size.height);
    cls   = [[self class] layerClass];
@@ -79,7 +68,7 @@
 // Assume layer is already relative to UIView ?
 // I don't think so... Assume its in screen/windows space
 //
-- (instancetype) initWithLayer:(CALayer *) layer
+- (instancetype) initWithLayer:(id <UILayer>) layer
 {
    CGRect   frame;
 
@@ -108,18 +97,6 @@
 }
 
 
-- (struct CAAnimationStorage *) animationStorage
-{
-   return( &_animationStorage);
-}
-
-
-- (CALayer *) layer
-{
-   return( _mainLayer);
-}
-
-
 static inline CGRect   getBounds( UIView *self)
 {
    CGRect  bounds;
@@ -139,6 +116,12 @@ static inline CGRect   getBounds( UIView *self)
 - (CGRect) bounds
 {
    return( getBounds( self));
+}
+
+
+// will be overridden later
+- (void) willChange
+{
 }
 
 
@@ -176,46 +159,6 @@ static inline CGRect   getBounds( UIView *self)
 //
 //
 //
-- (void) mulleAddRetainedLayer:(CALayer *) layer
-{
-   assert( layer);
-   assert( [layer isKindOfClass:[CALayer class]]);
-
-   if( ! _mainLayer)
-   {
-      _mainLayer = layer;
-      return;
-   }
-   assert(_mainLayer != layer);
-
-   if( ! _layers)
-      _layers = mulle_pointerarray_create( NULL);
-
-   assert( _mulle_pointerarray_find( _layers, layer) == mulle_not_found_e);
-   _mulle_pointerarray_add( _layers, layer);
-}
-
-
-- (void) addLayer:(CALayer *) layer
-{
-   [self mulleAddRetainedLayer:[layer retain]];
-}
-
-
-- (struct mulle_pointerarray *) _layers
-{
-   struct mulle_allocator   *allocator;
-
-   if( ! _layers)
-   {
-      allocator = MulleObjCInstanceGetAllocator( self);
-      _layers = mulle_pointerarray_alloc( allocator);
-      _mulle_pointerarray_init( _layers, 4, allocator);
-   }
-   return( _layers);
-}
-
-
 - (struct mulle_pointerarray *) _subviews
 {
    struct mulle_allocator   *allocator;
@@ -260,31 +203,6 @@ static inline CGRect   getBounds( UIView *self)
 - (NSUInteger) subviewCount
 {
    return( _subviews ? mulle_pointerarray_get_count( _subviews) : 0);
-}
-
-
-- (NSInteger) getLayers:(CALayer **) buf
-                  range:(NSRange) range
-{
-   NSUInteger   n;
-
-   if( ! buf)
-      return( -1);
-
-   if( ! _mainLayer)
-      return( 0);
-
-   n  = 1;
-   n += mulle_pointerarray_get_count( _layers);
-
-   if( range.location + range.length > n)
-      return( -1);
-
-   mulle_pointerarray_copy_range( _layers, buf, range);
-
-   buf[ n - 1] = _mainLayer; // why last ?
-
-   return( n);
 }
 
 
@@ -398,113 +316,6 @@ static inline CGRect   getBounds( UIView *self)
 }
 
 
-- (CALayer *) mainLayer
-{
-   assert( _mainLayer);
-   return( _mainLayer);
-}
-
-
-- (BOOL) isMultiLayer
-{
-   return( _layers != NULL);
-}
-
-
-- (CGRect) clipRect
-{
-   return( [_mainLayer clipRect]);
-}
-
-
-//- (void) setNeedsDisplay
-//{
-//   _needsDisplay = YES;
-//}
-
-
-- (void *) forward:(void *) param
-{
-   assert( _mainLayer); // window should not forward...
-   return( mulle_objc_object_call_variablemethodid_inline( _mainLayer,
-                                                          (mulle_objc_methodid_t) _cmd,
-                                                          param));
-}
-
-
-- (BOOL) respondsToSelector:(SEL) sel
-{
-   if( [super respondsToSelector:sel])
-      return( YES);
-   return( [_mainLayer respondsToSelector:sel]);
-}
-
-
-- (CGFloat) pixelsPerInchOfPrimaryMonitor
-{
-   CGFloat     ppi;
-   UIWindow   *window;
-
-   window = [self window];
-   if( window)
-      ppi = [window primaryMonitorPPI];
-   else
-      ppi = [UIWindow primaryMonitorPPI];
-   if( ! ppi)
-      ppi = 100.0f;
-   return( ppi);
-}
-
-
-//// conveniences
-//- (void) setBackgroundColor:(CGColor) color
-//{
-//   [_mainLayer setBackgroundColor:color];
-//}
-//
-//- (void) setBorderColor:(CGColor) color
-//{
-//   return( [_mainLayer setBorderColor:color]);
-//}
-//
-//- (void) setBorderWidth:(CGFloat) value
-//{
-//   [_mainLayer setBorderWidth:value];
-//}
-//
-//- (void) setCornerRadius:(CGFloat) value
-//{
-//   return( [_mainLayer setCornerRadius:value]);
-//}
-//
-//
-//- (CGColor) backgroundColor
-//{
-//   return( [_mainLayer backgroundColor]);
-//}
-//
-//- (CGColor) borderColor
-//{
-//   return( [_mainLayer borderColor]);
-//}
-//
-//- (CGFloat) borderWidth
-//{
-//   return( [_mainLayer borderWidth]);
-//}
-//
-//- (CGFloat) cornerRadius
-//{
-//   return( [_mainLayer cornerRadius]);
-//}
-//
-
-// Done by Yoga
-// - (void) setNeedsLayout
-// {
-//    _needsLayout = YES;
-// }
-
 // maybe wrong name ?
 - (void) setNeedsCaching  // wipes the _backinglayer and asks for a new one to be drawn
 {
@@ -578,89 +389,171 @@ static inline CGRect   getBounds( UIView *self)
 }
 
 
-- (UIWindow *) window
+# pragma mark - UILayer + forwarding
+
+// ---
+// UIView( UILayer)
+// ---
+- (id <UILayer>) mainLayer
 {
-   UIView   *view;
-   UIView   *parent;
-
-   view = self;
-   while( (parent = [view superview]))
-      view = parent;
-
-   if( [view isKindOfClass:[UIWindow class]])
-   {
-      //fprintf( stderr, "window found\n");
-      return( (UIWindow *) view);
-   }
-   return( nil);
+   assert( _mainLayer);
+   return( _mainLayer);
 }
 
-//
-// look for the plance, the view is part of (if any)
-// a plane will say nil
-//
-- (UIView *) UIWindowPlane
+
+- (id <UILayer>) layer
 {
-   UIView   *view;
-   UIView   *plane;
-   UIView   *parent;
-
-   plane = nil;
-   view  = self;
-   while( (parent = [view superview]))
-   {
-      plane = view;
-      view  = parent;
-   }
-
-   if( [view isKindOfClass:[UIWindow class]])
-   {
-      //fprintf( stderr, "window found\n");
-      return( plane);
-   }
-   return( nil);
+   return( _mainLayer);
 }
+
+
+- (void) mulleAddRetainedLayer:(id <UILayer>) layer
+{
+   assert( layer);
+
+   if( ! _mainLayer)
+   {
+      _mainLayer = layer;
+      return;
+   }
+   assert(_mainLayer != layer);
+
+   if( ! _layers)
+      _layers = mulle_pointerarray_create( NULL);
+
+   assert( _mulle_pointerarray_find( _layers, layer) == mulle_not_found_e);
+   _mulle_pointerarray_add( _layers, layer);
+}
+
+
+- (void) addLayer:(id <UILayer>) layer
+{
+   [self mulleAddRetainedLayer:[layer retain]];
+}
+
+
+- (struct mulle_pointerarray *) _layers
+{
+   struct mulle_allocator   *allocator;
+
+   if( ! _layers)
+   {
+      allocator = MulleObjCInstanceGetAllocator( self);
+      _layers = mulle_pointerarray_alloc( allocator);
+      _mulle_pointerarray_init( _layers, 4, allocator);
+   }
+   return( _layers);
+}
+
+
+- (NSInteger) getLayers:(id <UILayer> *) buf
+                  range:(NSRange) range
+{
+   NSUInteger   n;
+
+   if( ! buf)
+      return( -1);
+
+   if( ! _mainLayer)
+      return( 0);
+
+   n  = 1;
+   n += mulle_pointerarray_get_count( _layers);
+
+   if( range.location + range.length > n)
+      return( -1);
+
+   mulle_pointerarray_copy_range( _layers, buf, range);
+
+   buf[ n - 1] = _mainLayer; // why last ?
+
+   return( n);
+}
+
+
+- (BOOL) isMultiLayer
+{
+   return( _layers != NULL);
+}
+
+//- (void) setNeedsDisplay
+//{
+//   _needsDisplay = YES;
+//}
+
+
+- (void *) forward:(void *) param
+{
+   assert( _mainLayer); // window should not forward...
+   return( mulle_objc_object_call_variablemethodid_inline( _mainLayer,
+                                                          (mulle_objc_methodid_t) _cmd,
+                                                          param));
+}
+
+
+- (BOOL) respondsToSelector:(SEL) sel
+{
+   if( [super respondsToSelector:sel])
+      return( YES);
+   return( [_mainLayer respondsToSelector:sel]);
+}
+
+
+
+//// conveniences
+//- (void) setBackgroundColor:(CGColor) color
+//{
+//   [_mainLayer setBackgroundColor:color];
+//}
+//
+//- (void) setBorderColor:(CGColor) color
+//{
+//   return( [_mainLayer setBorderColor:color]);
+//}
+//
+//- (void) setBorderWidth:(CGFloat) value
+//{
+//   [_mainLayer setBorderWidth:value];
+//}
+//
+//- (void) setCornerRadius:(CGFloat) value
+//{
+//   return( [_mainLayer setCornerRadius:value]);
+//}
+//
+//
+//- (CGColor) backgroundColor
+//{
+//   return( [_mainLayer backgroundColor]);
+//}
+//
+//- (CGColor) borderColor
+//{
+//   return( [_mainLayer borderColor]);
+//}
+//
+//- (CGFloat) borderWidth
+//{
+//   return( [_mainLayer borderWidth]);
+//}
+//
+//- (CGFloat) cornerRadius
+//{
+//   return( [_mainLayer cornerRadius]);
+//}
+//
+
+// Done by Yoga
+// - (void) setNeedsLayout
+// {
+//    _needsLayout = YES;
+// }
 
 
 
 # pragma mark - tracking rectangles
 
-- (struct UITrackingArea *) addTrackingAreaWithRect:(CGRect) rect
-                                              toWindow:(UIWindow *) window
-                                              userInfo:(id) userInfo
-{
-   struct UITrackingArea   *tracking;
-   UIWindow                  *window;
-
-   if( ! window)
-      window = [self window];
-
-   assert( window);
-
-   if( UITrackingAreaArrayGetCount( &_trackingAreas) == 0)
-   {
-      // if window does not exist, then a late add would not be noticed
-      // and tracking fails...
-      [window addTrackingView:self];
-   }
-
-   tracking = UITrackingAreaArrayNewItem( &_trackingAreas);
-   UITrackingAreaInit( tracking, rect, userInfo);
-   return( tracking);
-}
-
-- (void) removeTrackingArea:(struct UITrackingArea *) item
-{
-   UIWindow   *window;
-
-   UITrackingAreaArrayRemoveItem( &_trackingAreas, item);
-   if( UITrackingAreaArrayGetCount( &_trackingAreas) == 0)
-   {
-      window = [self window];
-      assert( window);
-      [window removeTrackingView:self];
-   }
-}
+// adding/removing tracking rectangles is done in UIView+UIWindow.m
 
 - (NSUInteger) numberOfTrackingAreas
 {

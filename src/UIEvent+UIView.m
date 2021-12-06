@@ -44,6 +44,7 @@
 {
    if( view == _translatedView)
       return( _translatedPoint);
+   // TODO: could unlazy this instead of bail, but...
    return( CGPointMake( CGFLOAT_MIN, CGFLOAT_MIN));
 }
 

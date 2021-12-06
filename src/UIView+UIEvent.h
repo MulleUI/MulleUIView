@@ -17,13 +17,13 @@
 - (UIEvent *) _handleEvent:(UIEvent *) event;
 
 - (UIView *) subviewAtPoint:(CGPoint) point;
-- (CALayer *) layerAtPoint:(CGPoint) point;
+- (id <UILayer>) layerAtPoint:(CGPoint) point;
 
 @end
 
 
 //
-// methods optionally implemented by UIView subclasses
+// methods *optionally* implemented by UIView subclasses
 //
 @interface UIView ( UIFutureEvents)
 
@@ -51,3 +51,4 @@
 + (CGFloat) mouseMotionSuppressionDelay;
 
 @end
+

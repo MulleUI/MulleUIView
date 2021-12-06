@@ -11,16 +11,18 @@
 # endif
 #endif
 #ifdef __has_include
-# if __has_include( "MulleIntegerPoint.h")
-#  import "MulleIntegerPoint.h"
+# if __has_include( "CGBitmapPoint.h")
+#  import "CGBitmapPoint.h"
 # endif
 #endif
+
 
 PROTOCOLCLASS_IMPLEMENTATION( MulleKeyboardEventConsumer)
 
 - (void) cursorUp
 {
 }
+
 
 - (void) cursorDown
 {
@@ -29,16 +31,16 @@ PROTOCOLCLASS_IMPLEMENTATION( MulleKeyboardEventConsumer)
 
 - (void) cursorLeft
 {
-   struct MulleIntegerPoint   pos;
-   struct MulleIntegerPoint   max;   
+   struct MulleCursorPosition   pos;
+   struct MulleCursorPosition   max;
 
    [self getCursorPosition:&pos];
 
-   fprintf( stderr, "read cursor: %lu/%lu\n", (long) pos.x, (long) pos.y);
+   fprintf( stderr, "read cursor: %lu/%lu\n", (long) pos.column, (long) pos.row);
 
-   --pos.x;
-   if( (NSInteger) pos.x < 0)
-      pos.x = 0;
+   --pos.column;
+   if( (NSInteger) pos.column < 0)
+      pos.column = 0;
 
    [self setCursorPosition:pos];
 }
@@ -46,17 +48,17 @@ PROTOCOLCLASS_IMPLEMENTATION( MulleKeyboardEventConsumer)
 
 - (void) cursorRight
 {
-   struct MulleIntegerPoint   pos;
-   struct MulleIntegerPoint   max;
+   struct MulleCursorPosition   pos;
+   struct MulleCursorPosition   max;
 
    [self getCursorPosition:&pos];
 
-   fprintf( stderr, "read cursor: %lu/%lu\n", (long) pos.x, (long) pos.y);
+   fprintf( stderr, "read cursor: %lu/%lu\n", (long) pos.column, (long) pos.row);
 
-   pos.x++;
+   pos.column++;
    max = [self maxCursorPosition];
-   if( pos.x > max.x)
-      pos.x = max.x;
+   if( pos.column > max.column)
+      pos.column = max.column;
    [self setCursorPosition:pos];
 }
 

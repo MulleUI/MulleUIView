@@ -3,8 +3,6 @@
 //
 #import "UIView+Layout.h"
 
-#import "UIWindow.h"
-#import "UIView+CAAnimation.h"
 #import "UIEdgeInsets+UTF8String.h"
 
 #import "import-private.h"
@@ -14,7 +12,7 @@
 
 // https://developer.apple.com/documentation/uikit/uiview/1622625-sizethatfits?language=objc
 - (CGSize) sizeThatFits:(CGSize) size
-                context:(CGContext *) context;
+                context:(void *) context;
 {
    // TODO: should use inverse transform on size
    return( [_mainLayer sizeThatFits:size
@@ -28,27 +26,6 @@
 }
 
 
-# pragma mark -
-
-- (void) beginLayout:(struct CGFrameInfo *) info
-{
-   [UIView beginAnimations:NULL
-                   context:NULL];
-
-   // linear is better for animations that are restarted often,
-   // like during a resize
-   [UIView setAnimationCurve:UIViewAnimationCurveLinear];
-
-   // if this is too small, it looks more like a glitch than a wanted effect
-   // e.g. 0.05 too small
-   [UIView setAnimationDuration:0.20];
-}
-
-
-- (void) endLayout
-{
-   [UIView commitAnimations];
-}
 
 #pragma mark - layout
 
@@ -81,7 +58,7 @@
 // by default, the mainLayer fills the contentRect of
 // its owning UIView.
 //
-- (void) layoutLayer:(CALayer *) layer
+- (void) layoutLayer:(id <UILayer>) layer
               inRect:(CGRect) rect
 {
    if( layer == _mainLayer)
@@ -226,34 +203,12 @@
    return( UILayoutStrategyDefault);
 }
 
-// non cached, if this is true, then we can't cache the layer hierarchy
-//
-- (BOOL) hasAnimatedCachableLayers
-{
-   struct mulle_pointerarrayenumerator   rover;
-   CALayer                               *layer;
-   BOOL                                  flag;
-
-   if( [_mainLayer hasAnimations])
-      return( YES);
-
-   flag  = NO;
-   rover = mulle_pointerarray_enumerate( _layers);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &layer))
-   {
-      flag = [layer hasAnimations];
-      if( flag)
-         break;
-   }
-   mulle_pointerarrayenumerator_done( &rover);
-   return( flag);
-}
 
 
 - (void) layoutLayers
 {
    struct mulle_pointerarrayenumerator   rover;
-   CALayer                               *layer;
+   id <UILayer>                          layer;
    CGRect                                contentRect;
 
    contentRect = [self contentRect]; // not layoutRect
@@ -318,7 +273,6 @@
 {
    struct mulle_pointerarrayenumerator   rover;
    UIView                                *view;
-
 
    /*
     * TOP/DOWN

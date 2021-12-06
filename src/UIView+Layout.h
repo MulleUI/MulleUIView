@@ -88,9 +88,9 @@ typedef enum
 // calls sizeThatFits:context: with nil
 - (CGSize) sizeThatFits:(CGSize) size;
 
-// actual method
+// actual method: context is usually CGContext
 - (CGSize) sizeThatFits:(CGSize) size
-                context:(CGContext *) context;
+                context:(void *) context;
 
 //
 // You do not need not to call super in UIView subclasses, if you manually
@@ -107,9 +107,6 @@ typedef enum
 //
 - (void) layoutLayers;
 
-- (void) beginLayout:(struct CGFrameInfo *) info;
-- (void) endLayout;
-
 - (void) layout;
 - (void) layoutIfNeeded;
 
@@ -122,7 +119,7 @@ typedef enum
 // will layout the all layers so that its frame equals the bounds, will leave
 // all other layers untouched
 //
-- (void) layoutLayer:(CALayer *) layer
+- (void) layoutLayer:(id <UILayer>) layer
               inRect:(CGRect) bounds;
 
 // yoga uses this to its layout
@@ -133,8 +130,12 @@ typedef enum
 // it's better to check this method though as I might change by mind...
 - (BOOL) isCulledByLayout;
 
-// does not conside the cacheLayer because its used to figure out if we
-// can use the cacheLayer.
-- (BOOL) hasAnimatedCachableLayers;
+@end
+
+
+@interface UIView( LayoutFuture)
+
+- (void) beginLayout:(void *) info;
+- (void) endLayout;
 
 @end

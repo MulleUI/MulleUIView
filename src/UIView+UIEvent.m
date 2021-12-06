@@ -1,10 +1,8 @@
 #import "UIView+UIEvent.h"
 
-#import "UIView+CGGeometry.h"
-#import "UIWindow.h"
-#import "UIWindow+UIResponder.h"
-#import "UIResponder.h"
 #import "UIEvent+UIView.h"
+
+#import "UIView+CGGeometry.h"
 
 
 @interface UIResponder
@@ -68,43 +66,43 @@
    action = [event action];
    button = [event button];
 
-   if( action == GLFW_PRESS)
+   if( action == UIEventButtonDown)
       _clickOrDrag._suppressUntilTimestamp = [event timestamp] +
                                              _clickOrDrag._mouseMotionSuppressionDelay;
 
    switch( button)
    {
-      case GLFW_MOUSE_BUTTON_LEFT   :
+      case UIEventMouseButtonLeft :
          switch( action)
          {
-         case GLFW_PRESS   :
+         case UIEventButtonDown :
             sel = @selector( mouseDown:);
             break;
-         case GLFW_RELEASE :
+         case UIEventButtonUp :
             sel = @selector( mouseUp:);
             break;
          }
          break;
 
-      case GLFW_MOUSE_BUTTON_RIGHT  :
+      case UIEventMouseButtonRight  :
          switch( action)
          {
-         case GLFW_PRESS   :
+         case UIEventButtonDown   :
             sel = @selector( rightMouseDown:);
             break;
-         case GLFW_RELEASE :
+         case UIEventButtonUp :
             sel = @selector( rightMouseUp:);
             break;
          }
          break;
 
-      case GLFW_MOUSE_BUTTON_MIDDLE :
+      case UIEventMouseButtonMiddle :
          switch( action)
          {
-         case GLFW_PRESS   :
+         case UIEventButtonDown   :
             sel = @selector( otherMouseDown:);
             break;
-         case GLFW_RELEASE :
+         case UIEventButtonUp :
             sel = @selector( otherMouseUp:);
             break;
          }
@@ -136,9 +134,9 @@
    if( state)
    {
       sel = @selector( mouseDragged:);
-      if( ! (state & (1 << GLFW_MOUSE_BUTTON_LEFT)))
+      if( ! (state & (1 << UIEventMouseButtonLeft)))
       {
-         if( state & (1 << GLFW_MOUSE_BUTTON_RIGHT))
+         if( state & (1 << UIEventMouseButtonRight))
             sel = @selector( rightMouseDragged:);
          else
             sel = @selector( otherMouseDragged:);
@@ -188,22 +186,22 @@
    sel   = 0;
    switch( [event action])
    {
-   case GLFW_REPEAT  :  // do keyUp: and keyDown:
+   case UIEventButtonRepeat  :  // do keyUp: and keyDown:
       sel = @selector( keyUp:);
       if( sel && [self respondsToSelector:sel])
       {
-         // keep GLFW_REPEAT as action, don't create new event
+         // keep UIEventKeyRepeat as action, don't create new event
          // event return value ignored,as to not accidentally prohibit keyDown:
          [self performSelector:sel
                     withObject:event];
       }
       // fall thru
 
-   case GLFW_PRESS   :
+   case UIEventButtonDown   :
       sel = @selector( keyDown:);
       break;
 
-   case GLFW_RELEASE :
+   case UIEventButtonUp :
       sel = @selector( keyUp:);
       break;
    }
@@ -217,8 +215,9 @@
    fprintf( stderr, "event %p\n", event);
 #endif
 
+#if 0
    if( [event key] == GLFW_KEY_ESCAPE &&
-       [event action] == GLFW_PRESS)
+       [event action] == UIEventButtonDown)
    {
 #ifdef EVENT_DEBUG
       fprintf( stderr, "request close\n");
@@ -227,6 +226,7 @@
 
       return( nil);
    }
+#endif
 
    return( event);
 }
@@ -265,10 +265,10 @@
 }
 
 
-- (CALayer *) layerAtPoint:(CGPoint) point
+- (id <UILayer>) layerAtPoint:(CGPoint) point
 {
    struct mulle_pointerarrayreverseenumerator   rover;
-   CALayer                                      *layer;
+   id <UILayer>                                 layer;
    CGRect                                       frame;
 
    frame    = [self frame];
@@ -464,36 +464,13 @@
 
 
 //
-// This is called on the window.
+// This is called and supersed on UIWindow
 //
 - (UIEvent *) handleEvent:(UIEvent *) event
 {
-   CGPoint           position;
-   id<UIResponder>   responder;
+   CGPoint   position;
 
-#ifdef EVENT_DEBUG
-   fprintf( stderr, "Event start: %s %s\n",
-                        [self UTF8String],
-                        [event UTF8String]);
-#endif
-
-   assert( self == [self window]);
-   responder = [(UIWindow *) self firstResponder];
-   if( responder)
-   {
-      event = [self responder:responder
-                  handleEvent:event];
-      if( ! event)
-      {
-#ifdef EVENT_DEBUG
-         fprintf( stderr, "First Responder handled event: %s\n",
-                        (char *) [responder UTF8String]);
-#endif
-         return( event);
-      }
-   }
-
-   position = [event locationInWindow];
+   position = [event locationInWindow]; // TODO locationInRootView:
    return( [self handleEvent:event
                   atPosition:position]);
 }

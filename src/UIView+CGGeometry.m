@@ -1,31 +1,7 @@
 #import "UIView+CGGeometry.h"
 
-#import "UIWindow.h"
-
 
 #define DUMP_LAYERS
-
-
-@implementation CALayer( CGGeometry)
-
-- (void) dumpWithIndent:(NSUInteger) indent
-{
-   NSUInteger   i;
-
-   for( i = 0; i < indent; i++)
-      fputc( ' ', stderr);
-
-   fprintf( stderr, "%s: f=[%s] b=[%s] r=[%s]",
-               [self UTF8String],
-               CGRectUTF8String( [self frame]),
-               CGRectUTF8String( [self bounds]),
-               CGRectUTF8String( [self clipRect]));
-   if( [self masksToBounds])
-      fprintf ( stderr, " masks");
-   fprintf( stderr, "\n");
-}
-
-@end
 
 
 @implementation UIView( CGGeometry)
@@ -34,38 +10,49 @@
 // Transform for incoming values of the superview to translate into
 // bounds space of the view. For hit tests.
 //
-- (void) updateTransformWithFrameAndBounds:(float *) transform
+- (CGAffineTransform) updateTransformWithFrameAndBounds:(CGAffineTransform) transform
 {
-   CGRect          frame;
-   CGRect          bounds;
-   CGPoint         scale;
-   _NVGtransform   tmp;
+   CGRect              frame;
+   CGRect              bounds;
+   CGPoint             scale;
+   CGAffineTransform   tmp;
+   CGAffineTransform   xform;
 
    frame  = [self frame];
    bounds = [self bounds];
 
-   nvgTransformTranslate( tmp, bounds.origin.x, bounds.origin.y);
-   nvgTransformPremultiply( transform, tmp);
+   tmp   = CGAffineTransformMakeTranslationInline( bounds.origin.x, bounds.origin.y);
+//   nvgTransformTranslate( tmp, bounds.origin.x, bounds.origin.y);
+   xform = CGAffineTransformConcatInline( tmp, transform);
+//   nvgTransformPremultiply( transform, tmp);
 
    scale.x = bounds.size.width / frame.size.width;
    scale.y = bounds.size.height / frame.size.height;
 
-   nvgTransformScale( tmp, scale.x, scale.y);
-   nvgTransformPremultiply( transform, tmp);
+   tmp = CGAffineTransformScaleInline( tmp, scale.x, scale.y);
+//   nvgTransformScale( tmp, scale.x, scale.y);
+   xform = CGAffineTransformConcatInline( tmp, xform);
+//   nvgTransformPremultiply( transform, tmp);
 
-   nvgTransformTranslate( tmp, -frame.origin.x, -frame.origin.y);
-   nvgTransformPremultiply( transform, tmp);
+   tmp = CGAffineTransformTranslateInline( tmp, -frame.origin.x, -frame.origin.y);
+//   nvgTransformTranslate( tmp, -frame.origin.x, -frame.origin.y);
+   tmp = CGAffineTransformConcatInline( tmp, xform);
+//   nvgTransformPremultiply( transform, tmp);
+   return( tmp);
 }
+
 
 
 - (CGPoint) translatedPoint:(CGPoint) point
 {
-   CGPoint         translated;
-   _NVGtransform   transform;
+   CGPoint             translated;
+   CGAffineTransform   transform;
 
-   nvgTransformIdentity( transform);
-   [self updateTransformWithFrameAndBounds:transform];
-   nvgTransformPoint( &translated.x, &translated.y, transform, point.x, point.y);
+   transform  = CGAffineTransformMakeIdentity();
+//   nvgTransformIdentity( transform);
+   transform  = [self updateTransformWithFrameAndBounds:transform];
+   translated = CGPointApplyAffineTransformInline( point, transform);
+//   nvgTransformPoint( &translated.x, &translated.y, transform, point.x, point.y);
    return( translated);
 }
 
@@ -291,11 +278,15 @@ static CGRect   convertBoundsRectToFrameRect( UIView *self, CGRect rect, CGRect 
    _mulle__pointerarray_init_with_static_pointers( &array,
                                                    (void **) views,
                                                    sizeof( views) / sizeof( UIView *));
-   if( ! toView)
-   {
-      toView = [self window];
-      assert( toView);
-   }
+
+// if toView is nil, first loop is bypassed, second loop runs to root as
+// desired...
+
+//   if( ! toView)
+//   {
+//      toView = [self window];
+//      assert( toView);
+//   }
 
    for( view = toView; view; view = [view superview])
    {
@@ -348,12 +339,15 @@ done:
 
    converted = rect;
 
-   if( ! fromView)
-   {
-      fromView = [self window];
-      assert( fromView);
-   }
-
+// if fromView is nil, first loop runs to root as desired...
+// second loop is bypassed
+//
+//   if( ! fromView)
+//   {
+//      fromView = [self window];
+//      assert( fromView);
+//   }
+//
    _mulle__pointerarray_init_with_static_pointers( &array,
                                                    (void **) views,
                                                    sizeof( views) / sizeof( UIView *));
@@ -491,65 +485,6 @@ static CGPoint   convertBoundsPointToFramePoint( UIView *self, CGPoint point, CG
    converted = [self convertRect:rect
                         fromView:toView];
    return( converted.origin);
-}
-
-
-- (void) dumpSubviewsWithIndent:(NSUInteger) indent
-{
-   struct mulle_pointerarrayenumerator   rover;
-   UIView                                 *view;
-
-   rover = mulle_pointerarray_enumerate( _subviews);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &view))
-      [view dumpWithIndent:indent];
-   mulle_pointerarrayenumerator_done( &rover);
-}
-
-
-- (void) dumpLayersWithIndent:(NSUInteger) indent
-{
-   struct mulle_pointerarrayenumerator   rover;
-   CALayer                               *layer;
-
-   [_mainLayer dumpWithIndent:indent];
-
-   rover = mulle_pointerarray_enumerate( _layers);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &layer))
-      [layer dumpWithIndent:indent];
-   mulle_pointerarrayenumerator_done( &rover);
-}
-
-
-- (void) dumpWithIndent:(NSUInteger) indent
-{
-   NSUInteger   i;
-
-   for( i = 0; i < indent; i++)
-      fputc( ' ', stderr);
-
-   if( [self isHidden])
-      fprintf( stderr, "%s: hidden\n",
-                  [self UTF8String]);
-   else
-   {
-      fprintf( stderr, "%s: f=[%s] b=[%s]",
-                  [self UTF8String],
-                  CGRectUTF8String( [self frame]),
-                  CGRectUTF8String( [self bounds]));
-      if( [self clipsToBounds])
-         fprintf ( stderr, " clips");
-      fprintf( stderr, "\n");
-   }
-#ifdef DUMP_LAYERS
-   [self dumpLayersWithIndent:indent + 3];
-#endif
-   [self dumpSubviewsWithIndent:indent + 3];
-}
-
-
-- (void) dump
-{
-   [self dumpWithIndent:0];
 }
 
 @end

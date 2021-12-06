@@ -12,20 +12,31 @@
 # endif
 #endif
 
+struct MulleCursorPosition
+{
+   NSInteger   row;
+   NSInteger   column;
+};
+
+
+//
+// TODO: move this away
+//
 // The MulleKeyboardEventConsumer manages keyboard events, 
 // like copy/paste and cursor movement. It's pretty much the same for 
 // UITextField or UITextView in an abstract kind of way.
 //
 PROTOCOLCLASS_INTERFACE( MulleKeyboardEventConsumer, NSObject)
 
-- (struct MulleIntegerPoint) maxCursorPosition;
+- (struct MulleCursorPosition) maxCursorPosition;
 
 // could also be a property with a respective #define, but its tricky as 
 // the implementor might also get it from MulleCursor
 
-- (void) setCursorPosition:(struct MulleIntegerPoint) pos;
-- (struct MulleIntegerPoint) cursorPosition;
-- (void) getCursorPosition:(struct MulleIntegerPoint *) pos;
+// TODO: why is this CGBitmapPoint, because we are dealing
+- (void) setCursorPosition:(struct MulleCursorPosition) pos;
+- (struct MulleCursorPosition) cursorPosition;
+- (void) getCursorPosition:(struct MulleCursorPosition *) pos;
 
 - (void) backspaceCharacter;
 - (void) cut;

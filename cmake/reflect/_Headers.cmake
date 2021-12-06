@@ -19,8 +19,8 @@ src/reflect
 # contents selected with patternfile ??-header--private-generated-headers
 #
 set( PRIVATE_GENERATED_HEADERS
-src/reflect/_MulleUICore-import-private.h
-src/reflect/_MulleUICore-include-private.h
+src/reflect/_MulleUIView-import-private.h
+src/reflect/_MulleUIView-include-private.h
 )
 
 #
@@ -35,10 +35,10 @@ src/include-private.h
 # contents selected with patternfile ??-header--public-generated-headers
 #
 set( PUBLIC_GENERATED_HEADERS
-src/reflect/_MulleUICore-export.h
-src/reflect/_MulleUICore-import.h
-src/reflect/_MulleUICore-include.h
-src/reflect/_MulleUICore-provide.h
+src/reflect/_MulleUIView-export.h
+src/reflect/_MulleUIView-import.h
+src/reflect/_MulleUIView-include.h
+src/reflect/_MulleUIView-provide.h
 )
 
 #
@@ -54,33 +54,16 @@ src/include.h
 #
 set( PUBLIC_HEADERS
 src/MulleKeyboardEventConsumer.h
-src/MulleObjCLoader+MulleUICore.h
-src/MulleUICore.h
-src/UIApplication+UIWindow.h
-src/UIColor.h
+src/MulleObjCLoader+MulleUIView.h
+src/MulleUIView.h
 src/UIEdgeInsets+UTF8String.h
 src/UIEdgeInsets.h
 src/UIEvent+UIView.h
-src/UIFont.h
-src/UIPasteboard.h
-src/UIResponder.h
 src/UITrackingArea.h
-src/UIView+CAAnimation.h
-src/UIView+CALayer.h
 src/UIView+CGGeometry.h
-src/UIView+CGLayer.h
 src/UIView+Layout.h
-src/UIView+RenderQueue.h
-src/UIView+Render.h
 src/UIView+UIEvent.h
-src/UIView+UIResponder.h
 src/UIView+UIViewEditing.h
 src/UIView.h
-src/UIWindow+Render.h
-src/UIWindow+UIEvent.h
-src/UIWindow+UIPasteboard.h
-src/UIWindow+UIResponder.h
-src/UIWindow.h
-src/mulle-pointerarray+ObjC.h
 )
 

@@ -3,8 +3,41 @@
 #import "UITrackingArea.h"
 #import "UIEdgeInsets.h"
 
+//
+// There is only a fixed set of properties a UIView can animate. For all
+// other animation purposes use CALayer. (Many properties that appear as if
+// they are animtable on UIView, are really forward to the mainLayer.
+//
+#define UI_VIEW_ANIMATABLE_PROPERTIES             \
+   @property( observable) UIEdgeInsets   padding; \
+   @property( observable) UIEdgeInsets   margins; \
+   @property( observable) CGRect         frame;   \
+   @property( observable) CGRect         bounds;  \
+   @property( observable) CGFloat        alpha
 
-@class UIWindow;
+
+@protocol UIAnimatableViewProperties
+
+UI_VIEW_ANIMATABLE_PROPERTIES;
+
+@end
+
+
+//
+// In theory UIView can manage other layer types than CALayer. It might be fun
+// to write a CALayer that draws ASCII :)
+//
+@protocol UILayer < NSObject>
+
+@property( observable) CGRect   frame;
+
+- (char *) debugNameUTF8String;
+- (void) setDebugNameUTF8String:(char *) s;
+
+- (CGSize) sizeThatFits:(CGSize) size
+                context:(void *) context;
+@end
+
 
 struct CGFrameInfo;
 
@@ -15,7 +48,9 @@ struct CGFrameInfo;
 // UIViews are also there to provide a child/parent hierarchy to make it
 // easier to create complex userinterfaces.
 //
-// If events didn't exist, one could get by with just layers.
+// If events didn't exist, one could get by with just layers. But as soon as
+// you have many responsive layers, event distribution becomes compley. Hence
+// UIViews.
 //
 // A UIView does no drawing, it merely layouts. It is completely independent
 // from OpenGL or whatever the backend is.
@@ -97,43 +132,27 @@ enum UIViewAutoresizing
 typedef NSUInteger   UIViewAutoresizing;
 
 
-//
-// There is only a fixed set of properties a UIView can animate. For all
-// other animation purposes use CALayer. (Many properties that appeast as if
-// they are animtable on UIView, are really forward to the mainLayer.
-//
-#define UI_VIEW_ANIMATABLE_PROPERTIES             \
-   @property( observable) UIEdgeInsets   padding; \
-   @property( observable) UIEdgeInsets   margins; \
-   @property( observable) CGRect         frame;   \
-   @property( observable) CGRect         bounds;  \
-   @property( observable) CGFloat        alpha
 
 
-
-@protocol UIAnimatableViewProperties
-
-UI_VIEW_ANIMATABLE_PROPERTIES;
-
-@end
-
-
-@interface UIView : NSObject <UIAnimatableViewProperties, CAAnimationStorageObject>
+@interface UIView : NSObject <UIAnimatableViewProperties>
 {
-   UIView                                *_superview;
-   CALayer                               *_mainLayer;
+   UIView                                  *_superview;
 
-   struct mulle_pointerarray             *_layers;     // todo why no inline ?
-   struct mulle_pointerarray             *_subviews;
+   struct mulle_pointerarray               *_layers;     // todo why no inline ?
+   struct mulle_pointerarray               *_subviews;
 
-   struct UITrackingAreaArray            _trackingAreas;
+   struct UITrackingAreaArray              _trackingAreas;
 
-   CGLayer                               *_cacheLayer;
+   id < NSObject>                          _cacheLayer;  // CGLayer
 
-   struct MulleClickDragDifferentiator   _clickOrDrag;
+   struct MulleClickDragDifferentiator     _clickOrDrag;
 
-   NSObject <UIAnimatableViewProperties> *_snapshot;
-   struct CAAnimationStorage             _animationStorage;
+   NSObject <UIAnimatableViewProperties>   *_snapshot;
+
+   // CALayer
+   id < UILayer>                           _mainLayer;
+   // CAAnimationStorage (forward storage)
+   void                                    *_animationStorage;
 }
 
 @property( getter=isHidden)                 BOOL   hidden;                  // default: NO
@@ -147,7 +166,7 @@ UI_VIEW_ANIMATABLE_PROPERTIES;
 @property NSInteger   tag;
 
 // On UIView this does nothing
-//@property BOOL   needsDisplay;  // used by UIWindow only currently
+//@property BOOL   needsDisplay;
 
 
 //
@@ -218,33 +237,15 @@ UI_VIEW_ANIMATABLE_PROPERTIES;
 @property void  (*didLayoutLayers)( UIView *view);
 
 
-- (void) setNeedsCaching;  // wipes the _cacheLayer and asks for a new one to be drawn
-
-+ (Class) layerClass;
-
 + (instancetype) viewWithFrame:(CGRect) frame;
-+ (instancetype) viewWithLayer:(CALayer *) layer;
 
-//
-// designated initializer, override this for defaults
-//
-- (instancetype) initWithLayer:(CALayer *) layer
-                         frame:(CGRect) frame;
-
-- (instancetype) initWithLayer:(CALayer *) layer;
 - (instancetype) initWithFrame:(CGRect) frame;
 
-- (void) mulleAddRetainedLayer:(CALayer *) layer;
 - (void) mulleAddRetainedSubview:(UIView *) layer;
 
-- (void) addLayer:(CALayer *) layer;
-- (void) addSubview:(UIView *) layer;
+- (void) addSubview:(UIView *) view;
 - (void) setSubviews:(struct mulle_pointerarray *) array;
 
-// this is the "main" layer. Each view has a bottom most layer that is
-// supposed to fill out the UIView with background color and border. It
-//
-- (CALayer *) layer;
 
 - (void) getSubviewsIntersectingRect:(CGRect) rect
                     intoPointerArray:(struct mulle_pointerarray *) views
@@ -255,8 +256,6 @@ UI_VIEW_ANIMATABLE_PROPERTIES;
 - (void) willRenderWithAbsoluteTime:(CAAbsoluteTime) renderTime;
 
 
-- (NSInteger) getLayers:(CALayer **) buf
-                  range:(NSRange) range;
 - (NSInteger) getSubviews:(UIView **) buf
                     range:(NSRange) range;
 
@@ -266,29 +265,48 @@ UI_VIEW_ANIMATABLE_PROPERTIES;
 // this is deep,
 - (UIView *) findSubviewWithTag:(NSInteger) tag;
 
-- (UIWindow *) window;
-- (UIView *) UIWindowPlane; // window plane a view resides in
 - (UIView *) superview;
 
-- (CGFloat) pixelsPerInchOfPrimaryMonitor;
 
-// UNUSED so far
-- (CGRect) clipRect;
-
-// - (CALayer *) mainLayer;  // mainlayer is an internal thing
+- (void) setNeedsCaching;  // wipes the _cacheLayer and asks for a new one to be drawn
 
 // view must be part of window view hierarchy, for these function to work
 // properly
-- (struct UITrackingArea *) addTrackingAreaWithRect:(CGRect) rect
-                                              toWindow:(UIWindow *) window
-                                              userInfo:(id) userInfo;
-- (void) removeTrackingArea:(struct UITrackingArea *) trackingRect;
-- (NSUInteger) numberOfTrackingAreas;
-- (struct UITrackingArea *) trackingAreaAtIndex:(NSUInteger) i;
 
 - (BOOL) mulleIsEffectivelyHidden;  // recursive test the hierarchy up
 
-- (struct CAAnimationStorage *) animationStorage;
+
+// ---
+// UIView( UILayer)
+// ---
++ (instancetype) viewWithLayer:(id <UILayer>) layer;
+
+//
+// designated initializer, override this for defaults
+//
+- (instancetype) initWithLayer:(id <UILayer>) layer
+                         frame:(CGRect) frame;
+- (instancetype) initWithLayer:(id <UILayer>) layer;
+
+// this is the "main" layer. Each view has a bottom most layer that is
+// supposed to fill out the UIView with background color and border. It
+//
+- (id <UILayer>) layer;
+- (void) mulleAddRetainedLayer:(id <UILayer>) layer;
+- (void) addLayer:(id <UILayer>) layer;
+- (NSInteger) getLayers:(id <UILayer> *) buf
+                  range:(NSRange) range;
+
+- (BOOL) isMultiLayer;
+
+- (void) willChange;  // does nothing, category/subclass will override
+
+@end
+
+
+@interface UIView( UILayerFuture)
+
++ (Class) layerClass;
 
 @end
 
@@ -296,7 +314,7 @@ UI_VIEW_ANIMATABLE_PROPERTIES;
 //
 // these all get fowarded to the "main" layer
 //
-@interface UIView( CALayerForwarding)
+@interface UIView( UILayerForwarding)
 
 /*
 - (void) setBackgroundColor:(CGColor) color;
@@ -311,15 +329,16 @@ UI_VIEW_ANIMATABLE_PROPERTIES;
 - (char *) debugNameUTF8String;
 - (void) setDebugNameUTF8String:(char *) s;
 
+// TODO: move to UIWindow
 
-@property void                      (*drawCallback)( CALayer *layer, CGContext *ctxt);
-@property( observable) CGFloat      cornerRadius;
-@property( observable) CGFloat      borderWidth;
-@property( observable) CGFloat      opacity;
-@property( observable) CGColor   borderColor;
-@property( observable) CGColor   backgroundColor;
-@property( observable) CGPoint      pixelCenter;
-@property( observable) BOOL         masksToBounds;
+//@property void                      (*drawCallback)( id <UILayer>layer, CGContext *ctxt);
+//@property( observable) CGFloat      cornerRadius;
+//@property( observable) CGFloat      borderWidth;
+//@property( observable) CGFloat      opacity;
+//@property( observable) CGColor      borderColor;
+//@property( observable) CGColor      backgroundColor;
+//@property( observable) CGPoint      pixelCenter;
+//@property( observable) BOOL         masksToBounds;
 
 @end
 
@@ -331,3 +350,4 @@ UI_VIEW_ANIMATABLE_PROPERTIES;
 - (struct mulle_pointerarray *) _subviews;
 
 @end
+

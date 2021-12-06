@@ -27,14 +27,5 @@
 - (CGPoint) convertPoint:(CGPoint) pos toView:(UIView*)toView;
 - (CGPoint) convertPoint:(CGPoint) pos fromView:(UIView*)fromView;
 
-- (void) dumpWithIndent:(NSUInteger) indent;
-- (void) dump;
-
 @end
 
-
-@interface CALayer( CGGeometry)
-
-- (void) dumpWithIndent:(NSUInteger) indent;
-
-@end
