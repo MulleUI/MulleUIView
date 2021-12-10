@@ -2,11 +2,27 @@
 
 #import "import-private.h"
 
+
+@implementation NSObject ( UIView)
+
+- (BOOL) __isUIView
+{
+   return( NO);
+}
+
+@end
+
 //#define RENDER_DEBUG
 //#define RENDER_VERBOSE_DEBUG
 //#define HAVE_RENDER_CACHE
 
 @implementation UIView
+
+- (BOOL) __isUIView
+{
+   return( YES);
+}
+
 
 
 + (instancetype) viewWithFrame:(CGRect) frame
@@ -155,6 +171,7 @@ static inline CGRect   getBounds( UIView *self)
    bounds = UIEdgeInsetsInsetRect( bounds, _padding);
    return( bounds);
 }
+
 
 //
 //

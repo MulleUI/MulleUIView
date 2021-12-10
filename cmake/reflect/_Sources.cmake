@@ -18,6 +18,7 @@ src/UITrackingArea.m
 src/UIView+CGGeometry.m
 src/UIView+Layout.m
 src/UIView+UIEvent.m
+src/UIView+UILayer.m
 src/UIView+UIViewEditing.m
 src/UIView.m
 )

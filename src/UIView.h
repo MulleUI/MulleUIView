@@ -30,12 +30,17 @@ UI_VIEW_ANIMATABLE_PROPERTIES;
 @protocol UILayer < NSObject>
 
 @property( observable) CGRect   frame;
+@property( observable) CGRect   bounds;
+
+@property( assign) CGAffineTransform   transform;
+@property( assign) CGRect              clipRect;
+@property( assign) CGFloat             alpha;
 
 - (char *) debugNameUTF8String;
 - (void) setDebugNameUTF8String:(char *) s;
 
 - (CGSize) sizeThatFits:(CGSize) size
-                context:(void *) context;
+                context:(id) context;
 @end
 
 
@@ -130,8 +135,6 @@ enum UIViewAutoresizing
 };
 
 typedef NSUInteger   UIViewAutoresizing;
-
-
 
 
 @interface UIView : NSObject <UIAnimatableViewProperties>
@@ -246,7 +249,6 @@ typedef NSUInteger   UIViewAutoresizing;
 - (void) addSubview:(UIView *) view;
 - (void) setSubviews:(struct mulle_pointerarray *) array;
 
-
 - (void) getSubviewsIntersectingRect:(CGRect) rect
                     intoPointerArray:(struct mulle_pointerarray *) views
               invertIntersectionTest:(BOOL) flag;
@@ -254,7 +256,6 @@ typedef NSUInteger   UIViewAutoresizing;
 // called for each view, before layouting starts
 // if a subclass overrides, it should call super
 - (void) willRenderWithAbsoluteTime:(CAAbsoluteTime) renderTime;
-
 
 - (NSInteger) getSubviews:(UIView **) buf
                     range:(NSRange) range;
@@ -275,6 +276,12 @@ typedef NSUInteger   UIViewAutoresizing;
 
 - (BOOL) mulleIsEffectivelyHidden;  // recursive test the hierarchy up
 
+
+// ---
+// UIView( UITrackingArea)
+// ---
+- (NSUInteger) numberOfTrackingAreas;
+- (struct UITrackingArea *) trackingAreaAtIndex:(NSUInteger) i;
 
 // ---
 // UIView( UILayer)

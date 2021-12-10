@@ -12,7 +12,7 @@
 
 // https://developer.apple.com/documentation/uikit/uiview/1622625-sizethatfits?language=objc
 - (CGSize) sizeThatFits:(CGSize) size
-                context:(void *) context;
+                context:(id) context;
 {
    // TODO: should use inverse transform on size
    return( [_mainLayer sizeThatFits:size

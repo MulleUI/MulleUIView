@@ -90,7 +90,7 @@ typedef enum
 
 // actual method: context is usually CGContext
 - (CGSize) sizeThatFits:(CGSize) size
-                context:(void *) context;
+                context:(id) context;
 
 //
 // You do not need not to call super in UIView subclasses, if you manually

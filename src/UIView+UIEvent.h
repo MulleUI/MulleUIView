@@ -8,6 +8,10 @@
 - (BOOL) hitTest:(CGPoint) point
        withEvent:(UIEvent *) event;
 
+// hmhm right place ?
+- (UIEvent *) responder:(id <UIResponder>) responder
+            handleEvent:(UIEvent *) event;
+
 // returns event if it hasn't been handled
 - (UIEvent *) handleEvent:(UIEvent *) event;
 - (UIEvent *) handleEvent:(UIEvent *) event

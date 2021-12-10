@@ -18,5 +18,6 @@
 #import "UIView+CGGeometry.h"
 #import "UIView+Layout.h"
 #import "UIView+UIEvent.h"
+#import "UIView+UILayer.h"
 #import "UIView+UIViewEditing.h"
 #import "UIView.h"

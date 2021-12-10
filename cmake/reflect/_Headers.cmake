@@ -63,6 +63,7 @@ src/UITrackingArea.h
 src/UIView+CGGeometry.h
 src/UIView+Layout.h
 src/UIView+UIEvent.h
+src/UIView+UILayer.h
 src/UIView+UIViewEditing.h
 src/UIView.h
 )
