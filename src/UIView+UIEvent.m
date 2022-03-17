@@ -299,6 +299,9 @@
     fprintf( stderr, "Try to handle event %s\n", [self UTF8String]);
 #endif
 
+   // this is never nil
+   event = (self->_eventCallback)( self, event);
+
    switch( [event eventType])
    {
    case UIEventTypePresses :

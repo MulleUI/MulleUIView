@@ -23,6 +23,8 @@ UI_VIEW_ANIMATABLE_PROPERTIES;
 @end
 
 
+
+
 //
 // In theory UIView can manage other layer types than CALayer. It might be fun
 // to write a CALayer that draws ASCII :)
@@ -106,9 +108,9 @@ struct CGFrameInfo;
 //
 struct MulleClickDragDifferentiator
 {
-   CARelativeTime   _mouseMotionSuppressionDelay;  // config value
+   mulle_relativetime_t   _mouseMotionSuppressionDelay;  // config value
 
-   CAAbsoluteTime   _suppressUntilTimestamp;
+   mulle_absolutetime_t   _suppressUntilTimestamp;
 };
 
 //
@@ -216,6 +218,10 @@ typedef NSUInteger   UIViewAutoresizing;
 // by UIView during layout
 - (CGRect) layoutRect;
 
+// call back for view events, your handler should return nil if it handled
+// or wants to discard the event. UserInteractionEnabled must be set to YES
+@property( assign) UIEvent  *(*eventCallback)( UIView *view, UIEvent *event);
+
 @property( assign) UIViewAutoresizing   autoresizingMask;
 //
 // When autoresizing is used the original frame is stored here on the first
@@ -255,7 +261,7 @@ typedef NSUInteger   UIViewAutoresizing;
 
 // called for each view, before layouting starts
 // if a subclass overrides, it should call super
-- (void) willRenderWithAbsoluteTime:(CAAbsoluteTime) renderTime;
+- (void) willRenderWithAbsoluteTime:(mulle_absolutetime_t) renderTime;
 
 - (NSInteger) getSubviews:(UIView **) buf
                     range:(NSRange) range;

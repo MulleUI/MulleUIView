@@ -16,6 +16,12 @@
 //#define RENDER_VERBOSE_DEBUG
 //#define HAVE_RENDER_CACHE
 
+static UIEvent   *defaultHandleEventCallback( UIView *view, UIEvent *event)
+{
+   return( event);
+}
+
+
 @implementation UIView
 
 - (BOOL) __isUIView
@@ -58,6 +64,7 @@
    _bounds.size.width      = INFINITY; // once we change the bounds size
                                        // we disconnect from frame.size
    _frame                  = frame;
+   _eventCallback          = defaultHandleEventCallback;
 
 //   _needsDisplay           = YES;
 
@@ -172,6 +179,12 @@ static inline CGRect   getBounds( UIView *self)
    return( bounds);
 }
 
+- (void) setEventCallback:(UIEvent *(*)(UIView *, UIEvent *)) callback
+{
+   if( ! callback)
+      callback = defaultHandleEventCallback;
+   _eventCallback = callback;
+}
 
 //
 //
@@ -395,7 +408,7 @@ static inline CGRect   getBounds( UIView *self)
 #endif
 
 
-- (void) willRenderWithAbsoluteTime:(CAAbsoluteTime) time
+- (void) willRenderWithAbsoluteTime:(mulle_absolutetime_t) time
 {
 }
 

@@ -1,7 +1,6 @@
 cmake_minimum_required( VERSION 3.15)
 
 project( MulleUIView C)
-add_definitions( -DMULLE_UI_CORE_EXTERN_GLOBAL=extern)
 
 
 ### mulle-sde environment

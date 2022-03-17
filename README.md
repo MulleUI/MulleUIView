@@ -1,10 +1,13 @@
 # 📐 MulleUIView
 
+![](mulle-tiny-logo-255x256.png)
+
 #### 📐 MulleUIView for layout and events
 
-A UIView combines one or multiple CALayers. Multiple UIView form a hierarchy.
-Whereas a CALayer is independent of any other CALayer, a UIView
-can have a parent, siblings and desecendants.
+A UIView combines one or multiple UILayers. Multiple UIViews form a hierarchy.
+Whereas a UILayer is independent of any other UILayer, a UIView
+can have a parent, siblings and desecendants. UILayer is a protocol,
+typically `CALayer` will be the concrete class being used as layer.
 
 A UIView provides two services in a program
 
@@ -12,43 +15,20 @@ A UIView provides two services in a program
 * event processing
 
 A UIView does no drawing. All drawing is done by CALayer and its subclasses.
-Every UIView miust have at least one CALayer. But a CALayer can be invisible.
+Every UIView must have at least one CALayer. But a CALayer can be invisible.
 
 
+UIView therefore imposes a structure (layout) on CALayers and facilitates the
+routing of events from the event receiver (usually a UIWindow or the
+UIApplication) to the code managing the CALayer (a UIView subclass ?).
 
-![](mulle-tiny-logo-255x256.png)
-
-See live on stream how it progresses: [https://www.twitch.tv/mulle_kybernetik_tv/](). Every Wednesday at 14:00-18:00 CEST.
-
-
-![](demos/candycrash.png)
 
 
 ### You are here
 
-There is no actual "drawing" code in MulleUIView. Use "MulleGraphics" for
-drawing. See "MulleUIControl" for widgets.
+![Overview](overview.dot.svg)
 
 
-```
-  .-----------------------------------------.
-  | MulleUIFoundation                       |
-  '-----------------------------------------'
-  .-----------------------------------------.
-  | MulleUIControl                          |
-  '-----------------------------------------'
-  .-----------------. .=====================.
-  | MulleUIImage    | | MulleUIView         |
-  '-----------------' '==============.======.
-  .--------------------------------. | glfw |
-  | MulleGraphics                  | | X11  |
-  '--------------------------------' '------'
-  .-----------------. .------------.
-  | MulleCG         | | MulleCA    |
-  '-----------------' '------------'
-  .--------------------------------.
-  | MulleLayout                    |
-  '--------------------------------'
-```
-
-MulleUIView is only based on [MulleObjCLockFoundation](//github.com/MulleFoundation/MulleObjCFoundation). Foundation datatypes like `NSString` are not available.
+MulleUIView is only based on
+[MulleObjCLockFoundation](//github.com/MulleFoundation/MulleObjCFoundation).
+Foundation datatypes like `NSString` are not available.
