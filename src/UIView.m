@@ -386,6 +386,35 @@ static inline CGRect   getBounds( UIView *self)
    return( result);
 }
 
+
+- (char *) colorizedUTF8StringHeader
+{
+   char        *s;
+   char        *result;
+   uintptr_t   hash;
+   int         color;
+
+   // haques for UIWindow
+   s = nil;
+   if( [self respondsToSelector:@selector( titleUTF8String)])
+      s = [self titleUTF8String];
+
+   if( ! s && _mainLayer)
+      s = [_mainLayer debugNameUTF8String];
+
+   if( s)
+      hash = _mulle_string_hash( s);
+   else
+      hash  = mulle_pointer_hash( self);
+
+   color  = (hash % (230 - 22)) + 22;
+   mulle_asprintf( &result, "\033[38;5;%dm", color);;
+   MulleObjCAutoreleaseAllocation( result, NULL);
+
+   return( result);
+}
+
+
 #if 0
 - (CGLayer *) cachedLayerWithFrameInfo:(struct CGFrameInfo *) info
 {
