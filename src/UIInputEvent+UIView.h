@@ -10,7 +10,7 @@
 
 @class UIView;
 
-@interface UIEvent( UIView)
+@interface UIInputEvent( UIView)
 
 //
 // translated mouseLocation to current view bounds (ephemeral)
@@ -23,5 +23,7 @@
 - (CGPoint) _translatedPointForView:(UIView *) view;
 
 @end
+
+
 
 

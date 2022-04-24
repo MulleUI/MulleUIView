@@ -3,6 +3,119 @@
 #import "import-private.h"
 
 
+
+static char  *UIViewAutoresizingUTF8String( NSUInteger bit)
+{
+   switch( bit)
+   {
+   case UIViewAutoresizingNone            : return( "UIViewAutoresizingNone");
+   case UIViewAutoresizingFlexibleWidth   : return( "UIViewAutoresizingFlexibleWidth");
+   case UIViewAutoresizingFlexibleHeight  : return( "UIViewAutoresizingFlexibleHeight");
+   case UIViewAutoresizingStickToTop      : return( "UIViewAutoresizingStickToTop");
+   case UIViewAutoresizingStickToBottom   : return( "UIViewAutoresizingStickToBottom");
+   case UIViewAutoresizingStickToLeft     : return( "UIViewAutoresizingStickToLeft");
+   case UIViewAutoresizingStickToRight    : return( "UIViewAutoresizingStickToRight");
+   case UIViewAutoresizingClipToBounds    : return( "UIViewAutoresizingClipToBounds");
+   case UIViewAutoresizingCullAtBounds    : return( "UIViewAutoresizingCullAtBounds");
+   }
+   return( "???");
+}
+
+
+static char  UIViewAutoresizingUTF8Character( NSUInteger bit)
+{
+   switch( bit)
+   {
+   case UIViewAutoresizingNone            : return( '0');
+   case UIViewAutoresizingFlexibleWidth   : return( 'w');
+   case UIViewAutoresizingFlexibleHeight  : return( 'h');
+   case UIViewAutoresizingStickToTop      : return( 't');
+   case UIViewAutoresizingStickToBottom   : return( 'b');
+   case UIViewAutoresizingStickToLeft     : return( 'l');
+   case UIViewAutoresizingStickToRight    : return( 'r');
+   case UIViewAutoresizingClipToBounds    : return( 'c');
+   case UIViewAutoresizingCullAtBounds    : return( 'C');
+   }
+   return( '?');
+}
+
+
+static NSUInteger  UIViewAutoresizingBits[] =
+{
+   // internal state, can't be set
+   UIViewAutoresizingFlexibleWidth,    // animation active, but possibly delayed
+   UIViewAutoresizingFlexibleHeight,   // passed delay, now doing something
+   UIViewAutoresizingStickToTop,       // future
+   UIViewAutoresizingStickToBottom,
+   UIViewAutoresizingStickToLeft,
+   UIViewAutoresizingStickToRight,     // signal preemption
+
+   // user options
+   UIViewAutoresizingClipToBounds,
+   UIViewAutoresizingCullAtBounds
+};
+
+
+char   *UIViewAutoresizingMaskShortUTF8String( NSUInteger bits)
+{
+   struct mulle_buffer   buffer;
+   char                  *s;
+   NSUInteger            i;
+   char                  c;
+
+   mulle_buffer_init( &buffer, NULL);
+
+   for( i = 0; i < sizeof( UIViewAutoresizingBits) / sizeof( NSUInteger); i++)
+   {
+      if( bits & UIViewAutoresizingBits[ i])
+      {
+         c = UIViewAutoresizingUTF8Character( UIViewAutoresizingBits[ i]);
+         mulle_buffer_add_byte( &buffer, c);
+      }
+   }
+
+   s = mulle_buffer_extract_string( &buffer);
+   mulle_buffer_done( &buffer);
+
+   return( MulleObjCAutoreleaseAllocation( s, NULL));
+}
+
+
+char   *UIViewAutoresizingMaskUTF8String( NSUInteger bits)
+{
+   struct mulle_buffer   buffer;
+   char                  *s;
+   NSUInteger            i;
+
+   mulle_buffer_init( &buffer, NULL);
+
+   for( i = 0; i < sizeof( UIViewAutoresizingBits) / sizeof( NSUInteger); i++)
+   {
+      if( bits & UIViewAutoresizingBits[ i])
+      {
+         mulle_buffer_add_string_if_not_empty( &buffer, "|");
+         mulle_buffer_add_string( &buffer, UIViewAutoresizingUTF8String( UIViewAutoresizingBits[ i]));
+      }
+   }
+
+   mulle_buffer_add_string_if_empty( &buffer, "UIViewAutoresizingNone");
+
+   s = mulle_buffer_extract_string( &buffer);
+   mulle_buffer_done( &buffer);
+
+   return( MulleObjCAutoreleaseAllocation( s, NULL));
+}
+
+
+
+
+@interface NSObject( Forward)
+
+- (char *) titleUTF8String;
+
+@end
+
+
 @implementation NSObject ( UIView)
 
 - (BOOL) __isUIView
@@ -381,13 +494,12 @@ static inline CGRect   getBounds( UIView *self)
    len    += strlen( s) + strlen( buf) + 4; // < "">\0"
    result  = mulle_malloc( len);
    sprintf( result, format, s, buf, name);
-   MulleObjCAutoreleaseAllocation( result, NULL);
 
-   return( result);
+   return( MulleObjCAutoreleaseAllocation( result, NULL));
 }
 
 
-- (char *) colorizedUTF8StringHeader
+- (char *) colorizerPrefixUTF8String
 {
    char        *s;
    char        *result;
@@ -395,7 +507,7 @@ static inline CGRect   getBounds( UIView *self)
    int         color;
 
    // haques for UIWindow
-   s = nil;
+   s = NULL;
    if( [self respondsToSelector:@selector( titleUTF8String)])
       s = [self titleUTF8String];
 
@@ -409,9 +521,8 @@ static inline CGRect   getBounds( UIView *self)
 
    color  = (hash % (230 - 22)) + 22;
    mulle_asprintf( &result, "\033[38;5;%dm", color);;
-   MulleObjCAutoreleaseAllocation( result, NULL);
 
-   return( result);
+   return( MulleObjCAutoreleaseAllocation( result, NULL));
 }
 
 

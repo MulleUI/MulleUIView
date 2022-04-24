@@ -42,8 +42,8 @@
    for(;;)
    {
       view = next;
-      if( view->_needsLayout)
-         break;
+      // if( view->_needsLayout)
+      //    break;
 
       next = view->_superview;
       if( ! next)  // we are the window
@@ -53,7 +53,7 @@
          return;
       }
 
-      view->_needsLayout = YES;  // quick mark and unto next
+      // view->_needsLayout = YES;  // quick mark and unto next
    }
 }
 
@@ -105,10 +105,10 @@
    if( ! autoresizingMask)
       return;
 
-   frame      = [view frame];
-   newFrame   = [view originalFrame];
-   resizeMask = autoresizingMask & (UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight);
-   stickMask  = autoresizingMask & (UIViewAutoresizingStickToMiddle|UIViewAutoresizingStickToCenter);
+   frame          = [view frame];
+   newFrame       = [view originalFrame];
+   resizeMask     = autoresizingMask & (UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight);
+   stickMask      = autoresizingMask & (UIViewAutoresizingStickToMiddle|UIViewAutoresizingStickToCenter);
 
    insets         = [view margins];
    marginalBounds = UIEdgeInsetsInsetRect( bounds, [view margins]);
@@ -208,7 +208,6 @@
 }
 
 
-
 - (void) layoutLayers
 {
    struct mulle_pointerarrayenumerator   rover;
@@ -281,7 +280,7 @@
    /*
     * TOP/DOWN
     */
-   [self setNeedsLayout:NO];
+   // [self setNeedsLayout:NO];
 
    // start Yoga
    switch( [self layoutStrategy])
@@ -308,13 +307,6 @@
    while( _mulle_pointerarrayenumerator_next( &rover, (void **) &view))
       [view layout];
    mulle_pointerarrayenumerator_done( &rover);
-}
-
-
-- (void) layoutIfNeeded
-{
-   if( [self needsLayout])
-      [self layout];
 }
 
 

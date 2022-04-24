@@ -3,22 +3,21 @@
 @class UIMouseScrollEvent;
 
 
+// only input events are distributed to UIViews
+
 @interface UIView ( UIEvent)
 
-- (BOOL) hitTest:(CGPoint) point
-       withEvent:(UIEvent *) event;
 
-// hmhm right place ?
-- (UIEvent *) responder:(id <UIResponder>) responder
-            handleEvent:(UIEvent *) event;
+- (BOOL) hitTest:(CGPoint) point
+  withInputEvent:(UIInputEvent *) event;
+
 
 // returns event if it hasn't been handled
-- (UIEvent *) handleEvent:(UIEvent *) event;
-- (UIEvent *) handleEvent:(UIEvent *) event
-               atPosition:(CGPoint) position;
+- (UIInputEvent *) handleInputEvent:(UIInputEvent *) event;
 
-// TODO: rename or hide or whatever
-- (UIEvent *) _handleEvent:(UIEvent *) event;
+- (UIInputEvent *) handleInputEvent:(UIInputEvent *) event
+                         atPosition:(CGPoint) position;
+
 
 - (UIView *) subviewAtPoint:(CGPoint) point;
 - (id <UILayer>) layerAtPoint:(CGPoint) point;

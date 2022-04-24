@@ -13,7 +13,7 @@
 #import "MulleObjCLoader+MulleUIView.h"
 #import "UIEdgeInsets+UTF8String.h"
 #import "UIEdgeInsets.h"
-#import "UIEvent+UIView.h"
+#import "UIInputEvent+UIView.h"
 #import "UITrackingArea.h"
 #import "UIView+CGGeometry.h"
 #import "UIView+Layout.h"

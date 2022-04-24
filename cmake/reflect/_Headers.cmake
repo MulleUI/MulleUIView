@@ -58,7 +58,7 @@ src/MulleObjCLoader+MulleUIView.h
 src/MulleUIView.h
 src/UIEdgeInsets+UTF8String.h
 src/UIEdgeInsets.h
-src/UIEvent+UIView.h
+src/UIInputEvent+UIView.h
 src/UITrackingArea.h
 src/UIView+CGGeometry.h
 src/UIView+Layout.h

@@ -1,4 +1,4 @@
-#import "UIEvent+UIView.h"
+#import "UIInputEvent+UIView.h"
 
 #import "import-private.h"
 
@@ -6,7 +6,7 @@
 #import "UIView+CGGeometry.h"
 
 
-@implementation UIEvent ( UIView)
+@implementation UIInputEvent ( UIView)
 
 - (CGPoint) mouseLocationInView:(UIView *) view
 {

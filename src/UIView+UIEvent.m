@@ -1,19 +1,9 @@
 #import "UIView+UIEvent.h"
 
-#import "UIEvent+UIView.h"
+#import "UIInputEvent+UIView.h"
 
 #import "UIView+CGGeometry.h"
 
-
-@interface UIResponder
-@end
-
-
-@interface UIResponder( PrivateFuture)
-
-- (UIEvent *) _handleEvent:(UIEvent *) event;
-
-@end
 
 
 //#define EVENT_DEBUG
@@ -28,13 +18,47 @@
 }
 
 
+
+// flat, doesn't recurse
+- (UIView *) subviewAtPoint:(CGPoint) point
+{
+   struct mulle_pointerarrayreverseenumerator   rover;
+   UIView                                       *view;
+
+   rover = mulle_pointerarray_reverseenumerate( _subviews);
+   while( _mulle_pointerarrayreverseenumerator_next( &rover, (void **) &view))
+      if( CGRectContainsPoint( [view frame], point))
+         break;
+   mulle_pointerarrayreverseenumerator_done( &rover);
+   return( view);
+}
+
+
+- (id <UILayer>) layerAtPoint:(CGPoint) point
+{
+   struct mulle_pointerarrayreverseenumerator   rover;
+   id <UILayer>                                 layer;
+   CGRect                                       frame;
+
+   frame    = [self frame];
+   point.x += frame.origin.x;
+   point.y += frame.origin.y;
+
+   rover = mulle_pointerarray_reverseenumerate( _layers);
+   while( _mulle_pointerarrayreverseenumerator_next( &rover, (void **) &layer))
+      if( CGRectContainsPoint( [layer frame], point))
+         break;
+   mulle_pointerarrayreverseenumerator_done( &rover);
+   return( layer);
+}
+
 //
 // checks if point is in the visible area
 // point is in the bounds coordinate system
 // Does not recurse to subviews. Query those separately
 //
 - (BOOL) hitTest:(CGPoint) point
-       withEvent:(UIEvent *) event
+  withInputEvent:(UIInputEvent *) event
 {
    BOOL     flag;
    CGRect   bounds;
@@ -250,49 +274,56 @@
 }
 
 
-// flat, doesn't recurse
-- (UIView *) subviewAtPoint:(CGPoint) point
+
+//
+// This was written to support MulleMenu. But MulleMenu does it now
+// differently.
+//
+- (void) mulleSubviewDidHandleInputEvent:(UIInputEvent *) event
+{
+   // pass it up, until noone cares anymore
+   [[self superview] mulleSubviewDidHandleInputEvent:event];
+}
+
+
+- (UIView *) mulleLetSubviewHandleInputEvent:(UIInputEvent *) event
+                        atTranslatedPosition:(CGPoint) translated
 {
    struct mulle_pointerarrayreverseenumerator   rover;
    UIView                                       *view;
+   BOOL                                         didHandleEvent;
 
-   rover = mulle_pointerarray_reverseenumerate( _subviews);
-   while( _mulle_pointerarrayreverseenumerator_next( &rover, (void **) &view))
-      if( CGRectContainsPoint( [view frame], point))
-         break;
-   mulle_pointerarrayreverseenumerator_done( &rover);
-   return( view);
+   if( _subviews)
+   {
+      rover = _mulle_pointerarray_reverseenumerate( _subviews);
+      while( _mulle_pointerarrayreverseenumerator_next( &rover, (void **) &view))
+      {
+         didHandleEvent = [view handleInputEvent:event
+                                      atPosition:translated] == nil;
+         if( didHandleEvent)
+         {
+            [self mulleSubviewDidHandleInputEvent:event];
+            mulle_pointerarrayreverseenumerator_done( &rover);
+            return( view);
+         }
+      }
+      mulle_pointerarrayreverseenumerator_done( &rover);
+   }
+
+   return( nil);
 }
 
 
-- (id <UILayer>) layerAtPoint:(CGPoint) point
+- (UIEvent *) _handleInputEvent:(UIInputEvent *) inputEvent
 {
-   struct mulle_pointerarrayreverseenumerator   rover;
-   id <UILayer>                                 layer;
-   CGRect                                       frame;
+   UIEvent   *event;
 
-   frame    = [self frame];
-   point.x += frame.origin.x;
-   point.y += frame.origin.y;
-
-   rover = mulle_pointerarray_reverseenumerate( _layers);
-   while( _mulle_pointerarrayreverseenumerator_next( &rover, (void **) &layer))
-      if( CGRectContainsPoint( [layer frame], point))
-         break;
-   mulle_pointerarrayreverseenumerator_done( &rover);
-   return( layer);
-}
-
-
-
-- (UIEvent *) _handleEvent:(UIEvent *) event
-{
    if( [self isUserInteractionEnabled] == NO)
    {
 #ifdef EVENT_DEBUG
        fprintf( stderr, "Disabled view %s ignores event\n", [self UTF8String]);
 #endif
-      return( event);
+      return( inputEvent);
    }
 
 #ifdef EVENT_DEBUG
@@ -300,7 +331,7 @@
 #endif
 
    // this is never nil
-   event = (self->_eventCallback)( self, event);
+   event = (self->_eventCallback)( self, inputEvent);
 
    switch( [event eventType])
    {
@@ -330,53 +361,15 @@
    return( event);
 }
 
-//
-// This was written to support MulleMenu. But MulleMenu does it now
-// differently.
-//
-- (void) mulleSubviewDidHandleEvent:(UIEvent *) event
-{
-   // pass it up, until noone cares anymore
-   [[self superview] mulleSubviewDidHandleEvent:event];
-}
-
-
-- (UIView *) mulleLetSubviewHandleEvent:(UIEvent *) event
-                   atTranslatedPosition:(CGPoint) translated
-{
-   struct mulle_pointerarrayreverseenumerator   rover;
-   UIView                                       *view;
-   BOOL                                         didHandleEvent;
-
-   if( _subviews)
-   {
-      rover = _mulle_pointerarray_reverseenumerate( _subviews);
-      while( _mulle_pointerarrayreverseenumerator_next( &rover, (void **) &view))
-      {
-         didHandleEvent = [view handleEvent:event
-                                 atPosition:translated] == nil;
-         if( didHandleEvent)
-         {
-            [self mulleSubviewDidHandleEvent:event];
-            mulle_pointerarrayreverseenumerator_done( &rover);
-            return( view);
-         }
-      }
-      mulle_pointerarrayreverseenumerator_done( &rover);
-   }
-
-   return( nil);
-}
-
 
 // this does the hitTest
-- (UIEvent *) handleEvent:(UIEvent *) event
-               atPosition:(CGPoint) position
+- (UIEvent *) handleInputEvent:(UIInputEvent *) event
+                    atPosition:(CGPoint) position
 {
    CGPoint                               translated;
    struct mulle_pointerarrayenumerator   rover;
    UIView                                *view;
-   UIEvent                               *memo;
+   UIInputEvent                          *memo;
 
    assert( event);
 
@@ -399,7 +392,7 @@
 #endif
 
    if( ! [self hitTest:translated
-             withEvent:event])
+         withInputEvent:event])
    {
 #ifdef EVENT_DEBUG_VERBOSE
        fprintf( stderr, "Event does not hit view %s\n", [self UTF8String]);
@@ -408,8 +401,8 @@
    }
 
    // if a subview handled the event, we are done
-   view = [self mulleLetSubviewHandleEvent:event
-                      atTranslatedPosition:translated];
+   view = [self mulleLetSubviewHandleInputEvent:event
+                           atTranslatedPosition:translated];
    if( view)
    {
 #ifdef EVENT_DEBUG
@@ -432,50 +425,17 @@
    //
    [event _setTranslatedPoint:translated
                       forView:self];
-   return( [self _handleEvent:event]);
+   return( [self _handleInputEvent:event]);
 }
 
 
-- (UIEvent *) responder:(id <UIResponder>) responder
-            handleEvent:(UIEvent *) event
-{
-#ifdef EVENT_DEBUG
-   fprintf( stderr, "%s %s\n", __PRETTY_FUNCTION__, (char *) [responder UTF8String]);
-#endif
-
-   do
-   {
-      // TODO: translate positions
-      //       UIViewController could also be the responde here
-      event = [(UIView *) responder _handleEvent:event];
-      if( ! event)
-      {
-#ifdef EVENT_DEBUG
-         fprintf( stderr, "Responder %s consumed event\n", (char *) [responder UTF8String]);
-#endif
-         break;
-      }
-#ifdef EVENT_DEBUG
-      fprintf( stderr, "Responder %s did not consume event, try next\n", (char *) [responder UTF8String]);
-#endif
-      responder = [responder nextResponder];
-   }
-   while( responder);
-
-   return( event);
-}
-
-
-//
-// This is called and supersed on UIWindow
-//
-- (UIEvent *) handleEvent:(UIEvent *) event
+- (UIEvent *) handleInputEvent:(UIInputEvent *) event
 {
    CGPoint   position;
 
-   position = [event locationInWindow]; // TODO locationInRootView:
-   return( [self handleEvent:event
-                  atPosition:position]);
+   position = [event locationInWindow]; // TODO locationInRootView: ?
+   return( [self handleInputEvent:event
+                       atPosition:position]);
 }
 
 @end

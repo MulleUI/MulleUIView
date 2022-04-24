@@ -136,7 +136,15 @@ enum UIViewAutoresizing
    UIViewAutoresizingCullAtBounds   = 0x2000,    // set to size 0.0 if exceeds bounds
 };
 
+// "backwards" compatibility
+
 typedef NSUInteger   UIViewAutoresizing;
+
+
+char   *UIViewAutoresizingMaskUTF8String( UIViewAutoresizing bits);
+char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
+
+
 
 
 @interface UIView : NSObject <UIAnimatableViewProperties>
@@ -164,7 +172,7 @@ typedef NSUInteger   UIViewAutoresizing;
 @property( getter=isUserInteractionEnabled) BOOL   userInteractionEnabled;  // default: YES
 
 @property BOOL   clipsToBounds;   // default: YES
-@property BOOL   needsLayout;     // use setNeedsLayout for marking
+//@property BOOL   needsLayout;     // use setNeedsLayout for marking
 @property BOOL   needsCaching;
 
 // user info, for finding views (subviewWithTag:)
@@ -220,7 +228,7 @@ typedef NSUInteger   UIViewAutoresizing;
 
 // call back for view events, your handler should return nil if it handled
 // or wants to discard the event. UserInteractionEnabled must be set to YES
-@property( assign) UIEvent  *(*eventCallback)( UIView *view, UIEvent *event);
+@property( assign) UIEvent              *(*eventCallback)( UIView *view, UIEvent *event);
 
 @property( assign) UIViewAutoresizing   autoresizingMask;
 //

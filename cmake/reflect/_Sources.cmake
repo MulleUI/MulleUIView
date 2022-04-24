@@ -13,7 +13,7 @@ endif()
 set( SOURCES
 src/MulleKeyboardEventConsumer.m
 src/UIEdgeInsets+UTF8String.m
-src/UIEvent+UIView.m
+src/UIInputEvent+UIView.m
 src/UITrackingArea.m
 src/UIView+CGGeometry.m
 src/UIView+Layout.m

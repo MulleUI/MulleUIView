@@ -106,7 +106,6 @@ typedef enum
 - (void) layoutLayers;
 
 - (void) layout;
-- (void) layoutIfNeeded;
 
 // will layout the subview in the bounds according to the autoresizingMask
 - (void) layoutSubview:(UIView *) view
