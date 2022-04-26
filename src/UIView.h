@@ -215,6 +215,7 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 @property( observable) CGRect         bounds;
 
 @property( observable) CGFloat        alpha;
+
 //
 // tyically, contentRect is { CGPointZero, bounds.size }. It's the playground
 // for the subviews to be placed in (via subview frame). Padding is added by
