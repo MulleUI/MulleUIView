@@ -4,57 +4,46 @@
 #define DUMP_LAYERS
 
 
+@interface NSObject ( UIWindow)
+
+- (BOOL) __isUIWindow;
+
+@end
+
+
 @implementation UIView( CGGeometry)
 
-//
-// Transform for incoming values of the superview to translate into
-// bounds space of the view. For hit tests.
-//
-- (CGAffineTransform) updateTransformWithFrameAndBounds:(CGAffineTransform) transform
+- (CGPoint) contentLocationForLocation:(CGPoint) location
 {
-   CGRect              frame;
-   CGRect              bounds;
-   CGPoint             scale;
-   CGAffineTransform   tmp;
-   CGAffineTransform   xform;
-
-   frame  = [self frame];
-   bounds = [self bounds];
-
-   tmp   = CGAffineTransformMakeTranslationInline( bounds.origin.x, bounds.origin.y);
-//   nvgTransformTranslate( tmp, bounds.origin.x, bounds.origin.y);
-   xform = CGAffineTransformConcatInline( tmp, transform);
-//   nvgTransformPremultiply( transform, tmp);
-
-   scale.x = bounds.size.width / frame.size.width;
-   scale.y = bounds.size.height / frame.size.height;
-
-   tmp = CGAffineTransformScaleInline( tmp, scale.x, scale.y);
-//   nvgTransformScale( tmp, scale.x, scale.y);
-   xform = CGAffineTransformConcatInline( tmp, xform);
-//   nvgTransformPremultiply( transform, tmp);
-
-   tmp = CGAffineTransformTranslateInline( tmp, -frame.origin.x, -frame.origin.y);
-//   nvgTransformTranslate( tmp, -frame.origin.x, -frame.origin.y);
-   tmp = CGAffineTransformConcatInline( tmp, xform);
-//   nvgTransformPremultiply( transform, tmp);
-   return( tmp);
-}
-
-
-
-- (CGPoint) translatedPoint:(CGPoint) point
-{
-   CGPoint             translated;
+   CGPoint             contentLocation;
    CGAffineTransform   transform;
 
-   transform  = CGAffineTransformMakeIdentity();
+//   CGAffineTransform   identity;
+//   identity   = CGAffineTransformMakeIdentity();
 //   nvgTransformIdentity( transform);
-   transform  = [self updateTransformWithFrameAndBounds:transform];
-   translated = CGPointApplyAffineTransformInline( point, transform);
+   transform       = CGAffineTransformMakeInverseProjection( [self frame], [self bounds]);
+//   transform = CGAffineTransformConcatFrameAndBoundsTransform( identity, [self frame], [self bounds]);
+   contentLocation = CGPointApplyAffineTransformInline( location, transform);
 //   nvgTransformPoint( &translated.x, &translated.y, transform, point.x, point.y);
-   return( translated);
+   return( contentLocation);
 }
+
+
+- (CGPoint) locationForContentLocation:(CGPoint) location
+{
+   CGPoint             contentLocation;
+   CGAffineTransform   transform;
+//   CGAffineTransform   identity;
+
+//   identity   = CGAffineTransformMakeIdentity();
+//   nvgTransformIdentity( transform);
+//   transform = CGAffineTransformConcatFrameAndBoundsInverseTransform( identity, [self frame], [self bounds]);
+   transform       = CGAffineTransformMakeProjection( [self frame], [self bounds]);
+   contentLocation = CGPointApplyAffineTransformInline( location, transform);
+//   nvgTransformPoint( &translated.x, &translated.y, transform, point.x, point.y);
+   return( contentLocation);
+}
+
 
 
 // Memo:
@@ -155,12 +144,9 @@
 //    |               :                |
 //    +---------------+----------------+
 //
-static CGRect   convertFrameRectToBoundsRect( UIView *self, CGRect rect, CGRect frame)
+static CGRect   convertFrameRectToBoundsRect( CGRect rect, CGRect frame, CGRect bounds)
 {
-   CGRect   bounds;
    CGPoint  scale;
-
-   bounds = [self bounds];
 
    if( ! CGSizeEqualToSize( frame.size, bounds.size))
    {
@@ -204,12 +190,9 @@ static CGRect   convertFrameRectToBoundsRect( UIView *self, CGRect rect, CGRect 
 //    |               :                |
 //    +---------------+----------------+
 //
-static CGRect   convertBoundsRectToFrameRect( UIView *self, CGRect rect, CGRect frame)
+static CGRect   convertBoundsRectToFrameRect( CGRect rect, CGRect bounds, CGRect frame)
 {
-   CGRect   bounds;
    CGPoint  scale;
-
-   bounds = [self bounds];
 
    rect.origin.x -= bounds.origin.x;
    rect.origin.y -= bounds.origin.y;
@@ -268,9 +251,11 @@ static CGRect   convertBoundsRectToFrameRect( UIView *self, CGRect rect, CGRect 
 {
    CGRect                                        converted;
    CGRect                                        frame;
+   CGRect                                        bounds;
    struct mulle__pointerarrayreverseenumerator   rover;
    struct mulle__pointerarray                    array;
    UIView                                        *view;
+   UIView                                        *next;
    UIView                                        *views[ 32];
 
    converted = rect;
@@ -293,7 +278,8 @@ static CGRect   convertBoundsRectToFrameRect( UIView *self, CGRect rect, CGRect 
       if( view == self)
          goto up;
 
-      _mulle__pointerarray_add( &array, view, NULL);
+      if( ! [view __isUIWindow])
+         _mulle__pointerarray_add( &array, view, NULL);
    }
 
    for( view = self; view; view = [view superview])
@@ -301,10 +287,14 @@ static CGRect   convertBoundsRectToFrameRect( UIView *self, CGRect rect, CGRect 
       if( view == toView)
          goto done;
 
-      frame               = [view frame];
-      converted           = convertBoundsRectToFrameRect( view, converted, frame);
-      converted.origin.x += frame.origin.x;
-      converted.origin.y += frame.origin.y;
+      if( ! [view __isUIWindow])
+      {
+         frame               = [view frame];
+         bounds              = [view bounds];
+         converted           = convertBoundsRectToFrameRect( converted, bounds, frame);
+         converted.origin.x += frame.origin.x;
+         converted.origin.y += frame.origin.y;
+      }
       // convert direction to screen coordinates
    }
 
@@ -314,9 +304,10 @@ up:
    while( _mulle__pointerarrayreverseenumerator_next( &rover, (void **) &view))
    {
       frame               = [view frame];
+      bounds              = [view bounds];
       converted.origin.x -= frame.origin.x;
       converted.origin.y -= frame.origin.y;
-      converted           = convertFrameRectToBoundsRect( view, converted, frame);
+      converted           = convertFrameRectToBoundsRect( converted, frame, bounds);
    }
    _mulle__pointerarrayreverseenumerator_done( &rover);
 
@@ -332,9 +323,11 @@ done:
 {
    CGRect                                        converted;
    CGRect                                        frame;
+   CGRect                                        bounds;
    struct mulle__pointerarrayreverseenumerator   rover;
    struct mulle__pointerarray                    array;
    UIView                                        *view;
+   UIView                                        *next;
    UIView                                        *views[ 32];
 
    converted = rect;
@@ -355,7 +348,10 @@ done:
    {
       if( view == fromView)
          goto up;
-      _mulle__pointerarray_add( &array, view, NULL);
+
+      // don't add window
+      if( ! [view __isUIWindow])
+         _mulle__pointerarray_add( &array, view, NULL);
    }
 
    for( view = fromView; view; view = [view superview])
@@ -363,10 +359,15 @@ done:
       if( view == self)
          goto done;
 
-      frame               = [view frame];
-      converted           = convertBoundsRectToFrameRect( view, converted, frame);
-      converted.origin.x += frame.origin.x;
-      converted.origin.y += frame.origin.y;
+      // don't add window
+      if( ! [view __isUIWindow])
+      {
+         frame               = [view frame];
+         bounds              = [view bounds];
+         converted           = convertBoundsRectToFrameRect( converted, bounds, frame);
+         converted.origin.x += frame.origin.x;
+         converted.origin.y += frame.origin.y;
+      }
       // convert direction to screen coordinates
    }
 
@@ -376,9 +377,10 @@ up:
    while( _mulle__pointerarrayreverseenumerator_next( &rover, (void **) &view))
    {
       frame               = [view frame];
+      bounds              = [view bounds];
       converted.origin.x -= frame.origin.x;
       converted.origin.y -= frame.origin.y;
-      converted           = convertFrameRectToBoundsRect( view, converted, frame);
+      converted           = convertFrameRectToBoundsRect( converted, frame, bounds);
 
    }
    _mulle__pointerarrayreverseenumerator_done( &rover);

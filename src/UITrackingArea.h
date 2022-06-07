@@ -56,9 +56,9 @@ static inline id    UITrackingAreaGetUserInfo( struct UITrackingArea *p)
 // not that useful for public consumption, therefore not typedef
 struct UITrackingAreaArray
 {
-   NSUInteger                  n;
-   NSUInteger                  size;
-   struct mulle_allocator      *allocator;
+   NSUInteger               n;
+   NSUInteger               size;
+   struct mulle_allocator   *allocator;
    struct UITrackingArea    *items;
 };
 

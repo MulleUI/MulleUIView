@@ -31,34 +31,6 @@
 
 
 //
-// propagate up, but stop if already marked
-//
-- (void) setNeedsLayout
-{
-   UIView   *view;
-   UIView   *next;
-
-   next = self;
-   for(;;)
-   {
-      view = next;
-      // if( view->_needsLayout)
-      //    break;
-
-      next = view->_superview;
-      if( ! next)  // we are the window
-      {
-         // window may use special atomic flag, so don't ignore accessor
-         [self setNeedsLayout];
-         return;
-      }
-
-      // view->_needsLayout = YES;  // quick mark and unto next
-   }
-}
-
-
-//
 // by default, the mainLayer fills the contentRect of
 // its owning UIView.
 //

@@ -4,6 +4,27 @@
 
 
 
+//
+// this layer does nothing, it's just there so we can run tests
+// on UIView basically
+//
+@interface UINullLayer : NSObject <UILayer>
+{
+   char   *_debugNameUTF8String;
+}
+
+@property( observable) CGRect   frame;
+@property( observable) CGRect   bounds;
+
+@property( assign) CGAffineTransform   transform;
+@property( assign) CGRect              clipRect;
+@property( assign) CGFloat             alpha;
+
+@end
+
+
+
+
 static char  *UIViewAutoresizingUTF8String( NSUInteger bit)
 {
    switch( bit)
@@ -123,13 +144,18 @@ char   *UIViewAutoresizingMaskUTF8String( NSUInteger bits)
    return( NO);
 }
 
+- (BOOL) __isUIWindow
+{
+   return( NO);
+}
+
 @end
 
 //#define RENDER_DEBUG
 //#define RENDER_VERBOSE_DEBUG
 //#define HAVE_RENDER_CACHE
 
-static UIEvent   *defaultHandleEventCallback( UIView *view, UIEvent *event)
+static UIInputEvent   *defaultHandleInputEventCallback( UIView *view, UIInputEvent *event)
 {
    return( event);
 }
@@ -141,7 +167,6 @@ static UIEvent   *defaultHandleEventCallback( UIView *view, UIEvent *event)
 {
    return( YES);
 }
-
 
 
 + (instancetype) viewWithFrame:(CGRect) frame
@@ -177,7 +202,7 @@ static UIEvent   *defaultHandleEventCallback( UIView *view, UIEvent *event)
    _bounds.size.width      = INFINITY; // once we change the bounds size
                                        // we disconnect from frame.size
    _frame                  = frame;
-   _eventCallback          = defaultHandleEventCallback;
+   _eventCallback          = defaultHandleInputEventCallback;
 
 //   _needsDisplay           = YES;
 
@@ -245,6 +270,12 @@ static inline CGRect   getBounds( UIView *self)
 }
 
 
+
++ (Class) layerClass
+{
+   return( [UINullLayer class]);
+}
+
 //
 // for layers bounds are inherited directly, so the layer "sticks"
 // (and need to be panned by its bounds)
@@ -292,10 +323,11 @@ static inline CGRect   getBounds( UIView *self)
    return( bounds);
 }
 
-- (void) setEventCallback:(UIEvent *(*)(UIView *, UIEvent *)) callback
+
+- (void) setEventCallback:(UIInputEvent *(*)(UIView *, UIInputEvent *)) callback
 {
    if( ! callback)
-      callback = defaultHandleEventCallback;
+      callback = defaultHandleInputEventCallback;
    _eventCallback = callback;
 }
 
@@ -756,3 +788,41 @@ static inline CGRect   getBounds( UIView *self)
 }
 
 @end
+
+
+
+@implementation UINullLayer
+
+
+- (instancetype) initWithFrame:(CGRect) frame
+{
+   _frame       = frame;
+   _bounds.size = frame.size;
+   return( self);
+}
+
+
+- (char *) debugNameUTF8String
+{
+   return( _debugNameUTF8String);
+}
+- (void) setDebugNameUTF8String:(char *) s
+{
+   MulleObjCObjectSetDuplicatedUTF8String( self, &_debugNameUTF8String, s);
+}
+
+- (CGSize) sizeThatFits:(CGSize) size
+                context:(id) context
+{
+   return( size);
+}
+
+// used for convenience window creation
+- (NSUInteger) windowStyleMaskBits
+{
+   return( 0);
+}
+
+@end
+
+

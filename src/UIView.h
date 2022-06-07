@@ -38,11 +38,17 @@ UI_VIEW_ANIMATABLE_PROPERTIES;
 @property( assign) CGRect              clipRect;
 @property( assign) CGFloat             alpha;
 
+- (instancetype) initWithFrame:(CGRect) frame;
+
 - (char *) debugNameUTF8String;
 - (void) setDebugNameUTF8String:(char *) s;
 
 - (CGSize) sizeThatFits:(CGSize) size
                 context:(id) context;
+
+// used for convenience window creation
+- (NSUInteger) windowStyleMaskBits;
+
 @end
 
 
@@ -163,7 +169,7 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
    NSObject <UIAnimatableViewProperties>   *_snapshot;
 
    // CALayer
-   id < UILayer>                           _mainLayer;
+   id <UILayer>                            _mainLayer;
    // CAAnimationStorage (forward storage)
    void                                    *_animationStorage;
 }
@@ -191,7 +197,7 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 
 //
 // Margins are used during subview layout. Its the distance of the view to
-// otherviews. What is conventionally though of as "padding" is really just a
+// other views.
 //
 @property( observable) UIEdgeInsets   margins;
 // this gets inherited down to all layers and subviews
@@ -200,7 +206,7 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 @property( observable) CGRect         frame;
 
 //
-// bounds is the used to place the layers and subviews in, their frames
+// bounds is the used to place the layers and subviews. Their frames
 // are relative to the bounds. If there is a size difference between bounds
 // and frame then there will be scaling. Usually the bounds.origin is 0,0
 // and the bounds.size is tied to the frame.size.
@@ -227,9 +233,10 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 // by UIView during layout
 - (CGRect) layoutRect;
 
-// call back for view events, your handler should return nil if it handled
-// or wants to discard the event. UserInteractionEnabled must be set to YES
-@property( assign) UIEvent              *(*eventCallback)( UIView *view, UIEvent *event);
+// call back for view input events, your handler should return nil if it
+// handled or wants to discard the event.
+// UserInteractionEnabled must be set to YES to get this callback
+@property( assign) UIInputEvent         *(*eventCallback)( UIView *view, UIInputEvent *event);
 
 @property( assign) UIViewAutoresizing   autoresizingMask;
 //
@@ -326,6 +333,10 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 @end
 
 
+//
+// the default will be a UINullLayer which will do absolutely nothing
+// not even draw a background
+//
 @interface UIView( UILayerFuture)
 
 + (Class) layerClass;

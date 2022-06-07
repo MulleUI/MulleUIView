@@ -20,12 +20,20 @@
 
 @interface UIView( CGGeometry)
 
-- (CGPoint) translatedPoint:(CGPoint) point;
+// point is coming in from "superview" space and then translated to
+// contentRect / canvas of the view
+//
+- (CGPoint) contentLocationForLocation:(CGPoint) location;
+- (CGPoint) locationForContentLocation:(CGPoint) contentLocation;
 
-- (CGRect) convertRect:(CGRect) pos toView:(UIView*)toView;
-- (CGRect) convertRect:(CGRect) pos fromView:(UIView*)fromView;
-- (CGPoint) convertPoint:(CGPoint) pos toView:(UIView*)toView;
-- (CGPoint) convertPoint:(CGPoint) pos fromView:(UIView*)fromView;
+- (CGRect) convertRect:(CGRect) rect
+                toView:(UIView*) toView;
+- (CGRect) convertRect:(CGRect) rect
+              fromView:(UIView*) fromView;
+- (CGPoint) convertPoint:(CGPoint) pos
+                  toView:(UIView*) toView;
+- (CGPoint) convertPoint:(CGPoint) pos
+                fromView:(UIView*) fromView;
 
 @end
 

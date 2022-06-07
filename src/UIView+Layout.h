@@ -81,7 +81,6 @@ typedef enum
 
 @interface UIView( Layout)
 
-- (void) setNeedsLayout;    // use this to touch up all hierarchy
 
 // calls sizeThatFits:context: with nil
 - (CGSize) sizeThatFits:(CGSize) size;
@@ -134,5 +133,9 @@ typedef enum
 
 - (void) beginLayout:(void *) info;
 - (void) endLayout;
+
+// this flag is handled by UIWindow
+- (void) setNeedsLayout;
+- (BOOL) needsLayout;
 
 @end

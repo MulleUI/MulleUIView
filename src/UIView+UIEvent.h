@@ -1,6 +1,8 @@
 #import "UIView.h"
 
 @class UIMouseScrollEvent;
+@class UIMouseButtonEvent;
+@class UIMouseMotionEvent;
 
 
 // only input events are distributed to UIViews
@@ -8,19 +10,30 @@
 @interface UIView ( UIEvent)
 
 
-- (BOOL) hitTest:(CGPoint) point
-  withInputEvent:(UIInputEvent *) event;
+// pointInside is not declared as UIInputEvent, for compatibility
+// event is unused
+- (BOOL) pointInside:(CGPoint) point
+           withEvent:(UIEvent *) event;
+
+// this will set the contentLocation of the event. If you don't want this
+// don't pass the event
+- (UIView *) hitTest:(CGPoint) point
+           withEvent:(UIEvent *) event;
 
 
-// returns event if it hasn't been handled
+//
+// this handles event without subviews
+//
 - (UIInputEvent *) handleInputEvent:(UIInputEvent *) event;
 
+// returns event if it hasn't been handled, this will hitTest subviews
+// location is in the superview frame space
 - (UIInputEvent *) handleInputEvent:(UIInputEvent *) event
-                         atPosition:(CGPoint) position;
+                           location:(CGPoint) location;
 
 
-- (UIView *) subviewAtPoint:(CGPoint) point;
-- (id <UILayer>) layerAtPoint:(CGPoint) point;
+- (UIView *) subviewAtContentLocation:(CGPoint) point;
+- (id <UILayer>) layerAtContentLocation:(CGPoint) point;
 
 @end
 
@@ -30,26 +43,26 @@
 //
 @interface UIView ( UIFutureEvents)
 
-- (UIEvent *) keyUp:(UIEvent *) event;
-- (UIEvent *) keyDown:(UIEvent *) event;
+- (UIKeyboardEvent *) keyUp:(UIKeyboardEvent *) event;
+- (UIKeyboardEvent *) keyDown:(UIKeyboardEvent *) event;
 
-- (UIEvent *) scrollWheel:(UIEvent *) event;
+- (UIMouseScrollEvent *) scrollWheel:(UIMouseScrollEvent *) event;
 
-- (UIEvent *) mouseDown:(UIEvent *) event;
-- (UIEvent *) otherMouseDown:(UIEvent *) event;
-- (UIEvent *) rightMouseDown:(UIEvent *) event;
+- (UIMouseButtonEvent *) mouseDown:(UIMouseButtonEvent *) event;
+- (UIMouseButtonEvent *) otherMouseDown:(UIMouseButtonEvent *) event;
+- (UIMouseButtonEvent *) rightMouseDown:(UIMouseButtonEvent *) event;
 
-- (UIEvent *) mouseUp:(UIEvent *) event;
-- (UIEvent *) otherMouseUp:(UIEvent *) event;
-- (UIEvent *) rightMouseUp:(UIEvent *) event;
+- (UIMouseButtonEvent *) mouseUp:(UIMouseButtonEvent *) event;
+- (UIMouseButtonEvent *) otherMouseUp:(UIMouseButtonEvent *) event;
+- (UIMouseButtonEvent *) rightMouseUp:(UIMouseButtonEvent *) event;
 
-- (UIEvent *) mouseDragged:(UIMouseMotionEvent *) event;
-- (UIEvent *) otherMouseDragged:(UIMouseMotionEvent *) event;
-- (UIEvent *) rightMouseDragged:(UIMouseMotionEvent *) event;
+- (UIMouseMotionEvent *) mouseDragged:(UIMouseMotionEvent *) event;
+- (UIMouseMotionEvent *) otherMouseDragged:(UIMouseMotionEvent *) event;
+- (UIMouseMotionEvent *) rightMouseDragged:(UIMouseMotionEvent *) event;
 
-- (UIEvent *) mouseEntered:(UIEvent *) event;
-- (UIEvent *) mouseExited:(UIEvent *) event;
-- (UIEvent *) mouseMoved:(UIEvent *) event;
+- (UIMouseMotionEvent *) mouseEntered:(UIMouseMotionEvent *) event;
+- (UIMouseMotionEvent *) mouseExited:(UIMouseMotionEvent *) event;
+- (UIMouseMotionEvent *) mouseMoved:(UIMouseMotionEvent *) event;
 
 + (CGFloat) mouseMotionSuppressionDelay;
 

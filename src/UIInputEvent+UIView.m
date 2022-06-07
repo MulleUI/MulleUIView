@@ -19,7 +19,7 @@
 
    // TODO: CHECK THIS!!
 #if 0
-   point = [self _translatedPointForView:view];
+   point = [self _contentLocationForView:view];
    if ( point.x != CGFLOAT_MIN)
    {
 #if DEBUG
@@ -40,22 +40,22 @@
 }
 
 
-- (CGPoint) _translatedPointForView:(UIView *) view
+- (CGPoint) _contentLocationForView:(UIView *) view
 {
    if( view == _translatedView)
-      return( _translatedPoint);
+      return( _contentLocation);
    // TODO: could unlazy this instead of bail, but...
    return( CGPointMake( CGFLOAT_MIN, CGFLOAT_MIN));
 }
 
 
-- (void) _setTranslatedPoint:(CGPoint) point
+- (void) _setContentLocation:(CGPoint) point
                      forView:(UIView *) view
 {
    assert( point.x != CGFLOAT_MIN);
    assert( view);
 
-   _translatedPoint = point;
+   _contentLocation = point;
    _translatedView  = view;
 }
 

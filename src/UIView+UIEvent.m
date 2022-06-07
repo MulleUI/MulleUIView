@@ -6,9 +6,9 @@
 
 
 
-//#define EVENT_DEBUG
-//#define EVENT_DEBUG_VERBOSE
-//#define HITTEST_DEBUG
+#define EVENT_DEBUG
+#define EVENT_DEBUG_VERBOSE
+#define HITTEST_DEBUG
 
 @implementation UIView ( UIEvent)
 
@@ -20,7 +20,7 @@
 
 
 // flat, doesn't recurse
-- (UIView *) subviewAtPoint:(CGPoint) point
+- (UIView *) subviewAtContentLocation:(CGPoint) point
 {
    struct mulle_pointerarrayreverseenumerator   rover;
    UIView                                       *view;
@@ -34,7 +34,7 @@
 }
 
 
-- (id <UILayer>) layerAtPoint:(CGPoint) point
+- (id <UILayer>) layerAtContentLocation:(CGPoint) point
 {
    struct mulle_pointerarrayreverseenumerator   rover;
    id <UILayer>                                 layer;
@@ -52,35 +52,32 @@
    return( layer);
 }
 
-//
-// checks if point is in the visible area
-// point is in the bounds coordinate system
-// Does not recurse to subviews. Query those separately
-//
-- (BOOL) hitTest:(CGPoint) point
-  withInputEvent:(UIInputEvent *) event
+
+- (BOOL) pointInside:(CGPoint) point
+           withEvent:(UIEvent *) event
 {
    BOOL     flag;
+   CGRect   rect;
    CGRect   bounds;
 
-   bounds          = [self bounds];
-   bounds.origin.x = -bounds.origin.x;
-   bounds.origin.y = -bounds.origin.y;
-   flag            = CGRectContainsPoint( bounds, point);
-
+   rect   = [self contentRect];
+   flag = CGRectContainsPoint( rect, point);
+   if( flag)
+   {
+      bounds = [self bounds];
+      flag   = CGRectContainsPoint( bounds, point);
+   }
 #ifdef HITTEST_DEBUG
-   fprintf( stderr, "%s: %s [%s] @%s -> %s\n",
-                        __PRETTY_FUNCTION__,
-                        [self UTF8String],
-                        CGRectUTF8String( bounds),
-                        CGPointUTF8String( point),
-                        flag ? "YES" : "NO");
+   MulleUILog( "%s -> %btd",
+                  CGPointUTF8String( point),
+                  flag);
 #endif
    return( flag);
 }
 
 
-- (UIEvent *) handleMouseButtonEvent:(UIMouseButtonEvent *) event
+
+- (UIMouseButtonEvent *) handleMouseButtonEvent:(UIMouseButtonEvent *) event
 {
    SEL   sel;
    int   action;
@@ -90,19 +87,22 @@
    action = [event action];
    button = [event button];
 
-   if( action == UIEventButtonDown)
+   if( action == UIEventButtonActionDown)
       _clickOrDrag._suppressUntilTimestamp = [event timestamp] +
                                              _clickOrDrag._mouseMotionSuppressionDelay;
 
+   // for support of other buttons, subclass and override
+   // handleMouseButtonEvent:
+   //
    switch( button)
    {
       case UIEventMouseButtonLeft :
          switch( action)
          {
-         case UIEventButtonDown :
+         case UIEventButtonActionDown :
             sel = @selector( mouseDown:);
             break;
-         case UIEventButtonUp :
+         case UIEventButtonActionUp :
             sel = @selector( mouseUp:);
             break;
          }
@@ -111,10 +111,10 @@
       case UIEventMouseButtonRight  :
          switch( action)
          {
-         case UIEventButtonDown   :
+         case UIEventButtonActionDown   :
             sel = @selector( rightMouseDown:);
             break;
-         case UIEventButtonUp :
+         case UIEventButtonActionUp :
             sel = @selector( rightMouseUp:);
             break;
          }
@@ -123,10 +123,10 @@
       case UIEventMouseButtonMiddle :
          switch( action)
          {
-         case UIEventButtonDown   :
+         case UIEventButtonActionDown   :
             sel = @selector( otherMouseDown:);
             break;
-         case UIEventButtonUp :
+         case UIEventButtonActionUp :
             sel = @selector( otherMouseUp:);
             break;
          }
@@ -143,7 +143,7 @@
 
 // general idea: suppress mouseDragged events, until a certain amount of
 //               time has passed.
-- (UIEvent *) handleMouseMotionEvent:(UIMouseMotionEvent *) event
+- (UIMouseMotionEvent *) handleMouseMotionEvent:(UIMouseMotionEvent *) event
 {
    uint64_t   state;
    SEL        sel;
@@ -190,19 +190,19 @@
 }
 
 
-- (UIEvent *) handleMouseScrollEvent:(UIMouseScrollEvent *) event
+- (UIMouseScrollEvent *) handleMouseScrollEvent:(UIMouseScrollEvent *) event
 {
    // scrollWheel: taken from AppKit
    // https://developer.apple.com/documentation/appkit/nsscrollview/1403494-scrollwheel?language=objc
    //
    if( event && [self respondsToSelector:@selector( scrollWheel:)])
-      event = (UIMouseScrollEvent *) [self scrollWheel:event];
+      event = [self scrollWheel:event];
 
    return( event);
 }
 
 
-- (UIEvent *) handleKeyboardEvent:(UIKeyboardEvent *) event
+- (UIKeyboardEvent *) handleKeyboardEvent:(UIKeyboardEvent *) event
 {
    uint64_t   state;
    SEL        sel;
@@ -210,7 +210,7 @@
    sel   = 0;
    switch( [event action])
    {
-   case UIEventButtonRepeat  :  // do keyUp: and keyDown:
+   case UIEventButtonActionRepeat  :  // do keyUp: and keyDown:
       sel = @selector( keyUp:);
       if( sel && [self respondsToSelector:sel])
       {
@@ -221,11 +221,11 @@
       }
       // fall thru
 
-   case UIEventButtonDown   :
+   case UIEventButtonActionDown   :
       sel = @selector( keyDown:);
       break;
 
-   case UIEventButtonUp :
+   case UIEventButtonActionUp :
       sel = @selector( keyUp:);
       break;
    }
@@ -236,12 +236,12 @@
                          withObject:event];
    }
 #ifdef EVENT_DEBUG
-   fprintf( stderr, "event %p\n", event);
+   MulleUILog( "#%@", event);
 #endif
 
 #if 0
    if( [event key] == GLFW_KEY_ESCAPE &&
-       [event action] == UIEventButtonDown)
+       [event action] == UIEventButtonActionDown)
    {
 #ifdef EVENT_DEBUG
       fprintf( stderr, "request close\n");
@@ -256,82 +256,53 @@
 }
 
 
-- (UIEvent *) handleUnicodeEvent:(UIUnicodeEvent *) event
+- (UIUnicodeEvent *) handleUnicodeEvent:(UIUnicodeEvent *) event
 {
    uint64_t   state;
    SEL        sel;
 
-   sel = @selector( unicodeCharacter:);
+   sel = @selector( unicodeCharacterEvent:);
    if( [self respondsToSelector:sel])
    {
       event = [self performSelector:sel
                          withObject:event];
    }
 #ifdef EVENT_DEBUG
-   fprintf( stderr, "event %p\n", event);
+   MulleUILog( stderr, "#%@", event);
 #endif
    return( event);
 }
-
 
 
 //
 // This was written to support MulleMenu. But MulleMenu does it now
 // differently.
 //
-- (void) mulleSubviewDidHandleInputEvent:(UIInputEvent *) event
+- (void) subviewDidHandleInputEvent:(UIInputEvent *) event
 {
    // pass it up, until noone cares anymore
-   [[self superview] mulleSubviewDidHandleInputEvent:event];
+   [[self superview] subviewDidHandleInputEvent:event];
 }
 
 
-- (UIView *) mulleLetSubviewHandleInputEvent:(UIInputEvent *) event
-                        atTranslatedPosition:(CGPoint) translated
+- (UIInputEvent *) handleInputEvent:(UIInputEvent *) event
 {
-   struct mulle_pointerarrayreverseenumerator   rover;
-   UIView                                       *view;
-   BOOL                                         didHandleEvent;
-
-   if( _subviews)
-   {
-      rover = _mulle_pointerarray_reverseenumerate( _subviews);
-      while( _mulle_pointerarrayreverseenumerator_next( &rover, (void **) &view))
-      {
-         didHandleEvent = [view handleInputEvent:event
-                                      atPosition:translated] == nil;
-         if( didHandleEvent)
-         {
-            [self mulleSubviewDidHandleInputEvent:event];
-            mulle_pointerarrayreverseenumerator_done( &rover);
-            return( view);
-         }
-      }
-      mulle_pointerarrayreverseenumerator_done( &rover);
-   }
-
-   return( nil);
-}
-
-
-- (UIEvent *) _handleInputEvent:(UIInputEvent *) inputEvent
-{
-   UIEvent   *event;
+   // Handle event myself
 
    if( [self isUserInteractionEnabled] == NO)
    {
 #ifdef EVENT_DEBUG
-       fprintf( stderr, "Disabled view %s ignores event\n", [self UTF8String]);
+       MulleUILog( "Disabled view ignores event %#@", event);
 #endif
-      return( inputEvent);
+      return( event);
    }
 
 #ifdef EVENT_DEBUG
-    fprintf( stderr, "Try to handle event %s\n", [self UTF8String]);
+    MulleUILog( "Try to handle event %#@", event);
 #endif
 
    // this is never nil
-   event = (self->_eventCallback)( self, inputEvent);
+   event = (self->_eventCallback)( self, event);
 
    switch( [event eventType])
    {
@@ -362,80 +333,145 @@
 }
 
 
+- (UIView *) subviewAcceptingInputEvent:(UIInputEvent *) event
+                        contentLocation:(CGPoint) contentLocation
+{
+   struct mulle_pointerarrayreverseenumerator   rover;
+   UIView                                       *view;
+   BOOL                                         didHandleEvent;
+   CGPoint                                      location;
+
+   if( _subviews)
+   {
+      rover = _mulle_pointerarray_reverseenumerate( _subviews);
+      while( _mulle_pointerarrayreverseenumerator_next( &rover, (void **) &view))
+      {
+         // "view" is located in the contentRect of self, so location is with
+         // respect to "view" now the location within the superview
+         location       = contentLocation;
+         didHandleEvent = [view handleInputEvent:event
+                                       location:location] == nil;
+         if( didHandleEvent)
+         {
+            [self subviewDidHandleInputEvent:event];
+            mulle_pointerarrayreverseenumerator_done( &rover);
+            return( view);
+         }
+      }
+      mulle_pointerarrayreverseenumerator_done( &rover);
+   }
+
+   return( nil);
+}
+
+
 // this does the hitTest
 - (UIEvent *) handleInputEvent:(UIInputEvent *) event
-                    atPosition:(CGPoint) position
+                      location:(CGPoint) location
 {
-   CGPoint                               translated;
+   CGPoint                               contentLocation;
    struct mulle_pointerarrayenumerator   rover;
    UIView                                *view;
-   UIInputEvent                          *memo;
+   UIEvent                               *result;
 
    assert( event);
 
    if( [self isHidden]) // alpha < 0.01: should we care for events ?
    {
 #ifdef EVENT_DEBUG
-       fprintf( stderr, "Invisible view %s ignores event\n", [self UTF8String]);
+       MulleUILog( "Invisible view ignores event %#@", event);
 #endif
       return( event);
    }
 
    // from UIView+CGGeometry
-   translated = [self translatedPoint:position];
-
+   contentLocation = [self contentLocationForLocation:location];
 #ifdef HITTEST_DEBUG
-  fprintf( stderr, "translated: %s %s -> %s\n",
-               [self UTF8String],
-               CGPointUTF8String( position),
-               CGPointUTF8String( translated));
+  MulleUILog( "translated: %s -> %s [c=%s]\n",
+               CGPointUTF8String( location),
+               CGPointUTF8String( contentLocation),
+               CGRectUTF8String( [self contentRect]));
 #endif
 
-   if( ! [self hitTest:translated
-         withInputEvent:event])
+   view = [self hitTest:contentLocation
+              withEvent:event];
+
+   if( ! view)
    {
 #ifdef EVENT_DEBUG_VERBOSE
-       fprintf( stderr, "Event does not hit view %s\n", [self UTF8String]);
+      MulleUILog( "Event #%@ does not hit", event);
 #endif
       return( event);
    }
 
-   // if a subview handled the event, we are done
-   view = [self mulleLetSubviewHandleInputEvent:event
-                           atTranslatedPosition:translated];
-   if( view)
+   if( ! [view isUserInteractionEnabled])
+   {
+//      // TODO: check if event type is of type user interaction
+#ifdef EVENT_DEBUG
+      MulleUILog( "User interaction disabled");
+#endif
+      return( event);
+   }
+
+   result = [view handleInputEvent:event];
+   if( view != self)
+      [self subviewDidHandleInputEvent:event];
+
+   return( result);
+}
+
+
+- (UIView *) hitTest:(CGPoint) point
+           withEvent:(UIEvent *) event
+{
+   UIView                                       *view;
+   struct mulle_pointerarrayreverseenumerator   rover;
+   CGPoint                                      contentLocation;
+   UIView                                       *found;
+
+   assert( event);
+
+   if( [self isHidden]) // alpha < 0.01: should we care for events ?
    {
 #ifdef EVENT_DEBUG
-      fprintf( stderr, "Subview %s did consume event\n", [view UTF8String]);
+       MulleUILog( "Invisible view ignores event %#@", event);
 #endif
       return( nil);
    }
 
-   if( ! [self isUserInteractionEnabled]) // alpha < 0.01: should we care for events ?
+   if( ! [self pointInside:point
+                 withEvent:event])
    {
-      // TODO: check if event type is of type user interaction
-#ifdef EVENT_DEBUG
-      fprintf( stderr, "User interaction disabled on view %s\n", [self UTF8String]);
+#ifdef EVENT_DEBUG_VERBOSE
+      MulleUILog( "Event #%@ does not hit", event);
 #endif
-      return( event);
+      return( nil);
    }
 
-   //
-   // current position relative to visible bounds
-   //
-   [event _setTranslatedPoint:translated
-                      forView:self];
-   return( [self _handleInputEvent:event]);
-}
+   found = nil;
+   if( _subviews)
+   {
+      rover = _mulle_pointerarray_reverseenumerate( _subviews);
+      while( _mulle_pointerarrayreverseenumerator_next( &rover, (void **) &view))
+      {
+         // "view" is located in the contentRect of self, so location is with
+         // respect to "view" now the location within the superview
+         contentLocation = [view contentLocationForLocation:point];
+         found           = [view hitTest:contentLocation
+                               withEvent:event];
+         if( found)
+            break;
+      }
+      mulle_pointerarrayreverseenumerator_done( &rover);
+   }
 
+   // if we found a subviewm the location set has been done already
+   if( found)
+      return( found);
 
-- (UIEvent *) handleInputEvent:(UIInputEvent *) event
-{
-   CGPoint   position;
-
-   position = [event locationInWindow]; // TODO locationInRootView: ?
-   return( [self handleInputEvent:event
-                       atPosition:position]);
+   [(UIInputEvent *) event _setContentLocation:point
+                                       forView:self];
+   return( self);
 }
 
 @end

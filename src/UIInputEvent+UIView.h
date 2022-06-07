@@ -18,9 +18,9 @@
 //
 - (CGPoint) mouseLocationInView:(UIView *) view;
 
-- (void) _setTranslatedPoint:(CGPoint) point
+- (void) _setContentLocation:(CGPoint) point
                      forView:(UIView *) view;
-- (CGPoint) _translatedPointForView:(UIView *) view;
+- (CGPoint) _contentLocationForView:(UIView *) view;
 
 @end
 
