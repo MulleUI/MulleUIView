@@ -8,7 +8,7 @@
 
 @implementation UIInputEvent ( UIView)
 
-- (CGPoint) mouseLocationInView:(UIView *) view
+- (CGPoint) locationInView:(UIView *) view
 {
    CGPoint   point;
    CGPoint   translated;
@@ -16,48 +16,33 @@
 
    if( ! view)
       return( _locationInWindow);
-
-   // TODO: CHECK THIS!!
-#if 0
-   point = [self _contentLocationForView:view];
-   if ( point.x != CGFLOAT_MIN)
-   {
-#if DEBUG
-      fprintf( stderr, "shortcut");
-#endif
-      return( point);
-   }
-#endif
+   if( view == _locationView)
+      return( _location);
 
    translated = [view convertPoint:_locationInWindow
                           fromView:NULL];
-#if 0
-   fprintf( stderr, "%s -> %s\n",
-               CGPointUTF8String( _locationInWindow),
-               CGPointUTF8String( translated));
-#endif
    return( translated);
 }
 
 
-- (CGPoint) _contentLocationForView:(UIView *) view
+- (CGPoint) _locationForView:(UIView *) view
 {
-   if( view == _translatedView)
-      return( _contentLocation);
-   // TODO: could unlazy this instead of bail, but...
+   if( ! view)
+      return( _locationInWindow);
+   if( view == _locationView)
+      return( _location);
+
    return( CGPointMake( CGFLOAT_MIN, CGFLOAT_MIN));
 }
 
 
-- (void) _setContentLocation:(CGPoint) point
-                     forView:(UIView *) view
+- (void) _setLocation:(CGPoint) point
+              forView:(UIView *) view
 {
    assert( point.x != CGFLOAT_MIN);
-   assert( view);
 
-   _contentLocation = point;
-   _translatedView  = view;
+   _location      = point;
+   _locationView  = view;
 }
-
 
 @end

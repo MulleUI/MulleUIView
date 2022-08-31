@@ -15,20 +15,12 @@
 
 static inline NSUInteger   UIViewGetIndexOfSubview( UIView *self, UIView *other)
 {
-   struct  mulle_pointerarrayenumerator   rover;
-   NSUInteger                             i;
-   UIView                                 *p;
+   NSUInteger   i;
 
-   i     = 0;
-   rover = mulle_pointerarray_enumerate( self->_subviews);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &p))
-   {
-      if( p == other)
-        return(i);
-      ++i;
-   }
-   mulle_pointerarrayenumerator_done( &rover);
-   return( NSNotFound);
+   i = NSNotFound;
+   if( self && other)
+      i = mulle_pointerarray_find( &self->_subviews, other);
+   return( i);
 }
 
 
@@ -43,83 +35,15 @@ void  _mulle_pointerarray_swap( struct mulle_pointerarray *array1,
 }
 
 
-void  mulle_pointerarray_remove_at_index( struct mulle_pointerarray *array,
-                                          void *item,
-                                          int i)
-{
-   struct mulle_pointerarray   tmp;
-   void                        **curr;
-   void                        **deletion;
-   void                        **sentinel;
-   unsigned int                count;
-
-   assert( array);
-
-   count = mulle_pointerarray_get_count( array);
-   if( i == count - 1)
-   {
-      _mulle_pointerarray_pop( array);
-      return;
-   }
-
-   curr      = array->_storage;
-   deletion  = &curr[ i];
-   sentinel  = &curr[ count];
-   if( deletion >= sentinel)
-      return;
-
-   _mulle_pointerarray_init( &tmp,
-                             count - 1,
-                             _mulle_pointerarray_get_allocator( array));
-
-   // copy old over including item of insertion
-   while( curr < deletion)
-   {
-      _mulle_pointerarray_add( &tmp, *curr++);
-      curr++;
-   }
-
-   // skip ours
-   curr++;
-
-   // copy rest
-   while( curr < sentinel)
-   {
-      _mulle_pointerarray_add( &tmp, *curr++);
-      curr++;
-   }
-
-   _mulle_pointerarray_swap( array, &tmp);
-   _mulle_pointerarray_done( &tmp);
-}
-
-
 void  mulle_pointerarray_remove( struct mulle_pointerarray *array,
                                  void *item)
 {
-   struct mulle_pointerarray              tmp;
-   void                                   *p;
-   unsigned int                           count;
-   struct  mulle_pointerarrayenumerator   rover;
+   uintptr_t   i;
 
-   count = mulle_pointerarray_get_count( array);
-   if( ! count)
+   i = mulle_pointerarray_find( array, item);
+   if( i == mulle_not_found_e)
       return;
-
-   _mulle_pointerarray_init( &tmp,
-                             count - 1,
-                             _mulle_pointerarray_get_allocator( array));
-
-   rover = mulle_pointerarray_enumerate( array);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &p))
-   {
-      if( p != item)
-         _mulle_pointerarray_add( &tmp, p);
-   }
-   mulle_pointerarrayenumerator_done( &rover);
-
-   _mulle_pointerarray_swap( array, &tmp);
-   _mulle_pointerarray_done( &tmp);
+   mulle_pointerarray_remove_in_range( array, mulle_range_make( i, 1));
 }
 
 
@@ -131,7 +55,7 @@ void  mulle_pointerarray_remove( struct mulle_pointerarray *array,
 //
 void  mulle_pointerarray_insert_at_index( struct mulle_pointerarray *array,
                                           void *item,
-                                          int i)
+                                          unsigned int i)
 {
    struct mulle_pointerarray   tmp;
    void                        **curr;
@@ -179,74 +103,15 @@ void  mulle_pointerarray_insert_at_index( struct mulle_pointerarray *array,
 }
 
 
-- (void) insertSubview:(UIView *) view
-               atIndex:(NSInteger) index;
-{
-   UIView   *superview;
-
-   superview = [view superview];
-   if( superview != self)
-      [view removeFromSuperview];
-
-   mulle_pointerarray_insert_at_index( [self _subviews], [view retain], (unsigned int) index);
-}
-
-
-- (void) insertSubview:(UIView *) view
-          aboveSubview:(UIView *) other
-{
-   NSInteger   index;
-
-   index = UIViewGetIndexOfSubview( self, other);
-   if( index == NSNotFound)
-      index = -1;
-   [self insertSubview:view
-               atIndex:index + 1];
-}
-
-- (void) insertSubview:(UIView *) view
-          belowSubview:(UIView *) other
-{
-   NSInteger   index;
-
-   index = UIViewGetIndexOfSubview( self, other);
-   [self insertSubview:view
-              atIndex:index];
-}
-
-
-- (void) exchangeSubviewAtIndex:(NSInteger) index1
-             withSubviewAtIndex:(NSInteger) index2
-{
-   void           **curr;
-   void           *item;
-   unsigned int   count;
-
-   count = mulle_pointerarray_get_count( _subviews);
-   if( index1 >= count || index2 >= count)
-      abort();
-
-   curr          = _subviews->_storage;
-   item          = curr[ index1];
-   curr[ index2] = curr[ index1];
-   curr[ index2] = item;
-}
-
-
-/*
- *
- */
-
-
 void  mulle_pointerarray_move( struct mulle_pointerarray *array,
-                               size_t from,
-                               size_t to)
+                               unsigned int from,
+                               unsigned int to)
 {
    struct mulle_pointerarray   tmp;
    void                        **curr;
    void                        **insertion;
    void                        **sentinel;
-   size_t                      count;
+   unsigned int                count;
    void                        *item;
 
    assert( array);
@@ -293,6 +158,64 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
 }
 
 
+
+- (void) insertSubview:(UIView *) view
+               atIndex:(NSInteger) index;
+{
+   UIView   *superview;
+
+   superview = [view superview];
+   if( superview != self)
+      [view removeFromSuperview];
+
+   mulle_pointerarray_insert_at_index( [self _subviews], [view retain], (unsigned int) index);
+}
+
+
+- (void) insertSubview:(UIView *) view
+          aboveSubview:(UIView *) other
+{
+   NSInteger   index;
+
+   index = UIViewGetIndexOfSubview( self, other);
+   if( index == NSNotFound)
+      index = -1;
+   [self insertSubview:view
+               atIndex:index + 1];
+}
+
+- (void) insertSubview:(UIView *) view
+          belowSubview:(UIView *) other
+{
+   NSInteger   index;
+
+   index = UIViewGetIndexOfSubview( self, other);
+   [self insertSubview:view
+              atIndex:index];
+}
+
+
+- (void) exchangeSubviewAtIndex:(NSInteger) index1
+             withSubviewAtIndex:(NSInteger) index2
+{
+   void           **curr;
+   void           *item;
+   unsigned int   count;
+
+   count = mulle_pointerarray_get_count( &_subviews);
+   if( index1 >= count || index2 >= count)
+      abort();
+
+   curr          = _subviews._storage;
+   item          = curr[ index1];
+   curr[ index2] = curr[ index1];
+   curr[ index2] = item;
+}
+
+
+/*
+ *
+ */
 - (void) bringSubviewToFront:(UIView *) view
 {
    NSUInteger                  index;
@@ -303,8 +226,7 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
    if( index == NSNotFound)
       return;
 
-   array = [self _subviews];
-   mulle_pointerarray_move( array, index, 0);
+   mulle_pointerarray_move( &_subviews, index, 0);
 }
 
 
@@ -319,26 +241,29 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
    if( index == NSNotFound)
       return;
 
-   array = [self _subviews];
-   count = mulle_pointerarray_get_count( array);
-   mulle_pointerarray_move( array, index, count);
+   count = mulle_pointerarray_get_count( &_subviews);
+   mulle_pointerarray_move( &_subviews, index, count);
 }
+
+
+- (void) removeSubview:(UIView *) view
+{
+   NSUInteger   index;
+
+   index = UIViewGetIndexOfSubview( self, view);
+   if( index == NSNotFound)
+      return;
+
+   mulle_pointerarray_remove_in_range( &_subviews, 
+                                       mulle_range_make( (unsigned int) index, 1));
+}
+
 
 - (void) removeFromSuperview
 {
-   UIView       *superview;
-   NSUInteger   index;
-
-   superview = [self superview];
-   if( ! superview)
-      return;
-
-   index = UIViewGetIndexOfSubview( superview, self);
-   assert( index != NSNotFound);
-   mulle_pointerarray_remove_at_index( [superview _subviews], [self autorelease], (unsigned int) index);
+   [_superview removeSubview:self];
+   _superview = nil;
 }
-
-
 
 
 /*
@@ -350,7 +275,7 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
    struct mulle_pointerarrayenumerator   rover;
    UIView                                *candidate;
 
-   rover = mulle_pointerarray_enumerate( _subviews);
+   rover = mulle_pointerarray_enumerate( &_subviews);
    while( _mulle_pointerarrayenumerator_next( &rover, (void **) &candidate))
    {
       if( view == candidate)
@@ -358,7 +283,7 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
    }
    mulle_pointerarrayenumerator_done( &rover);
 
-   rover = mulle_pointerarray_enumerate( _subviews);
+   rover = mulle_pointerarray_enumerate( &_subviews);
    while( _mulle_pointerarrayenumerator_next( &rover, (void **) &candidate))
    {
       if( [candidate _isSubviewOrDescendantview:view])

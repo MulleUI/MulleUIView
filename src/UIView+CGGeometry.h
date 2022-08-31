@@ -35,5 +35,9 @@
 - (CGPoint) convertPoint:(CGPoint) pos
                 fromView:(UIView*) fromView;
 
+// this walks up the hierarchy and checks for clipping views and hidden 
+// views, the result is the visible contents in the space of the view
+- (CGRect) visibleRect;
+
 @end
 

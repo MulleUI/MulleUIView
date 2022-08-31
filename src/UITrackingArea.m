@@ -3,132 +3,77 @@
 #import "import-private.h"
 
 
-# pragma mark - struct UITrackingAreaArray
 
-void
-   UITrackingAreaArrayInit( struct UITrackingAreaArray *array,
-                               struct mulle_allocator *allocator)
+@implementation UITrackingArea 
+
+
++ (instancetype) trackingAreaWithRect:(CGRect) rect
 {
-   assert( array);
-
-   array->size      = 0;
-   array->n         = 0;
-   array->allocator = allocator;
-   array->items     = NULL;
+   return( [[[self alloc] initWithRect:rect 
+                                 owner:nil 
+                                cursor:NULL
+                              userInfo:nil 
+                               options:0] autorelease]);
 }
 
 
-static void
-   UITrackingAreaDoneItems( struct UITrackingAreaArray *array)
++ (instancetype) trackingAreaWithRect:(CGRect) rect
+                                owner:(id) owner 
+                               cursor:(UICursor *) cursor
+                             userInfo:(id) userInfo
+                              options:(NSUInteger) options
 {
-   struct UITrackingArea   *p;
-   struct UITrackingArea   *sentinel;
-
-   assert( array);
-
-   p        = array->items;
-   sentinel = &p[ array->n];
-   while( p < sentinel)
-   {
-      UITrackingAreaDone( p);
-      ++p;
-   }
+   return( [[[self alloc] initWithRect:rect 
+                                 owner:owner 
+                                cursor:cursor
+                              userInfo:userInfo 
+                               options:options] autorelease]);
 }
 
 
-void
-   UITrackingAreaArrayDone( struct UITrackingAreaArray *array)
+- (instancetype) initWithRect:(CGRect) rect 
+                        owner:(id) owner 
+                       cursor:(UICursor *) cursor
+                     userInfo:(id) userInfo
+                      options:(NSUInteger) options
 {
-   assert( array);
+   if( cursor)
+      options |= UITrackingSetCursor;
 
-   UITrackingAreaDoneItems( array);
-   mulle_allocator_free( array->allocator, array->items);
-
-   // this is important
-   array->items = NULL;
-   array->n     = 0;
-   array->size  = 0;
+   self->_owner    = owner;
+   self->_rect     = rect;
+   self->_userInfo = [userInfo retain];
+   self->_cursor   = cursor;
+   self->_options  = options;
+   return( self);
 }
 
 
-struct UITrackingArea   *
-   UITrackingAreaArrayNewItem( struct UITrackingAreaArray *array)
+- (instancetype) initWithRect:(CGRect) rect 
+                      options:(NSUInteger) options
+                        owner:(id) owner 
+                     userInfo:(id) userInfo
 {
-   struct UITrackingArea   *p;
-
-   assert( array);
-
-   if( array->n == array->size)
-   {
-      array->size += array->size;
-      if( array->size < 4)
-         array->size = 4;
-
-      array->items = mulle_allocator_realloc( array->allocator,
-                                              array->items,
-                                              sizeof( struct UITrackingArea) * array->size);
-   }
-
-   p = &array->items[ array->n++];
-   memset( p, 0, sizeof( struct UITrackingArea));
-   return( p);
+   return( [self initWithRect:rect  
+                        owner:owner
+                       cursor:NULL
+                     userInfo:userInfo
+                      options:options]);
 }
 
 
-struct UITrackingArea *
-   UITrackingAreaArrayGetItemWithRect( struct UITrackingAreaArray *array,
-                                          CGRect rect)
+- (char  *) UTF8String
 {
-   struct UITrackingArea   *p;
-   struct UITrackingArea   *sentinel;
+   char   *s;
 
-   assert( array);
-
-   p        = &array->items[ 0];
-   sentinel = &array->items[ array->n];
-
-   while( p < sentinel)
-   {
-      if( CGRectEqualToRect( UITrackingAreaGetRect( p), rect))
-      {
-         return( p);
-      }
-      ++p;
-   }
-   return( NULL);
+   s = MulleObjC_asprintf( "{%.2f %.2f %.2f %.2f owner=%#@ cursor=%p}",
+            self->_rect.origin.x, 
+            self->_rect.origin.y, 
+            self->_rect.size.width, 
+            self->_rect.size.height,
+            self->_owner, 
+            self->_cursor); 
+   return( s);
 }
 
-
-
-void
-   UITrackingAreaArrayRemoveItem( struct UITrackingAreaArray *array,
-                                     struct UITrackingArea *item)
-{
-   ptrdiff_t   index;
-   int         tocopy;
-
-   if( ! item)
-      return;
-
-   assert( array);
-
-   index = item - array->items;
-   assert( index >= 0 && index < array->n);
-
-   UITrackingAreaDone( item);
-
-   //
-   // assume: 4 entries (0,1,2,3), removing entry 2, have to compact 1 from behind
-   //
-   tocopy = array->n - index - 1;      // 4 - 2 - 1 = 2
-   if( tocopy > 0)
-   {
-      memmove( &array->items[ index],
-               &array->items[ index + 1],
-               tocopy * sizeof( struct UITrackingArea));
-   }
-   --array->n;
-}
-
-
-
+@end 

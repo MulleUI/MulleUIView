@@ -11,18 +11,18 @@
 
 
 // pointInside is not declared as UIInputEvent, for compatibility
-// event is unused
+// event is unused.
 - (BOOL) pointInside:(CGPoint) point
            withEvent:(UIEvent *) event;
 
-// this will set the contentLocation of the event. If you don't want this
-// don't pass the event
+// this will set the locationForView of the event. If you don't want this
+// don't pass an event
 - (UIView *) hitTest:(CGPoint) point
            withEvent:(UIEvent *) event;
 
 
 //
-// this handles event without subviews
+// this handles the event without considering subviews
 //
 - (UIInputEvent *) handleInputEvent:(UIInputEvent *) event;
 
@@ -59,10 +59,6 @@
 - (UIMouseMotionEvent *) mouseDragged:(UIMouseMotionEvent *) event;
 - (UIMouseMotionEvent *) otherMouseDragged:(UIMouseMotionEvent *) event;
 - (UIMouseMotionEvent *) rightMouseDragged:(UIMouseMotionEvent *) event;
-
-- (UIMouseMotionEvent *) mouseEntered:(UIMouseMotionEvent *) event;
-- (UIMouseMotionEvent *) mouseExited:(UIMouseMotionEvent *) event;
-- (UIMouseMotionEvent *) mouseMoved:(UIMouseMotionEvent *) event;
 
 + (CGFloat) mouseMotionSuppressionDelay;
 

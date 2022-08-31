@@ -185,7 +185,8 @@ static UIInputEvent   *defaultHandleInputEventCallback( UIView *view, UIInputEve
 - (instancetype) initWithLayer:(id <UILayer>) layer
                          frame:(CGRect) frame
 {
-   CGRect   frame;
+   CGRect                   frame;
+   struct mulle_allocator   *allocator;
 
    assert( ! layer || [layer conformsToProtocol:@protocol( UILayer)]);
 
@@ -201,10 +202,18 @@ static UIInputEvent   *defaultHandleInputEventCallback( UIView *view, UIInputEve
    _alpha                  = 1.0;
    _bounds.size.width      = INFINITY; // once we change the bounds size
                                        // we disconnect from frame.size
-   _frame                  = frame;
-   _eventCallback          = defaultHandleInputEventCallback;
-
+#ifdef UIVIEW_FRAME_USES_CGRECTINTEGRAL   
+   frame                   = CGRectIntegral( frame);
+#endif   
+   _frame                   = frame;
+   _eventCallback           = defaultHandleInputEventCallback;
+   _needsTrackingAreaUpdate = YES;
 //   _needsDisplay           = YES;
+
+   allocator = MulleObjCInstanceGetAllocator( self);
+   mulle_pointerarray_init( &_trackingAreas, 0, allocator);
+   mulle_pointerarray_init( &_subviews, 0, allocator);
+   mulle_pointerarray_init( &_layers, 1, allocator);
 
    return( self);
 }
@@ -216,6 +225,9 @@ static UIInputEvent   *defaultHandleInputEventCallback( UIView *view, UIInputEve
    Class          cls;
    CGRect         rect;
 
+#ifdef UIVIEW_FRAME_USES_CGRECTINTEGRAL   
+   frame = CGRectIntegral( frame);
+#endif   
    rect  = CGRectMake( 0.0f, 0.0f, frame.size.width, frame.size.height);
    cls   = [[self class] layerClass];
    layer = [[[cls alloc] initWithFrame:rect] autorelease];
@@ -234,6 +246,9 @@ static UIInputEvent   *defaultHandleInputEventCallback( UIView *view, UIInputEve
    CGRect   frame;
 
    frame = [layer frame];
+#ifdef UIVIEW_FRAME_USES_CGRECTINTEGRAL   
+   frame = CGRectIntegral( frame);
+#endif   
    [layer setFrame:CGRectMake( 0.0f, 0.0f, frame.size.width, frame.size.height)];
 
    return( [self initWithLayer:layer
@@ -243,13 +258,14 @@ static UIInputEvent   *defaultHandleInputEventCallback( UIView *view, UIInputEve
 
 - (void) dealloc
 {
-   UITrackingAreaArrayDone( &_trackingAreas);
+   mulle_pointerarray_release_all( &_trackingAreas);
+   mulle_pointerarray_done( &_trackingAreas);
 
-   mulle_pointerarray_release_all( _subviews);
-   mulle_pointerarray_destroy( _subviews);
+   mulle_pointerarray_release_all( &_subviews);
+   mulle_pointerarray_done( &_subviews);
 
-   mulle_pointerarray_release_all( _layers);
-   mulle_pointerarray_destroy( _layers);
+   mulle_pointerarray_release_all( &_layers);
+   mulle_pointerarray_done( &_layers);
 
    [_cacheLayer release];
    [_mainLayer release];
@@ -289,6 +305,19 @@ static inline CGRect   getBounds( UIView *self)
 // will be overridden later
 - (void) willChange
 {
+}
+
+
+- (void) setFrame:(CGRect) frame
+{
+   [self willChange];
+
+#ifdef UIVIEW_FRAME_USES_CGRECTINTEGRAL   
+   _frame = CGRectIntegral( frame);
+#else
+   _frame = frame;
+#endif
+   _needsTrackingAreaUpdate = YES;
 }
 
 
@@ -336,15 +365,7 @@ static inline CGRect   getBounds( UIView *self)
 //
 - (struct mulle_pointerarray *) _subviews
 {
-   struct mulle_allocator   *allocator;
-
-   if( ! _subviews)
-   {
-      allocator = MulleObjCInstanceGetAllocator( self);
-      _subviews = mulle_pointerarray_alloc( allocator);
-      _mulle_pointerarray_init( _subviews, 4, allocator);
-   }
-   return( _subviews);
+   return( &_subviews);
 }
 
 
@@ -377,7 +398,7 @@ static inline CGRect   getBounds( UIView *self)
 
 - (NSUInteger) subviewCount
 {
-   return( _subviews ? mulle_pointerarray_get_count( _subviews) : 0);
+   return( mulle_pointerarray_get_count( &_subviews));
 }
 
 
@@ -389,11 +410,11 @@ static inline CGRect   getBounds( UIView *self)
    if( ! buf)
       return( -1);
 
-   n = mulle_pointerarray_get_count( _subviews);
+   n = mulle_pointerarray_get_count( &_subviews);
    if( range.location + range.length > n)
       return( -1);
 
-   mulle_pointerarray_copy_range( _subviews, buf, range);
+   mulle_pointerarray_copy_range( &_subviews, buf, range);
 
    return( n);
 }
@@ -405,67 +426,41 @@ static inline CGRect   getBounds( UIView *self)
 {
    struct mulle_allocator   *allocator;
 
-   if( array == self->_subviews)
+   if( array == &_subviews)
       return;
 
-   if( ! array)
-   {
-      mulle_pointerarray_release_all( _subviews);
-      mulle_pointerarray_destroy( _subviews);
-      _subviews = NULL;
-      return;
-   }
-
-   allocator = MulleObjCInstanceGetAllocator( self);
-   assert( _mulle_pointerarray_get_allocator( array) == allocator);
-
-   /* retain/release */
+   mulle_pointerarray_autorelease_all( &_subviews);
    mulle_pointerarray_retain_all( array);
 
-   if( ! _subviews)
-      _subviews = mulle_pointerarray_alloc( allocator);
-   else
-   {
-      mulle_pointerarray_release_all( _subviews);
-      _mulle_pointerarray_done( _subviews);   // but don't free
-   }
-
-   // transfer objects
-   memcpy( _subviews, array, sizeof( struct mulle_pointerarray));
-   // make sure these aren't reused by array anymore
-   _mulle_pointerarray_init( array, 0, allocator);
+   mulle_pointerarray_reset( &_subviews);
+   mulle_pointerarray_absorb( &_subviews, array);
 }
 
 
 - (void) getSubviewsIntersectingRect:(CGRect) rect
-                      intoPointerArray:(struct mulle_pointerarray *) array
+                    intoPointerArray:(struct mulle_pointerarray *) array
               invertIntersectionTest:(BOOL) flag
 {
-   struct mulle_pointerarrayenumerator   rover;
-   UIView                                *view;
+   UIView   *view;
 
    flag = ! flag;
-   rover = mulle_pointerarray_enumerate( _subviews);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &view))
+   mulle_pointerarray_for( &_subviews, view)
       if( CGRectIntersectsRect( [view frame], rect) == flag)
          mulle_pointerarray_add( array, view);
-   mulle_pointerarrayenumerator_done( &rover);
 }
 
 
 - (UIView *) subviewWithTag:(NSInteger) tag
 {
-   struct mulle_pointerarrayenumerator   rover;
-   UIView                                *view;
+   UIView   *view;
 
-   rover = mulle_pointerarray_enumerate( _subviews);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &view))
+   mulle_pointerarray_for( &_subviews, view)
       if( [view tag] == tag)
          break;
-   mulle_pointerarrayenumerator_done( &rover);
 
    return( view);
 }
+
 
 //
 // this is deep, it only searches views contained as subviews
@@ -473,11 +468,9 @@ static inline CGRect   getBounds( UIView *self)
 //
 - (UIView *) findSubviewWithTag:(NSInteger) tag;
 {
-   struct mulle_pointerarrayenumerator   rover;
-   UIView                                *view;
+   UIView   *view;
 
-   rover = mulle_pointerarray_enumerate( _subviews);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &view))
+   mulle_pointerarray_for( &_subviews, view)
    {
       if( [view tag] == tag)
          break;
@@ -485,7 +478,6 @@ static inline CGRect   getBounds( UIView *self)
       if( view)
          break;
    }
-   mulle_pointerarrayenumerator_done( &rover);
 
    return( view);
 }
@@ -620,11 +612,8 @@ static inline CGRect   getBounds( UIView *self)
    }
    assert(_mainLayer != layer);
 
-   if( ! _layers)
-      _layers = mulle_pointerarray_create( NULL);
-
-   assert( _mulle_pointerarray_find( _layers, layer) == mulle_not_found_e);
-   _mulle_pointerarray_add( _layers, layer);
+   assert( _mulle_pointerarray_find( &_layers, layer) == mulle_not_found_e);
+   _mulle_pointerarray_add( &_layers, layer);
 }
 
 
@@ -636,15 +625,7 @@ static inline CGRect   getBounds( UIView *self)
 
 - (struct mulle_pointerarray *) _layers
 {
-   struct mulle_allocator   *allocator;
-
-   if( ! _layers)
-   {
-      allocator = MulleObjCInstanceGetAllocator( self);
-      _layers = mulle_pointerarray_alloc( allocator);
-      _mulle_pointerarray_init( _layers, 4, allocator);
-   }
-   return( _layers);
+   return( &_layers);
 }
 
 
@@ -660,12 +641,12 @@ static inline CGRect   getBounds( UIView *self)
       return( 0);
 
    n  = 1;
-   n += mulle_pointerarray_get_count( _layers);
+   n += mulle_pointerarray_get_count( &_layers);
 
    if( range.location + range.length > n)
       return( -1);
 
-   mulle_pointerarray_copy_range( _layers, buf, range);
+   mulle_pointerarray_copy_range( &_layers, buf, range);
 
    buf[ n - 1] = _mainLayer; // why last ?
 
@@ -675,7 +656,7 @@ static inline CGRect   getBounds( UIView *self)
 
 - (BOOL) isMultiLayer
 {
-   return( _layers != NULL);
+   return( mulle_pointerarray_get_count( &_layers) != 0);
 }
 
 //- (void) setNeedsDisplay
@@ -759,32 +740,20 @@ static inline CGRect   getBounds( UIView *self)
 
 - (NSUInteger) numberOfTrackingAreas
 {
-   return( UITrackingAreaArrayGetCount( &_trackingAreas));
+   return( mulle_pointerarray_get_count( &_trackingAreas));
 }
 
 
-- (struct UITrackingArea *) trackingAreaAtIndex:(NSUInteger) i
+- (UITrackingArea *) trackingAreaAtIndex:(NSUInteger) i
 {
-   struct UITrackingArea   *item;
+   UITrackingArea   *item;
 
-   item = UITrackingAreaArrayGetItemAtIndex( &_trackingAreas, i);
+// TODO: // need to throw exception here
+//   if( i >=  mulle_pointerarray_get_count( &_trackingAreas))
+//      abort(); 
+
+   item = mulle_pointerarray_get( &_trackingAreas, i);
    return( item);
-}
-
-
-- (BOOL) mulleIsEffectivelyHidden  // recursive test the hierarchy up
-{
-   UIView   *p;
-
-   p = self;
-   for(;;)
-   {
-      if( p->_hidden)
-         return( YES);
-      p = p->_superview;
-      if( ! p)
-         return( NO);
-   }
 }
 
 @end

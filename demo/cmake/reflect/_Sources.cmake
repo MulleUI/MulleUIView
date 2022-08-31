@@ -14,5 +14,7 @@ set( SOURCES
 src/main-click.m
 src/main-clip.m
 src/main-layer.m
+src/main-sublayers.m
+src/main-subviews.m
 src/main-view-bounds.m
 )

@@ -3,6 +3,9 @@
 #import "UITrackingArea.h"
 #import "UIEdgeInsets.h"
 
+
+// #define UIVIEW_FRAME_USES_CGRECTINTEGRAL
+
 //
 // There is only a fixed set of properties a UIView can animate. For all
 // other animation purposes use CALayer. (Many properties that appear as if
@@ -30,6 +33,7 @@ UI_VIEW_ANIMATABLE_PROPERTIES;
 // to write a CALayer that draws ASCII :)
 //
 @protocol UILayer < NSObject>
+
 
 @property( observable) CGRect   frame;
 @property( observable) CGRect   bounds;
@@ -105,7 +109,9 @@ struct CGFrameInfo;
 //
 // All layers (and subviews) live in the bounds of the view. The view
 // inherits the transformation and adds its own frame/bounds transformation
-// to it.
+// to it. Experimental: On initialization a view uses CGRectIntegral on the
+// frame to avoid FP precision errors in the drawing code of the CALayers.
+// setFrame: isn't overridden though yet.
 //
 // the main layer is responsible for the "background" and the "border"
 //
@@ -157,10 +163,9 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 {
    UIView                                  *_superview;
 
-   struct mulle_pointerarray               *_layers;     // todo why no inline ?
-   struct mulle_pointerarray               *_subviews;
-
-   struct UITrackingAreaArray              _trackingAreas;
+   struct mulle_pointerarray               _layers;     // todo why no inline ?
+   struct mulle_pointerarray               _subviews;
+   struct mulle_pointerarray               _trackingAreas;
 
    id < NSObject>                          _cacheLayer;  // CGLayer
 
@@ -180,6 +185,7 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 @property BOOL   clipsToBounds;   // default: YES
 //@property BOOL   needsLayout;     // use setNeedsLayout for marking
 @property BOOL   needsCaching;
+@property BOOL   needsTrackingAreaUpdate;
 
 // user info, for finding views (subviewWithTag:)
 @property NSInteger   tag;
@@ -222,16 +228,6 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 
 @property( observable) CGFloat        alpha;
 
-//
-// tyically, contentRect is { CGPointZero, bounds.size }. It's the playground
-// for the subviews to be placed in (via subview frame). Padding is added by
-// layoutRect
-//
-- (CGRect) contentRect;
-
-// layoutRect take the contentRect and subtract the padding. Only used
-// by UIView during layout
-- (CGRect) layoutRect;
 
 // call back for view input events, your handler should return nil if it
 // handled or wants to discard the event.
@@ -262,9 +258,31 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 @property void  (*didLayoutLayers)( UIView *view);
 
 
++ (instancetype) viewWithLayer:(id <UILayer>) layer;
 + (instancetype) viewWithFrame:(CGRect) frame;
 
+//
+// designated initializer, override initWithLayer:frame: for setting defaults
+// as it will not call init
+//
+- (instancetype) initWithLayer:(id <UILayer>) layer
+                         frame:(CGRect) frame;
+- (instancetype) initWithLayer:(id <UILayer>) layer;
+
+
 - (instancetype) initWithFrame:(CGRect) frame;
+
+
+//
+// tyically, contentRect is { CGPointZero, bounds.size }. It's the playground
+// for the subviews to be placed in (via subview frame). Padding is added by
+// layoutRect
+//
+- (CGRect) contentRect;
+
+// layoutRect takes the contentRect and subtracts the padding. Only used
+// by UIView during layout
+- (CGRect) layoutRect;
 
 - (void) mulleAddRetainedSubview:(UIView *) layer;
 
@@ -293,29 +311,13 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 
 - (void) setNeedsCaching;  // wipes the _cacheLayer and asks for a new one to be drawn
 
-// view must be part of window view hierarchy, for these function to work
-// properly
-
-- (BOOL) mulleIsEffectivelyHidden;  // recursive test the hierarchy up
-
 
 // ---
 // UIView( UITrackingArea)
 // ---
 - (NSUInteger) numberOfTrackingAreas;
-- (struct UITrackingArea *) trackingAreaAtIndex:(NSUInteger) i;
+- (UITrackingArea *) trackingAreaAtIndex:(NSUInteger) i;
 
-// ---
-// UIView( UILayer)
-// ---
-+ (instancetype) viewWithLayer:(id <UILayer>) layer;
-
-//
-// designated initializer, override this for defaults
-//
-- (instancetype) initWithLayer:(id <UILayer>) layer
-                         frame:(CGRect) frame;
-- (instancetype) initWithLayer:(id <UILayer>) layer;
 
 // this is the "main" layer. Each view has a bottom most layer that is
 // supposed to fill out the UIView with background color and border. It

@@ -489,4 +489,43 @@ static CGPoint   convertBoundsPointToFramePoint( UIView *self, CGPoint point, CG
    return( converted.origin);
 }
 
+
+
+- (CGRect) visibleRect
+{
+   CGRect   rect;
+   CGRect   parentBounds;
+   UIView   *view;
+   UIView   *parent;
+
+   if( [self isHidden])
+      return( CGRectNull);
+
+   rect = [self bounds];
+
+   // walk up the conversion chain and clip everything together, we 
+   // end up with a rect in window space
+   for( view = self; parent = [view superview]; view = parent)
+   {
+      // this oughta be fairly cheap, as we are only doing one step
+      rect = [view convertRect:rect
+                        toView:parent];
+
+      if( [parent isHidden])
+         return( CGRectNull);  // immediate bail
+
+      // if it don't clip we dont care
+      if( ! [parent clipsToBounds])
+         continue;
+      
+      parentBounds = [parent bounds];
+      rect         = CGRectIntersection( parentBounds, rect);
+   }
+
+   // turn clipRect back to view space and clip
+   rect = [self convertRect:rect
+                   fromView:nil];
+   return( rect);
+}
+
 @end

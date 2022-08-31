@@ -16,11 +16,13 @@
 // translated mouseLocation to current view bounds (ephemeral)
 // set by _handleEvent:position for
 //
-- (CGPoint) mouseLocationInView:(UIView *) view;
+- (CGPoint) locationInView:(UIView *) view;
 
-- (void) _setContentLocation:(CGPoint) point
-                     forView:(UIView *) view;
-- (CGPoint) _contentLocationForView:(UIView *) view;
+// this is to be used by hitTest: exclusively and
+// locationInView exclusively. Always use -locationInView to query.
+- (CGPoint) _locationForView:(UIView *) view;
+- (void) _setLocation:(CGPoint) point
+              forView:(UIView *) view;
 
 @end
 

@@ -203,7 +203,7 @@
       [self layoutLayer:_mainLayer
                  inRect:contentRect];
 
-      rover = mulle_pointerarray_enumerate( _layers);
+      rover = mulle_pointerarray_enumerate( &_layers);
       while( _mulle_pointerarrayenumerator_next( &rover, (void **) &layer))
          [self layoutLayer:layer
                     inRect:contentRect];
@@ -224,7 +224,7 @@
    if( ! _willLayoutSubviews || (*_willLayoutSubviews)( self))
    {
       bounds = [self layoutRect];
-      rover = mulle_pointerarray_enumerate( _subviews);
+      rover = mulle_pointerarray_enumerate( &_subviews);
       while( _mulle_pointerarrayenumerator_next( &rover, (void **) &view))
       {
          [self layoutSubview:view
@@ -236,13 +236,16 @@
       if( _didLayoutSubviews)
          (*_didLayoutSubviews)( self);
    }
-
- }
+}
 
 //
 // Layouting is strictly top/down. Space is distributed from the top to
 // the button via bounds/frame and the code in "layoutSubviews" that
 // distributes it.
+//
+// https://developer.apple.com/documentation/uikit/uiview/1622585-hidden?language=objc:
+// A hidden view ... remains in its superview’s list of subviews ... and 
+// participates in autoresizing.
 //
 - (void) layout
 {
@@ -275,7 +278,7 @@
    // this is recursive code, triggering possibly more autoresizes
    // or yogas..
    //
-   rover = mulle_pointerarray_enumerate( _subviews);
+   rover = mulle_pointerarray_enumerate( &_subviews);
    while( _mulle_pointerarrayenumerator_next( &rover, (void **) &view))
       [view layout];
    mulle_pointerarrayenumerator_done( &rover);

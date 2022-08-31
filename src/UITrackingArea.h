@@ -1,98 +1,50 @@
 #include "import.h"
 
 
+@class UIView;
+
+// TODO: rename to NSTrackingArea ?
+enum UITrackingAreaOptions
+{
+   UITrackingIgnoreMouseEnteredAndExited = 0x1,
+   UITrackingMouseMoved                  = 0x2,
+   UITrackingSetCursor                   = 0x8,
+   UITrackingInVisibleRect               = 0x10
+//   UITrackingCursorUpdate               = 0x4, // not supported
+//   UITrackingEnabledDuringMouseDrag      = 0x4,  // not supported
+//   UITrackingAreaReceivesObscuredEvents  = 0x100,  // 1: get event if view lies on top
+};
+
+
 // mulle addition
-struct UITrackingArea
-{
-   CGRect    rect;
-   id        userInfo;
-   struct
-   {
-      unsigned  receivesObscuredEvents : 1;
-   } flag;
-};
+@interface UITrackingArea : NSObject
+
+@property( assign) id           owner;
+@property( assign) UICursor     *cursor;
+@property( assign) CGRect       rect;
+@property( retain) id           userInfo;
+@property( assign) NSUInteger   options;
 
 
-static inline void    UITrackingAreaInit( struct UITrackingArea *p, CGRect rect, id userInfo)
-{
-   p->rect     = rect;
-   p->userInfo = [userInfo retain];
-   p->flag.receivesObscuredEvents = NO;
-}
++ (instancetype) trackingAreaWithRect:(CGRect) rect;
++ (instancetype) trackingAreaWithRect:(CGRect) rect
+                                owner:(id) owner 
+                               cursor:(UICursor *) cursor
+                             userInfo:(id) userInfo
+                              options:(NSUInteger) options;
 
-static inline void    UITrackingAreaDone( struct UITrackingArea *p)
-{
-   [p->userInfo autorelease];
-}
+- (instancetype) initWithRect:(CGRect) rect 
+                        owner:(id) owner 
+                       cursor:(UICursor *) cursor
+                     userInfo:(id) userInfo
+                      options:(NSUInteger) options;
 
+// backwards compatible, sort of
+- (instancetype) initWithRect:(CGRect) rect 
+                      options:(NSUInteger) options
+                        owner:(id) owner 
+                     userInfo:(id) userInfo;
 
-static inline void    UITrackingAreaSetRect( struct UITrackingArea *p,
-                                                CGRect rect)
-{
-   p->rect = rect;
-}
-
-
-static inline CGRect    UITrackingAreaGetRect( struct UITrackingArea *p)
-{
-   return( p->rect);
-}
+@end 
 
 
-static inline void    UITrackingAreaSetUserInfo( struct UITrackingArea *p,
-                                                    id userInfo)
-{
-   [p->userInfo autorelease];
-   p->userInfo = [userInfo retain];
-}
-
-static inline id    UITrackingAreaGetUserInfo( struct UITrackingArea *p)
-{
-   return( p->userInfo);
-}
-
-
-
-// not that useful for public consumption, therefore not typedef
-struct UITrackingAreaArray
-{
-   NSUInteger               n;
-   NSUInteger               size;
-   struct mulle_allocator   *allocator;
-   struct UITrackingArea    *items;
-};
-
-
-void
-   UITrackingAreaArrayInit( struct UITrackingAreaArray *array,
-                               struct mulle_allocator *allocator);
-
-void
-   UITrackingAreaArrayDone( struct UITrackingAreaArray *array);
-
-static inline NSUInteger
-   UITrackingAreaArrayGetCount( struct UITrackingAreaArray *array)
-{
-   return( array ? array->n : 0);
-}
-
-struct UITrackingArea   *
-   UITrackingAreaArrayNewItem( struct UITrackingAreaArray *array);
-
-void
-   UITrackingAreaArrayRemoveItem( struct UITrackingAreaArray *array,
-                                     struct UITrackingArea *item);
-
-
-// pointer only valid, as long as nothing gets added or removed.
-static inline struct UITrackingArea   *
-   UITrackingAreaArrayGetItemAtIndex( struct UITrackingAreaArray *array,
-                                         NSUInteger  index)
-{
-   assert( index < array->n);
-   return( &array->items[ index]);
-}
-
-struct UITrackingArea   *
-   UITrackingAreaArrayGetItemWithRect( struct UITrackingAreaArray *array,
-                                          CGRect rect);

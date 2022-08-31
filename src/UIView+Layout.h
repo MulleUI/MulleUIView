@@ -72,11 +72,13 @@ enum UILayoutStrategy
  * The non stretchable dimension can indicate a preferred sticking point,
  * which could be top/left for example.
  */
-typedef enum
+enum
 {
    UILayoutConstraintAxisVertical   = CGVerticalAxis,
    UILayoutConstraintAxisHorizontal = CGHorizontalAxis
-} UILayoutConstraintAxis;
+};
+
+typedef NSInteger   UILayoutConstraintAxis;
 
 
 @interface UIView( Layout)

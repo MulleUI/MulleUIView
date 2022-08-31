@@ -142,8 +142,8 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
    PointsLayer    *layer;
 
    // faster
-   point  = [event _contentLocationForView:self];
-   point2 = [event mouseLocationInView:self];
+   point  = [event _locationForView:self];
+   point2 = [event locationInView:self];
 
    MulleUILog( "**** %#@ -> cL=%s mL=%s (c=%s)",
                   event,
@@ -161,7 +161,7 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
    }
    else
    {
-      // use mouseLocationInView
+      // use locationInView
       color = CGColorMakeHSL( fmod( CGFloatMakeRandom(), 0.5) + 0.5, 1.0, 0.5);
       [layer addSquareAtPoint:point2
                         color:color];

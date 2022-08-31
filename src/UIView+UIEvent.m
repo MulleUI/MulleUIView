@@ -6,9 +6,9 @@
 
 
 
-#define EVENT_DEBUG
-#define EVENT_DEBUG_VERBOSE
-#define HITTEST_DEBUG
+//#define EVENT_DEBUG
+//#define EVENT_DEBUG_VERBOSE
+// #define HITTEST_DEBUG
 
 @implementation UIView ( UIEvent)
 
@@ -25,7 +25,7 @@
    struct mulle_pointerarrayreverseenumerator   rover;
    UIView                                       *view;
 
-   rover = mulle_pointerarray_reverseenumerate( _subviews);
+   rover = mulle_pointerarray_reverseenumerate( &_subviews);
    while( _mulle_pointerarrayreverseenumerator_next( &rover, (void **) &view))
       if( CGRectContainsPoint( [view frame], point))
          break;
@@ -44,7 +44,7 @@
    point.x += frame.origin.x;
    point.y += frame.origin.y;
 
-   rover = mulle_pointerarray_reverseenumerate( _layers);
+   rover = mulle_pointerarray_reverseenumerate( &_layers);
    while( _mulle_pointerarrayreverseenumerator_next( &rover, (void **) &layer))
       if( CGRectContainsPoint( [layer frame], point))
          break;
@@ -74,7 +74,6 @@
 #endif
    return( flag);
 }
-
 
 
 - (UIMouseButtonEvent *) handleMouseButtonEvent:(UIMouseButtonEvent *) event
@@ -332,7 +331,7 @@
    return( event);
 }
 
-
+#if 0
 - (UIView *) subviewAcceptingInputEvent:(UIInputEvent *) event
                         contentLocation:(CGPoint) contentLocation
 {
@@ -341,9 +340,9 @@
    BOOL                                         didHandleEvent;
    CGPoint                                      location;
 
-   if( _subviews)
+   if( &_subviews)
    {
-      rover = _mulle_pointerarray_reverseenumerate( _subviews);
+      rover = _mulle_pointerarray_reverseenumerate( &_subviews);
       while( _mulle_pointerarrayreverseenumerator_next( &rover, (void **) &view))
       {
          // "view" is located in the contentRect of self, so location is with
@@ -363,6 +362,7 @@
 
    return( nil);
 }
+#endif
 
 
 // this does the hitTest
@@ -386,7 +386,7 @@
 
    // from UIView+CGGeometry
    contentLocation = [self contentLocationForLocation:location];
-#ifdef HITTEST_DEBUG
+#ifdef EVENT_DEBUG_VERBOSE
   MulleUILog( "translated: %s -> %s [c=%s]\n",
                CGPointUTF8String( location),
                CGPointUTF8String( contentLocation),
@@ -396,25 +396,24 @@
    view = [self hitTest:contentLocation
               withEvent:event];
 
-   if( ! view)
+   for(;;)
    {
+      if( ! view)
+      {
 #ifdef EVENT_DEBUG_VERBOSE
-      MulleUILog( "Event #%@ does not hit", event);
+         MulleUILog( "Event #%@ does not hit an interaction view", event);
 #endif
-      return( event);
-   }
+         return( event);
+      }
 
-   if( ! [view isUserInteractionEnabled])
-   {
-//      // TODO: check if event type is of type user interaction
-#ifdef EVENT_DEBUG
-      MulleUILog( "User interaction disabled");
-#endif
-      return( event);
+      if( [view isUserInteractionEnabled])
+         break;
+
+      view = [view superview];
    }
 
    result = [view handleInputEvent:event];
-   if( view != self)
+   if(  ! result && view != self)
       [self subviewDidHandleInputEvent:event];
 
    return( result);
@@ -449,9 +448,9 @@
    }
 
    found = nil;
-   if( _subviews)
+   if( &_subviews)
    {
-      rover = _mulle_pointerarray_reverseenumerate( _subviews);
+      rover = _mulle_pointerarray_reverseenumerate( &_subviews);
       while( _mulle_pointerarrayreverseenumerator_next( &rover, (void **) &view))
       {
          // "view" is located in the contentRect of self, so location is with
@@ -465,12 +464,12 @@
       mulle_pointerarrayreverseenumerator_done( &rover);
    }
 
-   // if we found a subviewm the location set has been done already
+   // if we found a subview the location set has been done already
    if( found)
       return( found);
 
-   [(UIInputEvent *) event _setContentLocation:point
-                                       forView:self];
+   [(UIInputEvent *) event _setLocation:point
+                                forView:self];
    return( self);
 }
 

@@ -69,7 +69,7 @@
    CGRect                                rect;
    CGPoint                               converted;
 
-   rover = mulle_pointerarray_enumerate( _layers);
+   rover = mulle_pointerarray_enumerate( &_layers);
    while( _mulle_pointerarrayenumerator_next( &rover, (void **) &layer))
    {
       rect = [layer frame];
@@ -98,7 +98,7 @@
    CGRect              bounds;
    CGAffineTransform   xform;
 
-   if( ! layer)
+   if( ! layer || layer == _mainLayer)
       return( point);
 
    xform = CGAffineTransformMakeInverseProjection( [layer frame],
@@ -110,21 +110,62 @@
    return( translated);
 }
 
+// TODO: highly dubious and untested code!!
+- (CGPoint) convertPoint:(CGPoint) point
+               fromLayer:(id <UILayer>) layer
+{
+   CGPoint             translated;
+   CGRect              frame;
+   CGRect              bounds;
+   CGAffineTransform   xform;
 
-//- (CGPoint) convertPoint:(CGPoint) point
-//               fromLayer:(CALayer *) layer
-//{
-//   CGPoint         translated;
-//   _NVGtransform   transform;
-//
-//   if( ! layer || layer == _mainLayer)
-//      return( point);
-//
-//
+   if( ! layer || layer == _mainLayer)
+      return( point);
+
+   xform = CGAffineTransformMakeInverseProjection( [layer bounds],
+                                                   [layer frame]);
+   translated = CGPointApplyAffineTransformInline( point, xform);
+   return( translated);
+}
+
+// TODO: highly dubious and untested code!!
+- (CGRect) convertRect:(CGRect) rect
+               toLayer:(id <UILayer>) layer
+{
+   CGRect              translated;
+   CGRect              frame;
+   CGRect              bounds;
+   CGAffineTransform   xform;
+
+   if( ! layer || layer == _mainLayer)
+      return( rect);
+
+   xform = CGAffineTransformMakeInverseProjection( [layer frame],
+                                                   [layer bounds]);
 //   nvgTransformIdentity( transform);
-//   [layer updateReverseTransform:transform];
-//   nvgTransformPoint( &translated.x, &translated.y, transform, point.x, point.y);
-//   return( translated);
-//}
+//   [layer updateTransform:transform];
 
+   translated = CGRectApplyAffineTransformInline( rect, xform);
+   return( translated);
+}              
+
+// TODO: highly dubious and untested code!!
+- (CGRect) convertRect:(CGRect) rect 
+             fromLayer:(id <UILayer>) layer
+{
+   CGRect              translated;
+   CGRect              frame;
+   CGRect              bounds;
+   CGAffineTransform   xform;
+
+   if( ! layer || layer == _mainLayer)
+      return( rect);
+
+   // can we not use projection and flip arguments ?
+   xform = CGAffineTransformMakeInverseProjection( [layer bounds],
+                                                   [layer frame]);
+   translated = CGRectApplyAffineTransformInline( rect, xform);
+   return( translated);
+}
+             
 @end
