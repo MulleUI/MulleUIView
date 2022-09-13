@@ -25,6 +25,7 @@
 // this handles the event without considering subviews
 //
 - (UIInputEvent *) handleInputEvent:(UIInputEvent *) event;
+- (UIEvent *) handleOtherEvent:(UIEvent *) event;
 
 // returns event if it hasn't been handled, this will hitTest subviews
 // location is in the superview frame space
@@ -35,32 +36,13 @@
 - (UIView *) subviewAtContentLocation:(CGPoint) point;
 - (id <UILayer>) layerAtContentLocation:(CGPoint) point;
 
-@end
-
-
-//
-// methods *optionally* implemented by UIView subclasses
-//
-@interface UIView ( UIFutureEvents)
-
-- (UIKeyboardEvent *) keyUp:(UIKeyboardEvent *) event;
-- (UIKeyboardEvent *) keyDown:(UIKeyboardEvent *) event;
-
-- (UIMouseScrollEvent *) scrollWheel:(UIMouseScrollEvent *) event;
-
-- (UIMouseButtonEvent *) mouseDown:(UIMouseButtonEvent *) event;
-- (UIMouseButtonEvent *) otherMouseDown:(UIMouseButtonEvent *) event;
-- (UIMouseButtonEvent *) rightMouseDown:(UIMouseButtonEvent *) event;
-
-- (UIMouseButtonEvent *) mouseUp:(UIMouseButtonEvent *) event;
-- (UIMouseButtonEvent *) otherMouseUp:(UIMouseButtonEvent *) event;
-- (UIMouseButtonEvent *) rightMouseUp:(UIMouseButtonEvent *) event;
-
-- (UIMouseMotionEvent *) mouseDragged:(UIMouseMotionEvent *) event;
-- (UIMouseMotionEvent *) otherMouseDragged:(UIMouseMotionEvent *) event;
-- (UIMouseMotionEvent *) rightMouseDragged:(UIMouseMotionEvent *) event;
-
-+ (CGFloat) mouseMotionSuppressionDelay;
+- (UIInputEvent *) handleKeyboardEvent:(UIKeyboardEvent *) event;
+- (UIInputEvent *) handleUnicodeEvent:(UIUnicodeEvent *) event;
+- (UIInputEvent *) handleActionEvent:(UIActionEvent *) event;
+- (UIInputEvent *) handleMouseScrollEvent:(UIMouseScrollEvent *) event;
+- (UIInputEvent *) handleMouseMotionEvent:(UIMouseMotionEvent *) event;
+- (UIInputEvent *) handleMouseButtonEvent:(UIMouseButtonEvent *) event;
 
 @end
+
 

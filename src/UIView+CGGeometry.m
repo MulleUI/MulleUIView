@@ -269,7 +269,7 @@ static CGRect   convertBoundsRectToFrameRect( CGRect rect, CGRect bounds, CGRect
 
 //   if( ! toView)
 //   {
-//      toView = [self window];
+//      toView = (UIWindow *) [self window];
 //      assert( toView);
 //   }
 
@@ -337,7 +337,7 @@ done:
 //
 //   if( ! fromView)
 //   {
-//      fromView = [self window];
+//      fromView = (UIWindow *) [self window];
 //      assert( fromView);
 //   }
 //

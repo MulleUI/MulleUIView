@@ -45,13 +45,12 @@ static inline UIViewContentMode  UIViewContentModeParseCString( char *s)
 
 
 
-enum UILayoutStrategy
+typedef NS_ENUM( NSUInteger, UILayoutStrategy)
 {
    UILayoutStrategyDefault,
    UILayoutStrategyContinue,
    UILayoutStrategyStop
 };
-
 
 
 /*
@@ -121,7 +120,7 @@ typedef NSInteger   UILayoutConstraintAxis;
               inRect:(CGRect) bounds;
 
 // yoga uses this to its layout
-- (enum UILayoutStrategy) layoutStrategy;
+- (UILayoutStrategy) layoutStrategy;
 
 // if layout can't fit it in, or subview is out of bounds
 // its frame.size is set to zero. The original size is kept in -mulleLayoutSize

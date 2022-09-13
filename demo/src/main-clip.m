@@ -18,8 +18,8 @@ static void   setupScene( UIWindowPlane *contentPlane)
 
    view  = [UIView viewWithFrame:frame];
    [view setDebugNameUTF8String:"parent"];
-   [view setBackgroundColor:CGColorMakeRGBA( 0.0, 1.0, 0.0, 1.0)];
-   [view setBorderColor:CGColorMakeRGBA( 1.0, 0.0, 0.0, 1.0)];
+   [view setBackgroundColor:CGColorMakeWithRGBA( 0.0, 1.0, 0.0, 1.0)];
+   [view setBorderColor:CGColorMakeWithRGBA( 1.0, 0.0, 0.0, 1.0)];
    [view setBorderWidth:2];
 
    [contentPlane addSubview:view];
@@ -30,8 +30,8 @@ static void   setupScene( UIWindowPlane *contentPlane)
    // clipped by view
    subview = [UIView viewWithFrame:frame];
    [subview setDebugNameUTF8String:"child"];
-   [subview setBackgroundColor:CGColorMakeRGBA( 1.0, 1.0, 0.0, 1.0)];
-   [subview setBorderColor:CGColorMakeRGBA( 0.0, 1.0, 1.0, 1.0)];
+   [subview setBackgroundColor:CGColorMakeWithRGBA( 1.0, 1.0, 0.0, 1.0)];
+   [subview setBorderColor:CGColorMakeWithRGBA( 0.0, 1.0, 1.0, 1.0)];
    [subview setBorderWidth:2];
    [subview setClipsToBounds:NO];
    [view addSubview:subview];
@@ -42,8 +42,8 @@ static void   setupScene( UIWindowPlane *contentPlane)
    // clipped by view, but not by subview, which doesn't clip
    subview2 = [UIView viewWithFrame:frame];
    [subview2 setDebugNameUTF8String:"grandchild"];
-   [subview2 setBackgroundColor:CGColorMakeRGBA( 1.0, 0.0, 1.0, 1.0)];
-   [subview2 setBorderColor:CGColorMakeRGBA( 0.0, 0.0, 1.0, 1.0)];
+   [subview2 setBackgroundColor:CGColorMakeWithRGBA( 1.0, 0.0, 1.0, 1.0)];
+   [subview2 setBorderColor:CGColorMakeWithRGBA( 0.0, 0.0, 1.0, 1.0)];
    [subview2 setBorderWidth:2];
    [subview addSubview:subview2];
 }
@@ -59,7 +59,7 @@ int   main( int argc, char *argv[])
     * window and app
     */
    window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800, 600)];
-   [window setBackgroundColor:CGColorMakeRGBA( 1.0, 1.0, 1.0, 1.0)];
+   [window setBackgroundColor:CGColorMakeWithRGBA( 1.0, 1.0, 1.0, 1.0)];
 
    setupScene( [window contentPlane]);
 

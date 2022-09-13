@@ -174,7 +174,7 @@
 }
 
 
-- (enum UILayoutStrategy) layoutStrategy
+- (UILayoutStrategy) layoutStrategy
 {
    return( UILayoutStrategyDefault);
 }

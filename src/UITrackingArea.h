@@ -4,7 +4,7 @@
 @class UIView;
 
 // TODO: rename to NSTrackingArea ?
-enum UITrackingAreaOptions
+typedef NS_OPTIONS( NSUInteger, UITrackingAreaOptions)
 {
    UITrackingIgnoreMouseEnteredAndExited = 0x1,
    UITrackingMouseMoved                  = 0x2,

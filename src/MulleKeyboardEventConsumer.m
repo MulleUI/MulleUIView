@@ -11,8 +11,8 @@
 # endif
 #endif
 #ifdef __has_include
-# if __has_include( "CGBitmapPoint.h")
-#  import "CGBitmapPoint.h"
+# if __has_include( "MulleIntegerPoint.h")
+#  import "MulleIntegerPoint.h"
 # endif
 #endif
 
@@ -31,16 +31,16 @@ PROTOCOLCLASS_IMPLEMENTATION( MulleKeyboardEventConsumer)
 
 - (void) cursorLeft
 {
-   struct MulleCursorPosition   pos;
-   struct MulleCursorPosition   max;
+   struct MulleIntegerPoint   pos;
+   struct MulleIntegerPoint   max;
 
    [self getCursorPosition:&pos];
 
-   fprintf( stderr, "read cursor: %lu/%lu\n", (long) pos.column, (long) pos.row);
+   fprintf( stderr, "read cursor: %lu/%lu\n", (long) pos.x, (long) pos.y);
 
-   --pos.column;
-   if( (NSInteger) pos.column < 0)
-      pos.column = 0;
+   --pos.x;
+   if( (NSInteger) pos.x < 0)
+      pos.x = 0;
 
    [self setCursorPosition:pos];
 }
@@ -48,17 +48,17 @@ PROTOCOLCLASS_IMPLEMENTATION( MulleKeyboardEventConsumer)
 
 - (void) cursorRight
 {
-   struct MulleCursorPosition   pos;
-   struct MulleCursorPosition   max;
+   struct MulleIntegerPoint   pos;
+   struct MulleIntegerPoint   max;
 
    [self getCursorPosition:&pos];
 
-   fprintf( stderr, "read cursor: %lu/%lu\n", (long) pos.column, (long) pos.row);
+   fprintf( stderr, "read cursor: %lu/%lu\n", (long) pos.x, (long) pos.y);
 
-   pos.column++;
+   pos.x++;
    max = [self maxCursorPosition];
-   if( pos.column > max.column)
-      pos.column = max.column;
+   if( pos.x > max.x)
+      pos.x = max.x;
    [self setCursorPosition:pos];
 }
 
@@ -68,19 +68,18 @@ PROTOCOLCLASS_IMPLEMENTATION( MulleKeyboardEventConsumer)
 // cursor keys. (Or CTRL-A / CTRL-E). Actual text input is being taken
 // though Unicode events
 //
-- (UIEvent *) consumeKeyDown:(UIEvent *) event
+- (UIInputEvent *) keyDown:(UIKeyboardEvent *) event
 {
-   UIKeyboardEvent   *keyEvent = (UIKeyboardEvent *) event;
    NSUInteger        key;
    NSUInteger        modifiers;
 
    fprintf( stderr, "key: %ld scanCode: %ld modifiers: %ld\n", 
-                        (long) [keyEvent key], 
-                        (long) [keyEvent scanCode],
-                        (long) [keyEvent modifiers]);
+                        (long) [event key], 
+                        (long) [event scanCode],
+                        (long) [event modifiers]);
 
-   key       = [keyEvent key];
-   modifiers = [keyEvent modifiers];
+   key       = [event key];
+   modifiers = [event modifiers];
    switch( key)
    {
    default   :
@@ -110,6 +109,10 @@ PROTOCOLCLASS_IMPLEMENTATION( MulleKeyboardEventConsumer)
       [self backspaceCharacter]; 
       return( nil);
 
+   case 261  :  
+      [self deleteCharacter]; 
+      return( nil);
+
    case 262 : 
       [self cursorRight];
       return( nil);
@@ -125,5 +128,13 @@ PROTOCOLCLASS_IMPLEMENTATION( MulleKeyboardEventConsumer)
    }
    return( nil);
 }
+
+
+- (UIInputEvent *) unicodeCharacterEvent:(UIUnicodeEvent *) event
+{
+   [self insertUTF32Character:[event character]];
+   return( nil);
+}
+
 
 PROTOCOLCLASS_END();

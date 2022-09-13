@@ -118,19 +118,14 @@ struct CGFrameInfo;
 // Other layers are composited on top of it
 // Then the subviews are drawn/composited on those.
 //
-struct MulleClickDragDifferentiator
-{
-   mulle_relativetime_t   _mouseMotionSuppressionDelay;  // config value
-
-   mulle_absolutetime_t   _suppressUntilTimestamp;
-};
 
 //
 // This is restricted to h/v resizing to indicate flexibility
 // The UIViewAutoresizingStop preempts recursive autoresize by
 // the layouter.
 //
-enum UIViewAutoresizing
+
+typedef NS_ENUM( NSUInteger, UIViewAutoresizing)
 {
    UIViewAutoresizingNone           = 0x00,
    UIViewAutoresizingFlexibleWidth  = 0x10,
@@ -150,9 +145,6 @@ enum UIViewAutoresizing
 
 // "backwards" compatibility
 
-typedef NSUInteger   UIViewAutoresizing;
-
-
 char   *UIViewAutoresizingMaskUTF8String( UIViewAutoresizing bits);
 char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 
@@ -169,8 +161,6 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 
    id < NSObject>                          _cacheLayer;  // CGLayer
 
-   struct MulleClickDragDifferentiator     _clickOrDrag;
-
    NSObject <UIAnimatableViewProperties>   *_snapshot;
 
    // CALayer
@@ -178,6 +168,9 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
    // CAAnimationStorage (forward storage)
    void                                    *_animationStorage;
 }
+
+// don't change window yourself!
+@property( assign) id <UIWindow>            window;  // UIWindow really #1#
 
 @property( getter=isHidden)                 BOOL   hidden;                  // default: NO
 @property( getter=isUserInteractionEnabled) BOOL   userInteractionEnabled;  // default: YES
@@ -229,10 +222,9 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 @property( observable) CGFloat        alpha;
 
 
-// call back for view input events, your handler should return nil if it
+// call back for view events, your handler should return nil if it
 // handled or wants to discard the event.
-// UserInteractionEnabled must be set to YES to get this callback
-@property( assign) UIInputEvent         *(*eventCallback)( UIView *view, UIInputEvent *event);
+@property( assign) UIEvent             *(*eventCallback)( UIView *view, UIEvent *event);
 
 @property( assign) UIViewAutoresizing   autoresizingMask;
 //
@@ -287,11 +279,17 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 - (void) mulleAddRetainedSubview:(UIView *) layer;
 
 - (void) addSubview:(UIView *) view;
-- (void) setSubviews:(struct mulle_pointerarray *) array;
 
 - (void) getSubviewsIntersectingRect:(CGRect) rect
                     intoPointerArray:(struct mulle_pointerarray *) views
               invertIntersectionTest:(BOOL) flag;
+
+- (void) didAddSubview:(UIView *) view;
+- (void) willRemoveSubview:(UIView *) subview;
+- (void) willMoveToSuperview:(UIView *) newSuperview;
+- (void) didMoveToSuperview:(UIView *) newSuperview;
+- (void) willMoveToWindow:(id <UIWindow>) newSuperview;
+- (void) didMoveToWindow:(id <UIWindow>) newSuperview;
 
 // called for each view, before layouting starts
 // if a subclass overrides, it should call super
@@ -386,3 +384,11 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 
 @end
 
+/*
+ * #1#
+ *
+ * window used to be dynamically calculated. This was fine until I needed
+ * to implement -didMoveToWindow:, which would have made scene composition 
+ * fairly slow during.
+ * 
+ */

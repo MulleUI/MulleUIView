@@ -246,25 +246,6 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
 }
 
 
-- (void) removeSubview:(UIView *) view
-{
-   NSUInteger   index;
-
-   index = UIViewGetIndexOfSubview( self, view);
-   if( index == NSNotFound)
-      return;
-
-   mulle_pointerarray_remove_in_range( &_subviews, 
-                                       mulle_range_make( (unsigned int) index, 1));
-}
-
-
-- (void) removeFromSuperview
-{
-   [_superview removeSubview:self];
-   _superview = nil;
-}
-
 
 /*
  *

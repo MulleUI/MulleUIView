@@ -12,13 +12,6 @@
 # endif
 #endif
 
-struct MulleCursorPosition
-{
-   NSInteger   row;
-   NSInteger   column;
-};
-
-
 //
 // TODO: move this away
 //
@@ -28,16 +21,17 @@ struct MulleCursorPosition
 //
 PROTOCOLCLASS_INTERFACE( MulleKeyboardEventConsumer, NSObject)
 
-- (struct MulleCursorPosition) maxCursorPosition;
+- (struct MulleIntegerPoint) maxCursorPosition;
 
 // could also be a property with a respective #define, but its tricky as 
 // the implementor might also get it from MulleCursor
 
-// TODO: why is this CGBitmapPoint, because we are dealing
-- (void) setCursorPosition:(struct MulleCursorPosition) pos;
-- (struct MulleCursorPosition) cursorPosition;
-- (void) getCursorPosition:(struct MulleCursorPosition *) pos;
+// TODO: why is this MulleIntegerPoint, because we are dealing
+- (void) setCursorPosition:(struct MulleIntegerPoint) pos;
+- (struct MulleIntegerPoint) cursorPosition;
+- (void) getCursorPosition:(struct MulleIntegerPoint *) pos;
 
+// TODO: prefix with consume ? Pass event ?
 - (void) backspaceCharacter;
 - (void) cut;
 - (void) copy;
@@ -47,8 +41,8 @@ PROTOCOLCLASS_INTERFACE( MulleKeyboardEventConsumer, NSObject)
 // the protocolclass implements this. Forward your keyDown: event to it if
 // your view isn't a "subclass" of UIControl
 @optional
-- (UIEvent *) consumeKeyDown:(UIEvent *) event;
-
+- (UIInputEvent *) keyDown:(UIKeyboardEvent *) event;
+- (UIInputEvent *) unicodeCharacterEvent:(UIUnicodeEvent *) event;
 
 - (void) cursorUp;
 - (void) cursorDown;

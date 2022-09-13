@@ -155,18 +155,18 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
    if( (rand() & 0x8000) == 0x8000)
    {
       // use translatedPointForView
-      color = CGColorMakeHSL( fmod( CGFloatMakeRandom(), 0.5), 0.75, 0.5);
+      color = CGColorMakeWithHSL( fmod( CGFloatMakeRandom(), 0.5), 0.75, 0.5);
       [layer addCircleAtPoint:point
                         color:color];
    }
    else
    {
       // use locationInView
-      color = CGColorMakeHSL( fmod( CGFloatMakeRandom(), 0.5) + 0.5, 1.0, 0.5);
+      color = CGColorMakeWithHSL( fmod( CGFloatMakeRandom(), 0.5) + 0.5, 1.0, 0.5);
       [layer addSquareAtPoint:point2
                         color:color];
    }
-   [self setNeedsDisplay];
+   [self setNeedsDisplay]; // need this because we are not UIControl based
    return( nil);
 }
 
@@ -196,8 +196,8 @@ static void   setupScene( UIWindowPlane *contentPlane)
 
    view   = [UIPointsView viewWithFrame:frame];
    [view setDebugNameUTF8String:"parent"];
-   [view setBackgroundColor:CGColorMakeRGBA( 0.25, 0.0, 0.0, 1.0)];
-   [view setBorderColor:CGColorMakeRGBA( 0.75, 0.0, 0.0, 1.0)];
+   [view setBackgroundColor:CGColorMakeWithRGBA( 0.25, 0.0, 0.0, 1.0)];
+   [view setBorderColor:CGColorMakeWithRGBA( 0.75, 0.0, 0.0, 1.0)];
    [view setBorderWidth:1.0];
 
 #ifdef TRICKY_BOUNDS
@@ -218,8 +218,8 @@ static void   setupScene( UIWindowPlane *contentPlane)
 
    subview = [UIPointsView viewWithFrame:frame];
    [subview setDebugNameUTF8String:"child"];
-   [subview setBackgroundColor:CGColorMakeRGBA( 0.0, 0.25, 0.0, 1.0)];
-   [subview setBorderColor:CGColorMakeRGBA( 0.0, 0.75, 0.0, 1.0)];
+   [subview setBackgroundColor:CGColorMakeWithRGBA( 0.0, 0.25, 0.0, 1.0)];
+   [subview setBorderColor:CGColorMakeWithRGBA( 0.0, 0.75, 0.0, 1.0)];
    [subview setBorderWidth:1.0];
 
 # ifdef TRICKY_BOUNDS
@@ -244,8 +244,8 @@ static void   setupScene( UIWindowPlane *contentPlane)
    // clipped by view, but not by subview, which doesn't clip
    subview2 = [UIPointsView viewWithFrame:frame];
    [subview2 setDebugNameUTF8String:"grandchild"];
-   [subview2 setBackgroundColor:CGColorMakeRGBA( 0.0, 0.0, 0.25, 1.0)];
-   [subview2 setBorderColor:CGColorMakeRGBA( 0.0, 0.0, 0.75, 1.0)];
+   [subview2 setBackgroundColor:CGColorMakeWithRGBA( 0.0, 0.0, 0.25, 1.0)];
+   [subview2 setBorderColor:CGColorMakeWithRGBA( 0.0, 0.0, 0.75, 1.0)];
    [subview2 setBorderWidth:1.0];
 
 #  ifdef TRICKY_BOUNDS

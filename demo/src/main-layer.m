@@ -17,8 +17,8 @@ int   main()
       [view setMargins:UIEdgeInsetsMake( 10, 10, 10, 10)];
 
       layer = (CALayer *) [view layer];
-      [layer setBackgroundColor:CGColorMakeRGB( 0.0, 1.0, 0.0)];
-      [layer setBorderColor:CGColorMakeRGB( 1.0, 0.0, 0.0)];
+      [layer setBackgroundColor:CGColorMakeWithRGB( 0.0, 1.0, 0.0)];
+      [layer setBorderColor:CGColorMakeWithRGB( 1.0, 0.0, 0.0)];
       [layer setCornerRadius:20];
       [layer setBorderWidth:25];
 

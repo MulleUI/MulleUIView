@@ -155,7 +155,7 @@ char   *UIViewAutoresizingMaskUTF8String( NSUInteger bits)
 //#define RENDER_VERBOSE_DEBUG
 //#define HAVE_RENDER_CACHE
 
-static UIInputEvent   *defaultHandleInputEventCallback( UIView *view, UIInputEvent *event)
+static UIEvent   *defaultHandleEventCallback( UIView *view, UIEvent *event)
 {
    return( event);
 }
@@ -196,17 +196,17 @@ static UIInputEvent   *defaultHandleInputEventCallback( UIView *view, UIInputEve
       return( nil);
    }
 
-   _mainLayer              = [layer retain];
-   _clipsToBounds          = YES;  // default
-   _userInteractionEnabled = YES;  // default
-   _alpha                  = 1.0;
-   _bounds.size.width      = INFINITY; // once we change the bounds size
+   _mainLayer               = [layer retain];
+   _clipsToBounds           = YES;  // default
+   _userInteractionEnabled  = YES;  // default
+   _alpha                   = 1.0;
+   _bounds.size.width       = INFINITY; // once we change the bounds size
                                        // we disconnect from frame.size
 #ifdef UIVIEW_FRAME_USES_CGRECTINTEGRAL   
-   frame                   = CGRectIntegral( frame);
+   frame                    = CGRectIntegral( frame);
 #endif   
    _frame                   = frame;
-   _eventCallback           = defaultHandleInputEventCallback;
+   _eventCallback           = defaultHandleEventCallback;
    _needsTrackingAreaUpdate = YES;
 //   _needsDisplay           = YES;
 
@@ -353,10 +353,10 @@ static inline CGRect   getBounds( UIView *self)
 }
 
 
-- (void) setEventCallback:(UIInputEvent *(*)(UIView *, UIInputEvent *)) callback
+- (void) setEventCallback:(UIEvent *(*)(UIView *, UIEvent *)) callback
 {
    if( ! callback)
-      callback = defaultHandleInputEventCallback;
+      callback = defaultHandleEventCallback;
    _eventCallback = callback;
 }
 
@@ -369,10 +369,58 @@ static inline CGRect   getBounds( UIView *self)
 }
 
 
+- (void) didAddSubview:(UIView *) view
+{
+}
+
+
+- (void) willRemoveSubview:(UIView *) subview
+{
+}
+
+
+- (void) willMoveToSuperview:(UIView *) newSuperview
+{
+}
+
+
+- (void) didMoveToSuperview:(UIView *) newSuperview
+{
+}
+
+
+- (void) willMoveToWindow:(id <UIWindow>) newWindow
+{
+}
+
+
+- (void) didMoveToWindow:(id <UIWindow>) newWindow
+{
+}
+
+
+- (void) setWindow:(id <UIWindow>) newWindow
+{
+   UIView   *view;
+
+   if( _window == newWindow)
+      return;
+
+   [self willMoveToWindow:newWindow];
+   self->_window = newWindow;
+
+   mulle_pointerarray_for( &_subviews, view)
+      [view setWindow:newWindow];
+
+   [self didMoveToWindow:newWindow];
+}
+
+
 - (void) mulleAddRetainedSubview:(UIView *) view
 {
    struct mulle_pointerarray  *subviews;
    uintptr_t                  index;
+   id <UIWindow>              window;
 
    assert( view);
    assert( view != self);
@@ -384,9 +432,16 @@ static inline CGRect   getBounds( UIView *self)
 //   fprintf( stderr, "index of existing view: %llx\n", (long long) index);
 
    assert( _mulle_pointerarray_find( subviews, view) == mulle_not_found_e);
-   _mulle_pointerarray_add( subviews, view);
+
+   [view willMoveToSuperview:self];
 
    view->_superview = self;
+   _mulle_pointerarray_add( subviews, view);
+
+   [view setWindow:self->_window];
+   [view didMoveToSuperview:self];
+
+   [self didAddSubview:view];
 }
 
 
@@ -395,6 +450,39 @@ static inline CGRect   getBounds( UIView *self)
    [self mulleAddRetainedSubview:[view retain]];
 }
 
+
+- (void) removeSubview:(UIView *) view
+{
+   NSUInteger   index;
+
+   // nil will not be found, that's god
+   index = mulle_pointerarray_find( &self->_subviews, view);
+   if( index == NSNotFound)
+      return;
+
+   [view autorelease];
+   [self willRemoveSubview:view];
+
+   assert( view->_superview);
+   [view willMoveToSuperview:nil];
+
+   view->_superview = nil;
+   mulle_pointerarray_remove_in_range( &_subviews, 
+                                       mulle_range_make( (unsigned int) index, 1));
+   [view setWindow:nil];
+
+   [view didMoveToSuperview:nil];
+}
+
+
+- (void) removeFromSuperview
+{
+   [_superview removeSubview:self];
+}
+
+/*
+ *
+ */
 
 - (NSUInteger) subviewCount
 {
@@ -417,23 +505,6 @@ static inline CGRect   getBounds( UIView *self)
    mulle_pointerarray_copy_range( &_subviews, buf, range);
 
    return( n);
-}
-
-//
-// TODO: use some other data structure, not pointerarray ?
-//
-- (void) setSubviews:(struct mulle_pointerarray *) array
-{
-   struct mulle_allocator   *allocator;
-
-   if( array == &_subviews)
-      return;
-
-   mulle_pointerarray_autorelease_all( &_subviews);
-   mulle_pointerarray_retain_all( array);
-
-   mulle_pointerarray_reset( &_subviews);
-   mulle_pointerarray_absorb( &_subviews, array);
 }
 
 
@@ -560,7 +631,7 @@ static inline CGRect   getBounds( UIView *self)
 
       assert( _cacheLayer == nil);
       _needsCaching = NO;
-      layer = [self textureImageWithContext:[[self window] context]
+      layer = [self textureImageWithContext:[(UIWindow *) [self window] context]
                                  frameInfo:info
                                     options:0];
       if( layer)
