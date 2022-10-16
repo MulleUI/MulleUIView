@@ -74,7 +74,10 @@
    return( flag);
 }
 
-
+//
+// this is no longer used by UIWindow to determine the view for 
+// the event reception
+//
 - (UIView *) hitTest:(CGPoint) point
            withEvent:(UIEvent *) event
 {
@@ -121,6 +124,56 @@
    [(UIInputEvent *) event _setLocation:point
                                 forView:self];
    return( self);
+}
+
+
+- (UIView *) nextUserInteractionEnabledViewAtPoint:(CGPoint) point
+                                    withInputEvent:(UIInputEvent *) event
+{
+   UIView    *view;
+   CGPoint   contentLocation;
+   UIView    *found;
+
+   found = nil;
+   mulle_pointerarray_for_reverse( &_subviews, view)
+   {
+      // "view" is located in the contentRect of self, so location is with
+      // respect to "view" now the location within the superview
+      contentLocation = [view contentLocationForLocation:point];
+      found           = [view firstUserInteractionEnabledViewAtPoint:contentLocation
+                                                      withInputEvent:event];
+      if( found)
+         break;
+   }
+
+   // if we found a subview the location set has been done already
+   return( found);
+}
+
+
+- (UIView *) firstUserInteractionEnabledViewAtPoint:(CGPoint) point
+                                     withInputEvent:(UIInputEvent *) event
+{
+   UIView    *view;
+   CGPoint   contentLocation;
+   UIView    *found;
+
+   if( [self isHidden]) // alpha < 0.01: should we care for events ?
+      return( nil);
+
+   if( ! [self pointInside:point
+                 withEvent:event])
+      return( nil);
+
+   if( [self isUserInteractionEnabled]) // alpha < 0.01: should we care for events ?
+   {
+      [event _setLocation:point
+                  forView:self];
+      return( self);
+   }
+
+   return( [self nextUserInteractionEnabledViewAtPoint:point
+                                        withInputEvent:event]);
 }
 
 @end

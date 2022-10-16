@@ -13,13 +13,13 @@
 
 // You can tweak the following #import with these commands.
 // (Use 1FC66211-7AFD-4FF6-B4E3-83FEF69E4E79 instead of MulleUI if there are duplicate entries)
-//    remove:             `mulle-sde dependency mark MulleUI no-header`
-//    rename:             `mulle-sde dependency|library set MulleUI include whatever.h`
-//    reorder:            `mulle-sde dependency move MulleUI <up|down>`
+//    remove #import: : `mulle-sde dependency mark MulleUI no-header`
+//    rename:              `mulle-sde dependency|library set MulleUI include whatever.h`
+//    reorder:             `mulle-sde dependency move MulleUI <up|down>`
 //    toggle #import:     `mulle-sde dependency mark MulleUI [no-]import`
-//    toggle public:      `mulle-sde dependency mark MulleUI [no-]public`
-//    toggle optional:    `mulle-sde dependency mark MulleUI [no-]require`
-//    remove for platform:`mulle-sde dependency mark MulleUI no-platform-<uname>`
+//    toggle public:       `mulle-sde dependency mark MulleUI [no-]public`
+//    toggle optional:     `mulle-sde dependency mark MulleUI [no-]require`
+//    remove for platform: `mulle-sde dependency mark MulleUI no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 #import <MulleUI/MulleUI.h>   // MulleUI
 

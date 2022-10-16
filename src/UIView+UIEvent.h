@@ -43,6 +43,12 @@
 - (UIInputEvent *) handleMouseMotionEvent:(UIMouseMotionEvent *) event;
 - (UIInputEvent *) handleMouseButtonEvent:(UIMouseButtonEvent *) event;
 
+
+- (UIView *) firstUserInteractionEnabledViewAtPoint:(CGPoint) point
+                                     withInputEvent:(UIInputEvent *) event;
+
+- (UIView *) nextUserInteractionEnabledViewAtPoint:(CGPoint) point
+                                     withInputEvent:(UIInputEvent *) event;                                          
 @end
 
 

@@ -4,27 +4,7 @@
 
 
 
-//
-// this layer does nothing, it's just there so we can run tests
-// on UIView basically
-//
-@interface UINullLayer : NSObject <UILayer>
-{
-   char   *_debugNameUTF8String;
-}
-
-@property( observable) CGRect   frame;
-@property( observable) CGRect   bounds;
-
-@property( assign) CGAffineTransform   transform;
-@property( assign) CGRect              clipRect;
-@property( assign) CGFloat             alpha;
-
-@end
-
-
-
-
+// TODO: make NS_OPTIONS print
 static char  *UIViewAutoresizingUTF8String( NSUInteger bit)
 {
    switch( bit)
@@ -213,7 +193,7 @@ static UIEvent   *defaultHandleEventCallback( UIView *view, UIEvent *event)
    allocator = MulleObjCInstanceGetAllocator( self);
    mulle_pointerarray_init( &_trackingAreas, 0, allocator);
    mulle_pointerarray_init( &_subviews, 0, allocator);
-   mulle_pointerarray_init( &_layers, 1, allocator);
+   mulle_pointerarray_init( &_layers, 0, allocator);
 
    return( self);
 }
@@ -273,6 +253,38 @@ static UIEvent   *defaultHandleEventCallback( UIView *view, UIEvent *event)
    [super dealloc];
 }
 
+
+- (id) copy 
+{
+   UIView         *copy;
+   id <UILayer>   layer;
+   UIView         *subview;
+
+   layer = [[_mainLayer copy] autorelease];
+   copy  = [[[self class] alloc] initWithLayer:layer];
+   {
+      mulle_pointerarray_for( &_layers, layer)
+      {
+         layer = [layer copy];
+         [copy mulleAddRetainedLayer:layer];
+      }
+
+      mulle_pointerarray_for( &_subviews, subview)
+      {
+         subview = [subview copy];
+         [copy mulleAddRetainedSubview:subview];
+      }
+
+      copy->_hidden                 = self->_hidden;
+      copy->_userInteractionEnabled = self->_userInteractionEnabled;
+      copy->_clipsToBounds          = self->_clipsToBounds;
+      copy->_padding                = self->_padding;
+      copy->_margins                = self->_margins;
+      copy->_alpha                  = self->_alpha;
+      copy->_autoresizingMask       = self->_autoresizingMask;
+   }
+   return( copy);
+}
 
 static inline CGRect   getBounds( UIView *self)
 {
@@ -518,6 +530,17 @@ static inline CGRect   getBounds( UIView *self)
    mulle_pointerarray_for( &_subviews, view)
       if( CGRectIntersectsRect( [view frame], rect) == flag)
          mulle_pointerarray_add( array, view);
+}
+
+
+- (UIView *) subviewAtIndex:(NSUInteger) i
+{
+   UIView   *view;
+
+   // TODO: // need to throw exception here
+
+   view = mulle_pointerarray_get( &_subviews, (unsigned int) i);
+   return( view);
 }
 
 
@@ -832,7 +855,6 @@ static inline CGRect   getBounds( UIView *self)
 
 
 @implementation UINullLayer
-
 
 - (instancetype) initWithFrame:(CGRect) frame
 {

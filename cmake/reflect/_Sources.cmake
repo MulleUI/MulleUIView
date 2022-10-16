@@ -11,7 +11,6 @@ endif()
 # contents selected with patternfile ??-source--sources
 #
 set( SOURCES
-src/MulleKeyboardEventConsumer.m
 src/UIEdgeInsets+UTF8String.m
 src/UIInputEvent+UIView.m
 src/UITrackingArea.m

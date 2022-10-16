@@ -53,7 +53,6 @@ src/include.h
 # contents selected with patternfile ??-header--public-headers
 #
 set( PUBLIC_HEADERS
-src/MulleKeyboardEventConsumer.h
 src/MulleObjCLoader+MulleUIView.h
 src/MulleUIView.h
 src/UIEdgeInsets+UTF8String.h

@@ -15,11 +15,11 @@
    UIView    *superview;
 
    if( ! view)
-      return( _locationInWindow);
+      return( _inputState.locationInWindow);
    if( view == _locationView)
       return( _location);
 
-   translated = [view convertPoint:_locationInWindow
+   translated = [view convertPoint:_inputState.locationInWindow
                           fromView:NULL];
    return( translated);
 }
@@ -28,7 +28,7 @@
 - (CGPoint) _locationForView:(UIView *) view
 {
    if( ! view)
-      return( _locationInWindow);
+      return( _inputState.locationInWindow);
    if( view == _locationView)
       return( _location);
 

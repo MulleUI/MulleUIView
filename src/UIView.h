@@ -32,8 +32,7 @@ UI_VIEW_ANIMATABLE_PROPERTIES;
 // In theory UIView can manage other layer types than CALayer. It might be fun
 // to write a CALayer that draws ASCII :)
 //
-@protocol UILayer < NSObject>
-
+@protocol UILayer < NSObject, NSCopying>
 
 @property( observable) CGRect   frame;
 @property( observable) CGRect   bounds;
@@ -151,7 +150,7 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 
 
 
-@interface UIView : NSObject <UIAnimatableViewProperties>
+@interface UIView : NSObject <UIAnimatableViewProperties, NSCopying>
 {
    UIView                                  *_superview;
 
@@ -301,6 +300,8 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 // this isn't deep
 - (UIView *) subviewWithTag:(NSInteger) tag;
 
+- (UIView *) subviewAtIndex:(NSUInteger) index;
+
 // this is deep,
 - (UIView *) findSubviewWithTag:(NSInteger) tag;
 
@@ -342,6 +343,26 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 + (Class) layerClass;
 
 @end
+
+
+//
+// this layer does nothing, it's just there so we can run tests
+// on UIView basically
+//
+@interface UINullLayer : NSObject <UILayer>
+{
+   char   *_debugNameUTF8String;
+}
+
+@property( observable) CGRect   frame;
+@property( observable) CGRect   bounds;
+
+@property( assign) CGAffineTransform   transform;
+@property( assign) CGRect              clipRect;
+@property( assign) CGFloat             alpha;
+
+@end
+
 
 
 //
