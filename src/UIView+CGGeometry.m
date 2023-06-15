@@ -255,7 +255,6 @@ static CGRect   convertBoundsRectToFrameRect( CGRect rect, CGRect bounds, CGRect
    struct mulle__pointerarrayreverseenumerator   rover;
    struct mulle__pointerarray                    array;
    UIView                                        *view;
-   UIView                                        *next;
    UIView                                        *views[ 32];
 
    converted = rect;
@@ -327,7 +326,6 @@ done:
    struct mulle__pointerarrayreverseenumerator   rover;
    struct mulle__pointerarray                    array;
    UIView                                        *view;
-   UIView                                        *next;
    UIView                                        *views[ 32];
 
    converted = rect;
@@ -505,7 +503,7 @@ static CGPoint   convertBoundsPointToFramePoint( UIView *self, CGPoint point, CG
 
    // walk up the conversion chain and clip everything together, we 
    // end up with a rect in window space
-   for( view = self; parent = [view superview]; view = parent)
+   for( view = self; (parent = [view superview]); view = parent)
    {
       // this oughta be fairly cheap, as we are only doing one step
       rect = [view convertRect:rect

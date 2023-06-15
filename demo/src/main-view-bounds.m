@@ -90,7 +90,7 @@ static void   setupViewForRowColumn( UIView *view, int row, int column)
    UIView   *subview;
 
    [view setDebugNameUTF8String:"view"];
-   [view setDrawCallback:drawStuff];
+   [view setDrawCallback:(CALayerDrawCallback_t *) drawStuff];
    [view setBorderWidth:1.0];
    [view setBorderColor:CGColorMakeWithHexColor( 0x00FF00FF)];
 
@@ -120,7 +120,7 @@ static void   setupViewForRowColumn( UIView *view, int row, int column)
    [view setBounds:bounds];
 
    subview = [UIView viewWithFrame:CGRectMake( 20, 20, 40, 40)];
-   [subview setDrawCallback:drawCircle];
+   [subview setDrawCallback:(CALayerDrawCallback_t *) drawCircle];
    [subview setDebugNameUTF8String:"subview"];
    [subview setBackgroundColor:CGColorMakeTransparent()];
    [subview setBorderColor:CGColorMakeWithHexColor( 0xD0D0D0FF)];

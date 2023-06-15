@@ -73,22 +73,31 @@ typedef NS_ENUM( NSUInteger, UILayoutStrategy)
  */
 enum
 {
-   UILayoutConstraintAxisVertical   = CGVerticalAxis,
-   UILayoutConstraintAxisHorizontal = CGHorizontalAxis
+   UILayoutConstraintAxisVerticalIndex   = CGVerticalAxisIndex,
+   UILayoutConstraintAxisHorizontalIndex = CGHorizontalAxisIndex
 };
 
-typedef NSInteger   UILayoutConstraintAxis;
+typedef NSInteger   UILayoutConstraintAxisIndex;
+
+
+static inline BOOL
+   UIViewAutoresizingIsFlexibleInAxis( UIViewAutoresizing bits,
+                                       UILayoutConstraintAxisIndex index)
+{
+   NSUInteger   bit;
+
+   bit = (index == UILayoutConstraintAxisVerticalIndex)
+         ? UIViewAutoresizingFlexibleHeight
+         : UIViewAutoresizingFlexibleWidth;
+   return( (bits & bit) ? YES : NO);
+}
 
 
 @interface UIView( Layout)
 
-
-// calls sizeThatFits:context: with nil
-- (CGSize) sizeThatFits:(CGSize) size;
-
 // actual method: context is usually CGContext
 - (CGSize) sizeThatFits:(CGSize) size
-                context:(id) context;
+                context:(id <UIGraphicsContext>) context;
 
 //
 // You do not need not to call super in UIView subclasses, if you manually
@@ -96,8 +105,12 @@ typedef NSInteger   UILayoutConstraintAxis;
 //
 
 // layoutSubviews will call -layoutSubview:inRect:autoresizingMask: on all
-// subviews. The bounds passed will be the -layoutRect.
-- (void) layoutSubviews;
+// subviews. The bounds passed will be the -layoutRect. If you return NO
+// -layout will not be called recursively on all subviews.
+// You should not call layoutSubviews on its own, since it doesn't affect
+// the layers of the subview.
+//                
+- (BOOL) layoutSubviews;
 
 //
 // layoutLayers will call -layoutSubview:inRect: on each layer. Bounds will
@@ -105,7 +118,19 @@ typedef NSInteger   UILayoutConstraintAxis;
 //
 - (void) layoutLayers;
 
+// loops over subviews and calls -layout on them
+- (void) performLayoutOnSubviews;
+
+// basically: 
+//  if( [self layoutStrategy] != UILayoutStrategyStop)
+//  {
+//     [self layoutLayers];
+//     if( [self layoutSubviews])
+//        [self performLayoutOnSubviews];
+//  }
 - (void) layout;
+
+
 
 // will layout the subview in the bounds according to the autoresizingMask
 - (void) layoutSubview:(UIView *) view
@@ -126,6 +151,9 @@ typedef NSInteger   UILayoutConstraintAxis;
 // its frame.size is set to zero. The original size is kept in -mulleLayoutSize
 // it's better to check this method though as I might change by mind...
 - (BOOL) isCulledByLayout;
+
+// will not assert
+- (void) _setFrame:(CGRect) frame;
 
 @end
 

@@ -16,39 +16,27 @@
            withEvent:(UIEvent *) event;
 
 // this will set the locationForView of the event. If you don't want this
-// don't pass an event
+// don't pass an event. Returns the farthest view, that is not transparent
+// and has userInteraction enabled. (not used by event handling)
 - (UIView *) hitTest:(CGPoint) point
            withEvent:(UIEvent *) event;
 
+// this checks userInteractionEnabled and tests with pointInside:withEvent:
+// inputEvent cache will be set for the view, if the hitTest succeeds
+- (BOOL) directHitTest:(CGPoint) point
+        withInputEvent:(UIInputEvent *) event;
+
+// this method is actually used for event deliver. Event can be changed to
+// nil to block propagation
+- (UIView *) hitSearchSubviews:(CGPoint) contentLocation
+         withInputEventPointer:(UIInputEvent **) event_p;
 
 //
 // this handles the event without considering subviews
 //
-- (UIInputEvent *) handleInputEvent:(UIInputEvent *) event;
-- (UIEvent *) handleOtherEvent:(UIEvent *) event;
-
-// returns event if it hasn't been handled, this will hitTest subviews
-// location is in the superview frame space
-- (UIInputEvent *) handleInputEvent:(UIInputEvent *) event
-                           location:(CGPoint) location;
-
-
 - (UIView *) subviewAtContentLocation:(CGPoint) point;
 - (id <UILayer>) layerAtContentLocation:(CGPoint) point;
 
-- (UIInputEvent *) handleKeyboardEvent:(UIKeyboardEvent *) event;
-- (UIInputEvent *) handleUnicodeEvent:(UIUnicodeEvent *) event;
-- (UIInputEvent *) handleActionEvent:(UIActionEvent *) event;
-- (UIInputEvent *) handleMouseScrollEvent:(UIMouseScrollEvent *) event;
-- (UIInputEvent *) handleMouseMotionEvent:(UIMouseMotionEvent *) event;
-- (UIInputEvent *) handleMouseButtonEvent:(UIMouseButtonEvent *) event;
-
-
-- (UIView *) firstUserInteractionEnabledViewAtPoint:(CGPoint) point
-                                     withInputEvent:(UIInputEvent *) event;
-
-- (UIView *) nextUserInteractionEnabledViewAtPoint:(CGPoint) point
-                                     withInputEvent:(UIInputEvent *) event;                                          
 @end
 
 

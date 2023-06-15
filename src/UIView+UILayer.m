@@ -64,19 +64,15 @@
 
 - (id <UILayer>) layerHitTest:(CGPoint) point
 {
-   struct mulle_pointerarrayenumerator   rover;
-   id <UILayer>                          layer;
-   CGRect                                rect;
-   CGPoint                               converted;
+   id <UILayer>   layer;
+   CGRect         rect;
 
-   rover = mulle_pointerarray_enumerate( &_layers);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &layer))
+   mulle_pointerarray_for( &_layers, layer)
    {
       rect = [layer frame];
       if( CGRectContainsPoint( rect, point))
          break;
    }
-   mulle_pointerarrayenumerator_done( &rover);
 
    return( layer ? layer : _mainLayer);
 }
@@ -94,8 +90,6 @@
                  toLayer:(id <UILayer>) layer
 {
    CGPoint             translated;
-   CGRect              frame;
-   CGRect              bounds;
    CGAffineTransform   xform;
 
    if( ! layer || layer == _mainLayer)
@@ -115,8 +109,6 @@
                fromLayer:(id <UILayer>) layer
 {
    CGPoint             translated;
-   CGRect              frame;
-   CGRect              bounds;
    CGAffineTransform   xform;
 
    if( ! layer || layer == _mainLayer)
@@ -133,8 +125,6 @@
                toLayer:(id <UILayer>) layer
 {
    CGRect              translated;
-   CGRect              frame;
-   CGRect              bounds;
    CGAffineTransform   xform;
 
    if( ! layer || layer == _mainLayer)
@@ -154,8 +144,6 @@
              fromLayer:(id <UILayer>) layer
 {
    CGRect              translated;
-   CGRect              frame;
-   CGRect              bounds;
    CGAffineTransform   xform;
 
    if( ! layer || layer == _mainLayer)

@@ -8,24 +8,31 @@
 #import "import-private.h"
 
 
+@interface NSObject ( Layout)
+
+- (void) addLayoutedView:(UIView *) view;
+- (BOOL) isLayoutedView:(UIView *) view;
+
+@end
+
+
+@interface UIView( Forward)
+
+- (void) willChange;
+
+@end
+
+
 @implementation UIView ( Layout)
 
 // https://developer.apple.com/documentation/uikit/uiview/1622625-sizethatfits?language=objc
 - (CGSize) sizeThatFits:(CGSize) size
-                context:(id) context;
+                context:(id <UIGraphicsContext>) context;
 {
    // TODO: should use inverse transform on size
    return( [_mainLayer sizeThatFits:size
                             context:context]);
 }
-
-- (CGSize) sizeThatFits:(CGSize) size
-{
-   return( [self sizeThatFits:size
-                      context:nil]);
-}
-
-
 
 #pragma mark - layout
 
@@ -52,13 +59,10 @@
 //
 - (CGRect) originalFrame
 {
-   CGRect   frame;
-
    if( _originalFrame.size.width == 0.0)
       _originalFrame = _frame;
 
-   frame = _originalFrame;
-   return( frame);
+   return( _originalFrame);
 }
 
 
@@ -68,22 +72,24 @@
 {
    CGRect         frame;
    CGRect         newFrame;
+   CGRect         originalFrame;
    CGRect         marginalBounds;
    NSInteger      resizeMask;
    NSInteger      stickMask;
-   CGSize         layoutSize;
    UIEdgeInsets   insets;
 
    if( ! autoresizingMask)
       return;
 
    frame          = [view frame];
-   newFrame       = [view originalFrame];
+   originalFrame  = [view originalFrame];
+   newFrame       = isinf( originalFrame.size.width) ? frame : originalFrame;
+
    resizeMask     = autoresizingMask & (UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight);
    stickMask      = autoresizingMask & (UIViewAutoresizingStickToMiddle|UIViewAutoresizingStickToCenter);
 
    insets         = [view margins];
-   marginalBounds = UIEdgeInsetsInsetRect( bounds, [view margins]);
+   marginalBounds = UIEdgeInsetsInsetRect( bounds, insets);
 
    // if too small now, remove from drawing
    // as the drawing code does it too, what's really the point though ?
@@ -171,6 +177,9 @@
 
    if( ! CGRectEqualToRect( frame, newFrame))
       [view setFrame:newFrame];
+
+   if( isinf( originalFrame.size.width))
+      [view setOriginalFrame:frame];
 }
 
 
@@ -198,7 +207,7 @@
    }
 #endif
 
-   if( ! _willLayoutLayers || (*_willLayoutLayers)( self))
+   if( (*_willLayoutLayersCallback)( self))
    {
       [self layoutLayer:_mainLayer
                  inRect:contentRect];
@@ -209,33 +218,67 @@
                     inRect:contentRect];
       mulle_pointerarrayenumerator_done( &rover);
 
-      if( _didLayoutLayers)
-         (*_didLayoutLayers)( self);
+      (*_didLayoutLayersCallback)( self);
    }
 }
 
 
-- (void) layoutSubviews
+- (BOOL) layoutSubviews
 {
-   struct mulle_pointerarrayenumerator   rover;
-   UIView                                *view;
-   CGRect                                bounds;
+   UIView   *view;
+   CGRect   bounds;
+   BOOL     flag;
 
-   if( ! _willLayoutSubviews || (*_willLayoutSubviews)( self))
+   if( (*_willLayoutSubviewsCallback)( self))
    {
+      // TODO: could "cull" subviews here, that, after layout, are not
+      //       visible.. is this beneficial ?
+      //
       bounds = [self layoutRect];
-      rover = mulle_pointerarray_enumerate( &_subviews);
-      while( _mulle_pointerarrayenumerator_next( &rover, (void **) &view))
+      mulle_pointerarray_for( &_subviews, view)
       {
          [self layoutSubview:view
-                     inRect:bounds
+                      inRect:bounds
             autoresizingMask:[view autoresizingMask]];
       }
-      mulle_pointerarrayenumerator_done( &rover);
-
-      if( _didLayoutSubviews)
-         (*_didLayoutSubviews)( self);
    }
+   flag = (*_didLayoutSubviewsCallback)( self);
+   return( flag);
+}
+
+
+- (void) _setFrame:(CGRect) frame
+{
+#ifdef UIVIEW_FRAME_USES_CGRECTINTEGRAL
+   _frame = CGRectIntegral( frame);
+#else
+   _frame = frame;
+#endif
+   _needsTrackingAreaUpdate = YES;
+}
+
+
+- (void) setFrame:(CGRect) frame
+{
+   assert( ! [(id) [self window] isLayoutedView:self]);
+
+   [self willChange];
+
+#ifdef UIVIEW_FRAME_USES_CGRECTINTEGRAL
+   _frame = CGRectIntegral( frame);
+#else
+   _frame = frame;
+#endif
+   _needsTrackingAreaUpdate = YES;
+}
+
+
+- (void) performLayoutOnSubviews
+{
+   UIView   *view;
+
+   mulle_pointerarray_for( &_subviews, view)
+      [view layout];   
 }
 
 //
@@ -249,9 +292,10 @@
 //
 - (void) layout
 {
-   struct mulle_pointerarrayenumerator   rover;
-   UIView                                *view;
 
+#ifndef NDEBUG
+   [(id) [self window] addLayoutedView:self];
+#endif
    /*
     * TOP/DOWN
     */
@@ -272,16 +316,14 @@
    [self layoutLayers];
 
    // this is the flat possibly hardcoded code, that layouts each subview
-   [self layoutSubviews];
+   if( ! [self layoutSubviews])
+      return;
 
    //
    // this is recursive code, triggering possibly more autoresizes
    // or yogas..
    //
-   rover = mulle_pointerarray_enumerate( &_subviews);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &view))
-      [view layout];
-   mulle_pointerarrayenumerator_done( &rover);
+   [self performLayoutOnSubviews];
 }
 
 

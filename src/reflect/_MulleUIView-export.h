@@ -13,7 +13,6 @@
 #import "UIEdgeInsets+UTF8String.h"
 #import "UIEdgeInsets.h"
 #import "UIInputEvent+UIView.h"
-#import "UITrackingArea.h"
 #import "UIView+CGGeometry.h"
 #import "UIView+Layout.h"
 #import "UIView+UIEvent.h"

@@ -1,6 +1,5 @@
 #import "import.h"
 
-#import "UITrackingArea.h"
 #import "UIEdgeInsets.h"
 
 
@@ -26,16 +25,14 @@ UI_VIEW_ANIMATABLE_PROPERTIES;
 @end
 
 
-
-
 //
 // In theory UIView can manage other layer types than CALayer. It might be fun
 // to write a CALayer that draws ASCII :)
 //
 @protocol UILayer < NSObject, NSCopying>
 
-@property( observable) CGRect   frame;
-@property( observable) CGRect   bounds;
+@property( observable) CGRect          frame;
+@property( observable) CGRect          bounds;
 
 @property( assign) CGAffineTransform   transform;
 @property( assign) CGRect              clipRect;
@@ -51,6 +48,9 @@ UI_VIEW_ANIMATABLE_PROPERTIES;
 
 // used for convenience window creation
 - (NSUInteger) windowStyleMaskBits;
+
+// ugliness?
+- (void) forgetImplicitAnimations;
 
 @end
 
@@ -124,7 +124,7 @@ struct CGFrameInfo;
 // the layouter.
 //
 
-typedef NS_ENUM( NSUInteger, UIViewAutoresizing)
+typedef NS_OPTIONS( NSUInteger, UIViewAutoresizing)
 {
    UIViewAutoresizingNone           = 0x00,
    UIViewAutoresizingFlexibleWidth  = 0x10,
@@ -142,16 +142,25 @@ typedef NS_ENUM( NSUInteger, UIViewAutoresizing)
    UIViewAutoresizingCullAtBounds   = 0x2000,    // set to size 0.0 if exceeds bounds
 };
 
+
+extern NS_OPTIONS_TABLE( UIViewAutoresizing, 12);
+
+static inline char  *UIViewAutoresizingUTF8String( UIViewAutoresizing bits)
+{
+   return( NS_OPTIONS_PRINT( UIViewAutoresizing, bits));
+}
+
+
 // "backwards" compatibility
 
 char   *UIViewAutoresizingMaskUTF8String( UIViewAutoresizing bits);
 char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 
 
-
-
 @interface UIView : NSObject <UIAnimatableViewProperties, NSCopying>
 {
+   char                                    *_debugNameUTF8String;
+
    UIView                                  *_superview;
 
    struct mulle_pointerarray               _layers;     // todo why no inline ?
@@ -169,15 +178,24 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 }
 
 // don't change window yourself!
-@property( assign) id <UIWindow>            window;  // UIWindow really #1#
+@property( assign) id <UIWindow>           window;  // UIWindow really #1#
 
-@property( getter=isHidden)                 BOOL   hidden;                  // default: NO
+@property( getter=isHidden) BOOL           hidden;  // default: NO
+
+// UIUserInteractionEnabled
+//
+// When set to NO, input events are ignored. The default value of this property
+// is YES. If a view is marked userInteractionEnabled as NO, or hidden as YES,
+// or opacity is close to 0, then the view and its subviews will not take part
+// in input events handling.
+//
+// https://stackoverflow.com/questions/10880868/on-ios-if-a-superviews-userinteractionenabled-is-no-then-all-subviews-are-dis
 @property( getter=isUserInteractionEnabled) BOOL   userInteractionEnabled;  // default: YES
 
-@property BOOL   clipsToBounds;   // default: YES
-//@property BOOL   needsLayout;     // use setNeedsLayout for marking
-@property BOOL   needsCaching;
-@property BOOL   needsTrackingAreaUpdate;
+@property BOOL        clipsToBounds; // default: YES
+//@property BOOL   needsLayout;      // use setNeedsLayout for marking
+@property BOOL        needsCaching;
+@property BOOL        needsTrackingAreaUpdate;
 
 // user info, for finding views (subviewWithTag:)
 @property NSInteger   tag;
@@ -185,23 +203,24 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 // On UIView this does nothing
 //@property BOOL   needsDisplay;
 
+@property char        *reuseIdentifierUTF8String;
 
 //
 // This is used during layout of subviews to restrict the size of the bounds,
 // where subviews can be placed. Use -layoutRect in layout code, which takes
 // padding into account
 //
-@property( observable) UIEdgeInsets   padding;
+@property( observable) UIEdgeInsets    padding;
 
 //
 // Margins are used during subview layout. Its the distance of the view to
 // other views.
 //
-@property( observable) UIEdgeInsets   margins;
+@property( observable) UIEdgeInsets    margins;
 // this gets inherited down to all layers and subviews
 
 // frame is the position and size relative to the superview
-@property( observable) CGRect         frame;
+@property( observable) CGRect          frame;
 
 //
 // bounds is the used to place the layers and subviews. Their frames
@@ -216,37 +235,46 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 //
 // Use layoutRect if you are asking for bounds during layout
 //
-@property( observable) CGRect         bounds;
+@property( observable) CGRect          bounds;
 
-@property( observable) CGFloat        alpha;
+@property( observable) CGFloat         alpha;
 
 
 // call back for view events, your handler should return nil if it
 // handled or wants to discard the event.
 @property( assign) UIEvent             *(*eventCallback)( UIView *view, UIEvent *event);
 
-@property( assign) UIViewAutoresizing   autoresizingMask;
+// mouseMotion events are limited, you can't change their type on return
+@property( assign) UIMouseMotionEvent  *(*mouseMotionEventCallback)( UIView *view, UIMouseMotionEvent *event);
+
+@property( assign) UIViewAutoresizing  autoresizingMask;
+
 //
 // When autoresizing is used the original frame is stored here on the first
 // layout and then used as the frame to layout in subsequent layout steps
-// this protects us from accumulated fp errors
+// this protects us from accumulated fp errors. 
 //
 @property( assign) CGRect   originalFrame;
 
-// abused by UIStackView, will be moved away later
+// abused by UIStackView, will be moved away later 
+// TODO: how is this different from originalFrame ? Why does originalFrame
+//       need an origin ?
 @property( assign) CGSize   mulleLayoutSize;
 
-// return NO, if default layoutSubviews code should not run
-@property BOOL  (*willLayoutSubviews)( UIView *view);
-
-// called after layoutSubviews default code, not if willLayoutSubviews returns NO
-@property void  (*didLayoutSubviews)( UIView *view);
 
 // return NO, if default layoutLayers code should not run
-@property BOOL  (*willLayoutLayers)( UIView *view);
+@property BOOL  (*willLayoutLayersCallback)( UIView *view);
 
 // called after layoutLayers default code, not if willLayoutLayers returns NO
-@property void  (*didLayoutLayers)( UIView *view);
+@property void  (*didLayoutLayersCallback)( UIView *view);
+
+
+// return NO, if default layoutSubviews code should not run
+@property BOOL  (*willLayoutSubviewsCallback)( UIView *view);
+
+// called after layoutSubviews default code. Will not be called if
+// willLayoutSubviews returned NO. Return 'YES' to commence recursive layouting
+@property BOOL  (*didLayoutSubviewsCallback)( UIView *view);
 
 
 + (instancetype) viewWithLayer:(id <UILayer>) layer;
@@ -278,6 +306,10 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 - (void) mulleAddRetainedSubview:(UIView *) layer;
 
 - (void) addSubview:(UIView *) view;
+- (void) removeSubview:(UIView *) view;
+- (void) removeAllSubviews;
+- (void) removeFromSuperview;
+- (void) sortSubviewsByOrigin;
 
 - (void) getSubviewsIntersectingRect:(CGRect) rect
                     intoPointerArray:(struct mulle_pointerarray *) views
@@ -310,26 +342,26 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 
 - (void) setNeedsCaching;  // wipes the _cacheLayer and asks for a new one to be drawn
 
-
-// ---
-// UIView( UITrackingArea)
-// ---
-- (NSUInteger) numberOfTrackingAreas;
-- (UITrackingArea *) trackingAreaAtIndex:(NSUInteger) i;
-
-
 // this is the "main" layer. Each view has a bottom most layer that is
 // supposed to fill out the UIView with background color and border. It
 //
+
+// default returns nil, indicating no support for reuse. Reuse of simple views
+// is not useful. It might be useful for more intricate views..
+
+- (id) prepareForReuse;
+
 - (id <UILayer>) layer;
 - (void) mulleAddRetainedLayer:(id <UILayer>) layer;
 - (void) addLayer:(id <UILayer>) layer;
 - (NSInteger) getLayers:(id <UILayer> *) buf
                   range:(NSRange) range;
+- (void) removeAllLayers;
 
 - (BOOL) isMultiLayer;
 
-- (void) willChange;  // does nothing, category/subclass will override
+- (char *) debugNameUTF8String;
+- (void) setDebugNameUTF8String:(char *) s;
 
 @end
 
@@ -354,8 +386,8 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
    char   *_debugNameUTF8String;
 }
 
-@property( observable) CGRect   frame;
-@property( observable) CGRect   bounds;
+@property( observable) CGRect          frame;
+@property( observable) CGRect          bounds;
 
 @property( assign) CGAffineTransform   transform;
 @property( assign) CGRect              clipRect;
@@ -380,8 +412,7 @@ char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 - (CGFloat) borderWidth;
 - (CGFloat) cornerRadius;
 */
-- (char *) debugNameUTF8String;
-- (void) setDebugNameUTF8String:(char *) s;
+
 
 // TODO: move to UIWindow
 

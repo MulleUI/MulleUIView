@@ -8,7 +8,6 @@
 
 - (void) sendSubviewToBack:(UIView *) view;
 - (void) bringSubviewToFront:(UIView *) view;
-- (void) removeFromSuperview;
 
 - (void) insertSubview:(UIView *) view
                atIndex:(NSInteger) index;

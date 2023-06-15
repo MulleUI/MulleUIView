@@ -107,12 +107,10 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
                                unsigned int from,
                                unsigned int to)
 {
-   struct mulle_pointerarray   tmp;
-   void                        **curr;
-   void                        **insertion;
-   void                        **sentinel;
-   unsigned int                count;
-   void                        *item;
+   void           **curr;
+   void           **sentinel;
+   unsigned int   count;
+   void           *item;
 
    assert( array);
 
@@ -218,8 +216,7 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
  */
 - (void) bringSubviewToFront:(UIView *) view
 {
-   NSUInteger                  index;
-   struct mulle_pointerarray   *array;
+   NSUInteger   index;
 
    index = UIViewGetIndexOfSubview( self, view);
    assert( index != NSNotFound);
@@ -232,9 +229,8 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
 
 - (void) sendSubviewToBack:(UIView *) view
 {
-   NSUInteger                  index;
-   unsigned int                count;
-   struct mulle_pointerarray   *array;
+   NSUInteger     index;
+   unsigned int   count;
 
    index = UIViewGetIndexOfSubview( self, view);
    assert( index != NSNotFound);
@@ -244,7 +240,6 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
    count = mulle_pointerarray_get_count( &_subviews);
    mulle_pointerarray_move( &_subviews, index, count);
 }
-
 
 
 /*

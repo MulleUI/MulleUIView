@@ -3,6 +3,10 @@
 #import <string.h>
 
 
+#define LEVELS   3
+#define TRICKY_BOUNDS
+#define OBSCURING_VIEW
+
 
 struct Point
 {
@@ -68,7 +72,6 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
 }
 
 
-
 - (void) addCircleAtPoint:(CGPoint) point
                     color:(CGColor) color
 {
@@ -110,6 +113,15 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
       else
          nvgCircle( vg, p->point.x, p->point.y, 3.0);
       nvgFill( vg);
+
+      nvgBeginPath( vg);
+      nvgStrokeWidth( vg, 0.75);
+      nvgStrokeColor( vg, CGColorByDimming( CGColorMakeWhite(), 0.15));
+      nvgMoveTo( vg, p->point.x - 2.0, p->point.y);
+      nvgLineTo( vg, p->point.x + 2.0, p->point.y);
+      nvgMoveTo( vg, p->point.x, p->point.y - 2.0);
+      nvgLineTo( vg, p->point.x, p->point.y + 2.0);
+      nvgStroke( vg);
    }
    _mulle_structarrayenumerator_done( &rover);
 }
@@ -173,18 +185,86 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
 @end
 
 
-#define LEVELS          3
+@interface UIObscuringView : UIView
+@end
 
-#define TRICKY_BOUNDS
+
+typedef NS_ENUM( NSUInteger, CGAxis)
+{
+   CGHorizontalAxis = 1,
+   CGVerticalAxis   = 2
+};
+
+
+static CGPoint   CGRectMirrorPointAlongAxes( CGRect  rect, CGPoint point, CGAxis axes)
+{
+   //
+   //  p 1,2
+   //  r: -1,0,5,4  m: 3,2
+
+
+   if( axes & CGHorizontalAxis)
+   {
+      // move axis to zero
+      point.x -= CGRectGetMidX( rect);
+      point.x  = -point.x;
+      point.x += CGRectGetMidX( rect);
+   }
+   if( axes & CGVerticalAxis)
+   {
+      // move axis to zero
+      point.y -= CGRectGetMidY( rect);
+      point.y  = -point.y;
+      point.y += CGRectGetMidY( rect);
+   }
+   return( point);
+}
+
+@implementation UIObscuringView
+
+- (UIView *) hitSearchSubviews:(CGPoint) contentLocation
+         withInputEventPointer:(UIInputEvent **) event_p
+{
+   struct UIInputState   state;
+   CGPoint               point;
+   CGPoint               mirrored;
+   UIInputEvent          *event;
+   UIInputEvent          *newEvent;
+   CGRect                rect;
+
+   if( ! event_p)
+      return( nil);
+
+   event   = *event_p;
+   point   = [event locationInView:self];
+   rect    = [self contentRect];
+
+   // mirror on x-axis
+   state    = [event inputState];
+   mirrored = CGRectMirrorPointAlongAxes( rect, point, CGHorizontalAxis);
+   state.locationInWindow = [self convertPoint:mirrored
+                                        toView:nil];
+   newEvent = [[[[event class] alloc] initWithInputState:&state] autorelease];
+   MulleUILog( "Change event: %@ -> %@\n", event, newEvent);
+
+   *event_p = newEvent;
+
+   return( nil);
+}
+
+@end
+
 
 static void   setupScene( UIWindowPlane *contentPlane)
 {
    UIView         *view;
+   UIView         *obscuringView;
    UIView         *subview;
    UIView         *subview2;
    CGRect         frame;
+   CGRect         bounds;
+   CGRect         obscuringViewFrame;
    UIEdgeInsets   insets;
-
 
 #ifdef TRICKY_BOUNDS
    insets = UIEdgeInsetsMake( 25, 25, 25, 25);
@@ -201,13 +281,29 @@ static void   setupScene( UIWindowPlane *contentPlane)
    [view setBorderWidth:1.0];
 
 #ifdef TRICKY_BOUNDS
-   frame.origin       = CGPointZero;
-   frame.size.width  /= 2.0;
-   frame.size.height /= 2.0;
-   [view setBounds:frame];
+   bounds.origin       = CGPointZero;
+   bounds.size.width   = frame.size.width / 2.0;
+   bounds.size.height  = frame.size.height / 2.0;
+   [view setBounds:bounds];
 #endif
 
    [contentPlane addSubview:view];
+
+#ifdef OBSCURING_VIEW
+   obscuringViewFrame              = frame;
+   obscuringViewFrame.size.width  /= 2.5;
+   obscuringViewFrame.size.height /= 2.5;
+   obscuringViewFrame.origin.x     = frame.size.width / 2.0;
+   obscuringViewFrame.origin.y     = frame.size.height / 2.0;
+
+   obscuringView = [UIObscuringView viewWithFrame:obscuringViewFrame];
+   [obscuringView setDebugNameUTF8String:"obscure"];
+   [obscuringView setBackgroundColor:CGColorMakeWithRGBA( 0.5, 0.5, 0.5, 0.4)];
+   [obscuringView setBorderColor:CGColorMakeWithRGBA( 0.75, 0.75, 0.75, 0.8)];
+   [obscuringView setBorderWidth:1.0];
+   [contentPlane addSubview:obscuringView];
+
+#endif
 
 #if LEVELS > 1
    /*

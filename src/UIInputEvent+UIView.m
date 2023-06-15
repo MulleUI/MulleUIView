@@ -10,9 +10,7 @@
 
 - (CGPoint) locationInView:(UIView *) view
 {
-   CGPoint   point;
    CGPoint   translated;
-   UIView    *superview;
 
    if( ! view)
       return( _inputState.locationInWindow);
