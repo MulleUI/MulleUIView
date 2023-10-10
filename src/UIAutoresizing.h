@@ -1,0 +1,149 @@
+//
+// Copyright (c) 2023 Nat!, Mulle kybernetiK
+//
+// we want "import.h" always anyway
+#import "import.h"
+
+#import "UIEdgeInsets.h"
+
+
+typedef NS_OPTIONS( NSUInteger, UIViewAutoresizing)
+{
+   UIViewAutoresizingNone                  = 0x00,
+
+
+   // This is a simplified form "margins" resizing
+   // UIViewAutoresizingTop and friends are used by UIStackView
+   // mainly.
+
+   //  CGContentModeScaleToFill is same as UIViewAutoresizingFillBoth but is 0
+//   UIViewAutoresizingRedraw,  // not supported
+
+   UIViewAutoresizingCenter                = CGContentModeCenterPoint,
+
+   UIViewAutoresizingTop                   = CGContentModeTop,
+   UIViewAutoresizingBottom                = CGContentModeBottom,
+   UIViewAutoresizingLeft                  = CGContentModeLeft,
+   UIViewAutoresizingRight                 = CGContentModeRight,
+
+   UIViewAutoresizingTopLeft               = CGContentModeTopLeft,
+   UIViewAutoresizingTopRight              = CGContentModeTopRight,
+   UIViewAutoresizingBottomLeft            = CGContentModeBottomLeft,
+   UIViewAutoresizingBottomRight           = CGContentModeBottomRight,
+
+   UIViewAutoresizingScaleToFillHorizontal = CGContentModeScaleToFillHorizontal,
+   UIViewAutoresizingScaleToFillVertical   = CGContentModeScaleToFillVertical,
+   UIViewAutoresizingScaleToFill           = CGContentModeScaleToFill,
+   UIViewAutoresizingScaleAspectFit        = CGContentModeScaleAspectFit,
+   UIViewAutoresizingScaleAspectFill       = CGContentModeScaleAspectFill,
+
+
+   // "Flexible" is "legacy" resizing
+   // it ignores "margins" but takes "padding" of the superview into account
+   // See NSView/UIView for a description how this works
+   UIViewAutoresizingFlexibleTopMargin     = 0x010000,
+   UIViewAutoresizingFlexibleBottomMargin  = 0x020000,
+
+   UIViewAutoresizingFlexibleLeftMargin    = 0x040000,
+   UIViewAutoresizingFlexibleRightMargin   = 0x080000,
+
+   UIViewAutoresizingFlexibleHeight        = 0x100000,
+   UIViewAutoresizingFlexibleWidth         = 0x200000,
+
+      // 8 bits for legacy
+   // 16 bits for contentMode (future)
+   UIViewAutoresizingClipToBounds          = 0x1000000,    // clip to fit into bounds if smaller
+   UIViewAutoresizingCullAtBounds          = 0x2000000,    // set to size 0.0 if exceeds bounds
+   UIViewAutoresizingIntegralFrame         = 0x4000000     // make frame values integers
+};
+
+
+#define UIViewAutoresizingLegacyBits        0x003F0000
+#define UIViewAutoresizingContentModeBits   0x0000FFFF
+
+
+static inline CGContentMode   UIViewAutoresizingGetContentMode( UIViewAutoresizing bits)
+{
+   return( bits & UIViewAutoresizingContentModeBits);
+}
+
+
+extern NS_OPTIONS_TABLE( UIViewAutoresizing, 25);
+
+static inline char  *UIViewAutoresizingUTF8String( UIViewAutoresizing bits)
+{
+   return( NS_OPTIONS_PRINT( UIViewAutoresizing, bits));
+}
+
+
+// "backwards" compatibility
+
+char   *UIViewAutoresizingMaskUTF8String( UIViewAutoresizing bits);
+char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
+
+
+// ..Scale.. is changing the initial frame,
+// ..Flexible.. is changing a resized frame
+static inline BOOL   UIViewAutoresizingIsScaling( UIViewAutoresizing bits)
+{
+   return( (bits & (UIViewAutoresizingScaleToFillHorizontal
+                   | UIViewAutoresizingScaleToFillVertical
+                   | UIViewAutoresizingScaleToFill
+                   | UIViewAutoresizingScaleAspectFit
+                   | UIViewAutoresizingScaleAspectFill)) ? YES : NO);
+}
+
+
+static inline BOOL   UIViewAutoresizingIsFlexible( UIViewAutoresizing bits)
+{
+   return( (bits & (UIViewAutoresizingFlexibleHeight
+                   | UIViewAutoresizingFlexibleWidth
+                   | UIViewAutoresizingFlexibleTopMargin
+                   | UIViewAutoresizingFlexibleBottomMargin
+                   | UIViewAutoresizingFlexibleLeftMargin
+                   | UIViewAutoresizingFlexibleRightMargin)) ? YES : NO);
+}
+
+
+
+
+#define UIAutoresizingProperties                \
+   @property( assign) CGRect   originalFrame;   \
+   @property( assign) CGRect   lastBounds
+
+//
+// MEMO: there is the object that autoresizes another object with
+//       -autoresizeObject:inRect:autoresizingMask:. Both must inherit from
+//       UIAutoresizing. But the resized object does not get queried for 
+//       bounds and padding.
+//
+PROTOCOLCLASS_INTERFACE0( UIAutoresizing)
+
+UIAutoresizingProperties;
+
+- (CGRect) frame;         
+
+@optional
+- (CGRect) bounds;         // default CGRectZero;
+- (UIEdgeInsets) padding;  // default UIEdgeInsetsZero;
+- (UIEdgeInsets) margins;  // default UIEdgeInsetsZero;
+
+- (CGRect) autoresizedFrameOfObject:(id <UIAutoresizing>) view
+                             inRect:(CGRect) rect
+                   autoresizingMask:(UIViewAutoresizing) autoresizingMask;
+
+// actual "legacy" autoresizer
+- (CGRect) legacyFrameWithBounds:(CGRect) bounds
+                autoresizingMask:(UIViewAutoresizing) autoresizingMask;
+
+PROTOCOLCLASS_END();
+
+
+// A typical adopting class will look like this:
+// @interface Adopter : NSObject < UIAutoresizing>
+// UIAutoresizingProperties;
+// @end
+//
+// @implementation Adopter
+// @end
+

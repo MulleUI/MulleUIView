@@ -11,6 +11,7 @@ endif()
 # contents selected with patternfile ??-source--sources
 #
 set( SOURCES
+src/UIAutoresizing.m
 src/UIEdgeInsets+UTF8String.m
 src/UIInputEvent+UIView.m
 src/UIView+CGGeometry.m

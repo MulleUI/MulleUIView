@@ -2,6 +2,7 @@
 
 #import "UIInputEvent+UIView.h"
 
+#import "UIView+DebugPrivate.h"
 #import "UIView+CGGeometry.h"
 
 
@@ -57,18 +58,14 @@
    CGRect   rect;
    CGRect   bounds;
 
-   rect   = [self contentRect];
+   rect = [self contentRect];
    flag = CGRectContainsPoint( rect, point);
    if( flag)
    {
       bounds = [self bounds];
       flag   = CGRectContainsPoint( bounds, point);
    }
-#ifdef HITTEST_DEBUG
-   MulleUILog( "%s -> %btd",
-                  CGPointUTF8String( point),
-                  flag);
-#endif
+   UIViewEventLogVerbose( event, "%s -> %btd", CGPointUTF8String( point), flag);
    return( flag);
 }
 
@@ -82,6 +79,24 @@
    if( [self isHidden] || ([self alpha] < 0.01))
       return( NO);
    return( YES);
+}
+
+
+// This method will get clobbered by UIView+UIResponder later, to
+// implement a super call to UIResponder
+- (UIMouseMotionEvent *) handleMouseMotionEvent:(UIMouseMotionEvent *) event
+{
+   // _mouseMotionEventCallback is never nil
+   return( (self->_mouseMotionEventCallback)( self, event));
+}
+
+
+// This methods will get clobbered by UIView+UIResponder later, to
+// implement a super call to UIResponder
+- (UIEvent *) handleEvent:(UIEvent *) event
+{
+   // _eventCallback is never nil
+   return( (self->_eventCallback)( self, event));
 }
 
 
@@ -99,18 +114,14 @@
 
    if( ! [self respondsToInputEvents])
    {
-#ifdef EVENT_DEBUG
-       MulleUILog( "Invisible or disabled view ignores event %#@", event);
-#endif
+      UIViewEventLog( event, "Invisible or disabled view ignores event %#@", event);
       return( nil);
    }
 
    if( ! [self pointInside:point
                  withEvent:event])
    {
-#ifdef EVENT_DEBUG_VERBOSE
-      MulleUILog( "Event #%@ does not hit", event);
-#endif
+      UIViewEventLogVerbose( event, "Event %#@ does not hit", event);
       return( nil);
    }
 

@@ -94,13 +94,14 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
 }
 
 
-- (void) drawInContext:(CGContext *) context
+- (BOOL) drawInContext:(CGContext *) context
 {
    struct NVGcontext                     *vg;
    struct mulle_structarrayenumerator    rover;
    struct Point                          *p;
 
-   [super drawInContext:context];
+   if( ! [super drawInContext:context])
+      return( NO);
 
    vg    = CGContextGetNVGContext( context);
    rover = _mulle_structarray_enumerate( &_points);
@@ -116,7 +117,7 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
 
       nvgBeginPath( vg);
       nvgStrokeWidth( vg, 0.75);
-      nvgStrokeColor( vg, CGColorByDimming( CGColorMakeWhite(), 0.15));
+      nvgStrokeColor( vg, CGColorDim( CGColorMakeWhite(), 0.15));
       nvgMoveTo( vg, p->point.x - 2.0, p->point.y);
       nvgLineTo( vg, p->point.x + 2.0, p->point.y);
       nvgMoveTo( vg, p->point.x, p->point.y - 2.0);
@@ -124,6 +125,7 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
       nvgStroke( vg);
    }
    _mulle_structarrayenumerator_done( &rover);
+   return( YES);
 }
 
 @end
@@ -369,7 +371,7 @@ int   main( int argc, char *argv[])
     */
    window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800, 600)];
 
-   setupScene( [window contentPlane]);
+   setupScene( [window contentView]);
 
    [window dump];
 

@@ -2,6 +2,7 @@
       { @selector( MulleObjCLoader), @selector( MulleUIApplication) },      // 47a9beb6;MulleObjCLoader;55c305e6;MulleUIApplication
       { @selector( MulleObjCLoader), @selector( MulleUIBase) },      // 47a9beb6;MulleObjCLoader;3ebba954;MulleUIBase
       { @selector( NSObject), @selector( UIView) },      // b3a66256;NSObject;155b6ee8;UIView
+      { @selector( UIAutoresizing), MULLE_OBJC_NO_CATEGORYID },      // ead98d39;UIAutoresizing;;
       { @selector( UIInputEvent), @selector( UIView) },      // c91b6636;UIInputEvent;155b6ee8;UIView
       { @selector( UINullLayer), MULLE_OBJC_NO_CATEGORYID },      // 777deb39;UINullLayer;;
       { @selector( UIView), @selector( CGGeometry) },      // 155b6ee8;UIView;3ab12270;CGGeometry

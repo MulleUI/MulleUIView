@@ -83,20 +83,14 @@ void  mulle_pointerarray_insert_at_index( struct mulle_pointerarray *array,
                              _mulle_pointerarray_get_allocator( array));
    // copy old over including item of insertion
    while( curr < insertion)
-   {
       _mulle_pointerarray_add( &tmp, *curr++);
-      curr++;
-   }
 
    // insert ours
    _mulle_pointerarray_add( &tmp, item);
 
    // copy rest
    while( curr < sentinel)
-   {
       _mulle_pointerarray_add( &tmp, *curr++);
-      curr++;
-   }
 
    _mulle_pointerarray_swap( array, &tmp);
    _mulle_pointerarray_done( &tmp);
@@ -158,15 +152,24 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
 
 
 - (void) insertSubview:(UIView *) view
-               atIndex:(NSInteger) index;
+               atIndex:(NSInteger) index
 {
-   UIView   *superview;
+   assert( view);
+   assert( ! [view superview]);
+   assert( view != self);
+   assert( [view isKindOfClass:[UIView class]]);
 
-   superview = [view superview];
-   if( superview != self)
-      [view removeFromSuperview];
+   [view willMoveToSuperview:self];
 
-   mulle_pointerarray_insert_at_index( [self _subviews], [view retain], (unsigned int) index);
+   view->_superview = self;
+   mulle_pointerarray_insert_at_index( [self _subviews],
+                                       [view retain],
+                                       (unsigned int) index);
+
+   [view setWindow:self->_window];
+   [view didMoveToSuperview:self];
+
+   [self didAddSubview:view];
 }
 
 
@@ -182,6 +185,7 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
                atIndex:index + 1];
 }
 
+
 - (void) insertSubview:(UIView *) view
           belowSubview:(UIView *) other
 {
@@ -189,7 +193,7 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
 
    index = UIViewGetIndexOfSubview( self, other);
    [self insertSubview:view
-              atIndex:index];
+               atIndex:index];
 }
 
 
@@ -248,24 +252,19 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
 
 - (BOOL) _isSubviewOrDescendantview:(UIView *) view
 {
-   struct mulle_pointerarrayenumerator   rover;
-   UIView                                *candidate;
+   UIView   *candidate;
 
-   rover = mulle_pointerarray_enumerate( &_subviews);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &candidate))
+   mulle_pointerarray_for( &_subviews, candidate)
    {
       if( view == candidate)
          return( YES);
    }
-   mulle_pointerarrayenumerator_done( &rover);
 
-   rover = mulle_pointerarray_enumerate( &_subviews);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &candidate))
+   mulle_pointerarray_for( &_subviews, candidate)
    {
       if( [candidate _isSubviewOrDescendantview:view])
          return( YES);
    }
-   mulle_pointerarrayenumerator_done( &rover);
    return( NO);
 }
 

@@ -61,7 +61,7 @@ int   main( int argc, char *argv[])
    window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800, 600)];
    [window setBackgroundColor:CGColorMakeWithRGBA( 1.0, 1.0, 1.0, 1.0)];
 
-   setupScene( [window contentPlane]);
+   setupScene( [window contentView]);
 
    [window dump];
 

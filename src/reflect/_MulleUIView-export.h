@@ -9,7 +9,12 @@
  *
  *      mulle-sde environment set MULLE_MATCH_TO_C_RUN DISABLE
  */
+#ifndef mulle_ui_view_export_h__
+#define mulle_ui_view_export_h__
+
+
 #import "MulleObjCLoader+MulleUIView.h"
+#import "UIAutoresizing.h"
 #import "UIEdgeInsets+UTF8String.h"
 #import "UIEdgeInsets.h"
 #import "UIInputEvent+UIView.h"
@@ -19,3 +24,6 @@
 #import "UIView+UILayer.h"
 #import "UIView+UIViewEditing.h"
 #import "UIView.h"
+
+
+#endif

@@ -13,7 +13,6 @@
 - (CGPoint) convertPoint:(CGPoint) pos 
                fromLayer:(id <UILayer>) layer;
 
-
 - (CGRect) convertRect:(CGRect) pos
                toLayer:(id <UILayer>) layer;
 - (CGRect) convertRect:(CGRect) pos 

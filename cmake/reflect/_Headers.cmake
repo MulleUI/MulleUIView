@@ -32,6 +32,13 @@ src/include-private.h
 )
 
 #
+# contents selected with patternfile ??-header--private-headers
+#
+set( PRIVATE_HEADERS
+src/UIView+DebugPrivate.h
+)
+
+#
 # contents selected with patternfile ??-header--public-generated-headers
 #
 set( PUBLIC_GENERATED_HEADERS
@@ -55,6 +62,7 @@ src/include.h
 set( PUBLIC_HEADERS
 src/MulleObjCLoader+MulleUIView.h
 src/MulleUIView.h
+src/UIAutoresizing.h
 src/UIEdgeInsets+UTF8String.h
 src/UIEdgeInsets.h
 src/UIInputEvent+UIView.h

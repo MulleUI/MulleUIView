@@ -2,89 +2,14 @@
 
 #import "import-private.h"
 
+#import "UIView+DebugPrivate.h"
+
 
 @interface UIView( Forward)
 
 - (void) willChange;
 
 @end
-
-NS_OPTIONS_TABLE( UIViewAutoresizing, 12) =
-{
-   NS_OPTIONS_ITEM( UIViewAutoresizingNone),
-
-   NS_OPTIONS_ITEM( UIViewAutoresizingFlexible),      // keep above next two
-   NS_OPTIONS_ITEM( UIViewAutoresizingFlexibleWidth),
-   NS_OPTIONS_ITEM( UIViewAutoresizingFlexibleHeight),
-
-   NS_OPTIONS_ITEM( UIViewAutoresizingStickToMiddle), // keep above next two
-   NS_OPTIONS_ITEM( UIViewAutoresizingStickToTop),
-   NS_OPTIONS_ITEM( UIViewAutoresizingStickToBottom),
-
-   NS_OPTIONS_ITEM( UIViewAutoresizingStickToCenter), // keep above next two
-   NS_OPTIONS_ITEM( UIViewAutoresizingStickToLeft),
-   NS_OPTIONS_ITEM( UIViewAutoresizingStickToRight),
-
-   NS_OPTIONS_ITEM( UIViewAutoresizingClipToBounds),
-   NS_OPTIONS_ITEM( UIViewAutoresizingCullAtBounds)
-};
-
-
-
-static char  UIViewAutoresizingUTF8Character( NSUInteger bit)
-{
-   switch( bit)
-   {
-   case UIViewAutoresizingNone            : return( '0');
-   case UIViewAutoresizingFlexibleWidth   : return( 'w');
-   case UIViewAutoresizingFlexibleHeight  : return( 'h');
-   case UIViewAutoresizingStickToTop      : return( 't');
-   case UIViewAutoresizingStickToBottom   : return( 'b');
-   case UIViewAutoresizingStickToLeft     : return( 'l');
-   case UIViewAutoresizingStickToRight    : return( 'r');
-   case UIViewAutoresizingClipToBounds    : return( 'c');
-   case UIViewAutoresizingCullAtBounds    : return( 'C');
-   }
-   return( '?');
-}
-
-
-static NSUInteger  UIViewAutoresizingBits[] =
-{
-   // internal state, can't be set
-   UIViewAutoresizingFlexibleWidth,    // animation active, but possibly delayed
-   UIViewAutoresizingFlexibleHeight,   // passed delay, now doing something
-   UIViewAutoresizingStickToTop,       // future
-   UIViewAutoresizingStickToBottom,
-   UIViewAutoresizingStickToLeft,
-   UIViewAutoresizingStickToRight,     // signal preemption
-
-   // user options
-   UIViewAutoresizingClipToBounds,
-   UIViewAutoresizingCullAtBounds
-};
-
-
-char   *UIViewAutoresizingMaskShortUTF8String( NSUInteger bits)
-{
-   NSUInteger   i;
-   char         *s;
-   char         c;
-
-   mulle_buffer_do_string( buffer, NULL, s)
-   {
-      for( i = 0; i < sizeof( UIViewAutoresizingBits) / sizeof( NSUInteger); i++)
-      {
-         if( bits & UIViewAutoresizingBits[ i])
-         {
-            c = UIViewAutoresizingUTF8Character( UIViewAutoresizingBits[ i]);
-            mulle_buffer_add_byte( buffer, c);
-         }
-      }
-   }
-
-   return( MulleObjCAutoreleaseAllocation( s, NULL));
-}
 
 
 @interface NSObject( Forward)
@@ -164,19 +89,21 @@ static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view
 
 - (void) resetForInit
 {
-   _clipsToBounds              = YES;  // default
-   _userInteractionEnabled     = YES;  // default
-   _alpha                      = 1.0;
-   _bounds.size.width          = INFINITY; // once we change the bounds size
-   _willLayoutLayersCallback   = defaultYESCallback;
-   _didLayoutLayersCallback    = defaultVoidCallback;
-   _willLayoutSubviewsCallback = defaultYESCallback;
-   _didLayoutSubviewsCallback  = defaultYESCallback;
-   _eventCallback              = defaultHandleEventCallback;
-   _mouseMotionEventCallback   = defaultHandleMouseMotionEventCallback;
-   _needsTrackingAreaUpdate    = YES;
-   _originalFrame.size.width   = INFINITY;
-
+   _clipsToBounds                   = YES;  // default
+   _userInteractionEnabled          = YES;  // default
+   _alpha                           = 1.0;
+   _bounds.size.width               = INFINITY; // once we change the bounds size
+   _willLayoutLayersCallback        = defaultYESCallback;
+   _didLayoutLayersCallback         = defaultVoidCallback;
+   _willLayoutSubviewsCallback      = defaultYESCallback;
+   _didLayoutSubviewsCallback       = defaultYESCallback;
+   _willLayoutTrackingAreasCallback = defaultYESCallback;
+   _didLayoutTrackingAreasCallback  = defaultVoidCallback;
+   _eventCallback                   = defaultHandleEventCallback;
+   _mouseMotionEventCallback        = defaultHandleMouseMotionEventCallback;
+   _needsTrackingAreaUpdate         = YES;
+   _originalFrame.size.width        = 0.0;
+   _lastBounds.size.width           = 0.0;
    // needs to be properly removed before reuse
    assert( ! _window);
 
@@ -200,13 +127,12 @@ static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view
       return( nil);
    }
 
-   _mainLayer               = [layer retain];
-#ifdef UIVIEW_FRAME_USES_CGRECTINTEGRAL
-   _frame                   = CGRectIntegral( frame);
-#else
-   _frame                   = frame;
-#endif
+   _mainLayer = [layer retain];
+   _frame     = UIViewMakeFrameWithRect( frame);
    [self resetForInit];
+
+   // initially a UIView with only its mainLayer is fairly slim, and only
+   // needs one allocation for itself
 
    allocator = MulleObjCInstanceGetAllocator( self);
    mulle_pointerarray_init( &_trackingAreas, 0, allocator);
@@ -223,9 +149,7 @@ static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view
    Class          cls;
    CGRect         rect;
 
-#ifdef UIVIEW_FRAME_USES_CGRECTINTEGRAL   
-   frame = CGRectIntegral( frame);
-#endif   
+   frame = UIViewMakeFrameWithRect( frame);
    rect  = CGRectMake( 0.0f, 0.0f, frame.size.width, frame.size.height);
    cls   = [[self class] layerClass];
    layer = [[[cls alloc] initWithFrame:rect] autorelease];
@@ -244,9 +168,7 @@ static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view
    CGRect   frame;
 
    frame = [layer frame];
-#ifdef UIVIEW_FRAME_USES_CGRECTINTEGRAL   
-   frame = CGRectIntegral( frame);
-#endif   
+   frame = UIViewMakeFrameWithRect( frame);
    [layer setFrame:CGRectMake( 0.0f, 0.0f, frame.size.width, frame.size.height)];
 
    return( [self initWithLayer:layer
@@ -282,6 +204,7 @@ static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view
    mulle_pointerarray_release_all( &_layers);
    mulle_pointerarray_done( &_layers);
 
+   [_shadowLayer release];
    [_mainLayer release];
 
    MulleObjCObjectSetDuplicatedUTF8String( self, &_debugNameUTF8String, NULL);
@@ -296,9 +219,11 @@ static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view
    id <UILayer>   layer;
    UIView         *subview;
 
-   layer = [[_mainLayer copy] autorelease];
+   layer = [[self->_mainLayer copy] autorelease];
    copy  = [[[self class] alloc] initWithLayer:layer];
    {
+      copy->_shadowLayer = [_shadowLayer copy];
+
       mulle_pointerarray_for( &_layers, layer)
       {
          layer = [layer copy];
@@ -334,8 +259,8 @@ static inline CGRect   getBounds( UIView *self)
 
    bounds.origin = self->_bounds.origin;
    bounds.size   = self->_bounds.size.width == INFINITY
-                     ? self->_frame.size
-                     : self->_bounds.size;
+                   ? self->_frame.size
+                   : self->_bounds.size;
    return( bounds);
 }
 
@@ -357,6 +282,10 @@ static inline CGRect   getBounds( UIView *self)
 {
    [self willChange];
 
+   // keep this for legacy layout
+//   if( _lastBounds.size.width == 0.0)
+//      _lastBounds = getBounds( self);
+
    _bounds.origin = bounds.origin;
    if( CGSizeEqualToSize( _frame.size, bounds.size))
       _bounds.size.width = INFINITY;
@@ -364,6 +293,18 @@ static inline CGRect   getBounds( UIView *self)
       _bounds.size = bounds.size;
 }
 
+#if 0
+- (CGRect) lastBounds
+{
+   // if not set, return current bounds
+   if( self->_lastBounds.size.width == 0.0)
+      return( getBounds( self));
+
+   // this shouldn't happen, as we store _lastBounds expanded only
+   assert( ! isinf( self->_lastBounds.size.width));
+   return( self->_lastBounds);
+}
+#endif
 
 - (CGRect) contentRect
 {
@@ -375,13 +316,21 @@ static inline CGRect   getBounds( UIView *self)
 }
 
 
-- (CGRect) layoutRect
+- (void) setAutoresizingMask:(NSUInteger) mask
 {
-   CGRect   rect;
+   // weed out illegal values
+   CGContentModeAssert( mask);
 
-   rect = [self contentRect];
-   rect = UIEdgeInsetsInsetRect( rect, _padding);
-   return( rect);
+   _autoresizingMask = mask;
+}
+
+
+- (void) setMargins:(UIEdgeInsets) m
+{
+   _margins = m;
+
+   if( _autoresizingMask == 0 && (m.top != 0.0 || m.left != 0.0 || m.bottom != 0.0 || m.right != 0.0))
+      _autoresizingMask = UIViewAutoresizingCenter;
 }
 
 
@@ -443,6 +392,7 @@ static inline CGRect   getBounds( UIView *self)
 
 - (void) didAddSubview:(UIView *) view
 {
+   UIViewLog( "%#@", view);
 }
 
 
@@ -458,6 +408,7 @@ static inline CGRect   getBounds( UIView *self)
 
 - (void) didMoveToSuperview:(UIView *) newSuperview
 {
+   UIViewLog( "%#@", newSuperview);
 }
 
 
@@ -468,8 +419,16 @@ static inline CGRect   getBounds( UIView *self)
 
 - (void) didMoveToWindow:(id <UIWindow>) newWindow
 {
+   UIViewLog( "%#@", newWindow);
 }
 
+
+// this will be clobbered by UIWindow, to also add and remove
+// UIViews to tracking areas
+//
+// If you change code here, also change it in UIView+UITrackingArea.m
+// -setWindow:
+//
 
 - (void) setWindow:(id <UIWindow>) newWindow
 {
@@ -479,11 +438,12 @@ static inline CGRect   getBounds( UIView *self)
       return;
 
    [self willMoveToWindow:newWindow];
-   self->_window = newWindow;
+   {
+      self->_window = newWindow;
 
-   mulle_pointerarray_for( &_subviews, view)
-      [view setWindow:newWindow];
-
+      mulle_pointerarray_for( &_subviews, view)
+         [view setWindow:newWindow];
+   }
    [self didMoveToWindow:newWindow];
 }
 
@@ -504,11 +464,12 @@ static inline CGRect   getBounds( UIView *self)
    assert( _mulle_pointerarray_find( subviews, view) == mulle_not_found_e);
 
    [view willMoveToSuperview:self];
+   {
+      view->_superview = self;
+      _mulle_pointerarray_add( subviews, view);
 
-   view->_superview = self;
-   _mulle_pointerarray_add( subviews, view);
-
-   [view setWindow:self->_window];
+      [view setWindow:self->_window];
+   }
    [view didMoveToSuperview:self];
 
    [self didAddSubview:view];
@@ -555,7 +516,8 @@ static inline CGRect   getBounds( UIView *self)
 
    // lose original frame information here, as we are placed into
    // different surroundings (or not at all)
-   _originalFrame.size.width = INFINITY;
+   _originalFrame.size.width    = 0.0;
+   _lastBounds.size.width       = 0.0;
 }
 
 
@@ -582,10 +544,14 @@ static inline CGRect   getBounds( UIView *self)
 {
    NSUInteger   n;
 
+   n = mulle_pointerarray_get_count( &_subviews);
    if( ! buf)
+      return( n);
+   if( range.location >= n)
       return( -1);
 
-   n = mulle_pointerarray_get_count( &_subviews);
+   if( range.length == -1)
+      range.length = n - range.location;
    if( range.location + range.length > n)
       return( -1);
 
@@ -710,7 +676,7 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
    sprintf( buf, "%p",  self);
 
    format = "<%s %s>";
-   name   = [_mainLayer debugNameUTF8String];
+   name   = [self debugNameUTF8String];
    len    = name ? strlen( name) : 0;
    if( len)
    {
@@ -758,6 +724,7 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 }
 
 
+// TODO: need to add shadowLayer to t
 #if 0
 - (CGLayer *) cachedLayerWithFrameInfo:(struct CGFrameInfo *) info
 {
@@ -842,21 +809,27 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 {
    NSUInteger   n;
 
+   assert( MulleObjCRangeIsValid( range));
+
    if( ! buf)
       return( -1);
 
    if( ! _mainLayer)
       return( 0);
 
-   n  = 1;
-   n += mulle_pointerarray_get_count( &_layers);
-
-   if( range.location + range.length > n)
+   // add _mainLayer to the counr
+   n     = mulle_pointerarray_get_count( &_layers) + 1;
+   range = MulleObjCRangeValidateAgainstLength( range, n);
+   if( ! MulleObjCRangeIsValid( range))
       return( -1);
 
-   mulle_pointerarray_copy_range( &_layers, buf, range);
+   if( range.location == 0)
+   {
+      *buf++        = _mainLayer;
+      range.length -= 1;
+   }
 
-   buf[ n - 1] = _mainLayer; // why last ?
+   mulle_pointerarray_copy_range( &_layers, buf, range);
 
    return( n);
 }
@@ -865,6 +838,17 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 - (void) removeLayer:(id <UILayer>) layer
 {
    NSUInteger   index;
+
+   if( ! layer)
+      return;
+
+   if( layer == _mainLayer)
+   {
+      // or assert that this is bad ?
+      [_mainLayer autorelease];
+      _mainLayer = nil;
+      return;
+   }
 
    // nil will not be found, that's good
    index = mulle_pointerarray_find( &self->_layers, layer);
@@ -881,8 +865,9 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 {
    id <UILayer>   layer;
 
-   while( (layer = mulle_pointerarray_get_last( &_subviews)))
+   while( (layer = mulle_pointerarray_get_last( &_layers)))
       [self removeLayer:layer];
+   [self removeLayer:_mainLayer];
 }
 
 
@@ -968,6 +953,8 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 {
    return( _debugNameUTF8String);
 }
+
+
 - (void) setDebugNameUTF8String:(char *) s
 {
    MulleObjCObjectSetDuplicatedUTF8String( self, &_debugNameUTF8String, s);
@@ -994,25 +981,23 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
    [super dealloc];
 }
 
+
 - (char *) debugNameUTF8String
 {
    return( _debugNameUTF8String);
 }
+
+
 - (void) setDebugNameUTF8String:(char *) s
 {
    MulleObjCObjectSetDuplicatedUTF8String( self, &_debugNameUTF8String, s);
 }
 
+
 - (CGSize) sizeThatFits:(CGSize) size
-                context:(id) context
+                context:(id <UILayoutContext>) context
 {
    return( size);
-}
-
-// used for convenience window creation
-- (NSUInteger) windowStyleMaskBits
-{
-   return( 0);
 }
 
 @end

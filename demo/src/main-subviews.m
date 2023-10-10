@@ -2,20 +2,20 @@
 
 // just three nested views...
 
-void   setupSceneInContentPlane( UIWindowPlane *plane)
+void   setupSceneInContentView( UIView *contentView)
 {
    CGRect   contentRect;
    UIView   *view;
    UIView   *subview;
    UIView   *subsubview;
 
-   contentRect = [plane contentRect];
+   contentRect = [contentView contentRect];
 
    view  = [UIView viewWithFrame:CGRectInset( contentRect, 40.0, 40.0)];
    [view setBackgroundColor:CGColorMakeDarkOrchid()];
    [view setBorderWidth:4.0];
    [view setBorderColor:CGColorMakeDarkGray()];
-   [plane addSubview:view];
+   [contentView addSubview:view];
 
    contentRect = [view contentRect];
 
@@ -32,13 +32,11 @@ void   setupSceneInContentPlane( UIWindowPlane *plane)
    [subsubview setBorderColor:CGColorMakeGray()];
    [subsubview setBackgroundColor:CGColorMakeFuchsia()];
    [subview addSubview:subsubview];
-
 }
 
 
 int   main()
 {
-   CGContext       *context;
    UIWindow        *window;
    UIApplication   *app;
 
@@ -50,7 +48,7 @@ int   main()
    window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 400, 300)];
    [window setBackgroundColor:CGColorMakeGray()];
 
-   setupSceneInContentPlane( [window contentPlane]);
+   setupSceneInContentView( [window contentView]);
 
    [window dump];
 

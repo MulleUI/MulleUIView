@@ -3,10 +3,14 @@
 //
 #import "UIView+Layout.h"
 
-#import "UIEdgeInsets+UTF8String.h"
-
 #import "import-private.h"
 
+#import "UIView+DebugPrivate.h"
+#import "UIView+CGGeometry.h"
+#import "UIEdgeInsets+UTF8String.h"
+
+//#define LEGACY_DEBUG
+//#define TRACKING_AREA_DEBUG
 
 @interface NSObject ( Layout)
 
@@ -25,14 +29,64 @@
 
 @implementation UIView ( Layout)
 
-// https://developer.apple.com/documentation/uikit/uiview/1622625-sizethatfits?language=objc
 - (CGSize) sizeThatFits:(CGSize) size
-                context:(id <UIGraphicsContext>) context;
+                context:(id <UILayoutContext>) context;
 {
    // TODO: should use inverse transform on size
    return( [_mainLayer sizeThatFits:size
                             context:context]);
 }
+
+
+// IDEAS, no gospel!
+//
+// If you have a variably sized view (likely something text based, like a
+// UILabel: you have various scenarios:
+//
+// size is INFINITY, INFINITY. You use the default font, calculate the size
+//                             needed, give it back.
+// size is w/h                 Use truncation algorithm or whatever to fit
+//                             into this size. Don't change the fontSize
+
+// https://developer.apple.com/documentation/uikit/uiview/1622625-sizethatfits?language=objc
+- (CGSize) sizeThatFits:(CGSize) size
+{
+   id <UILayoutContext>   context;
+
+   context = [self layoutContext];
+   return( [self sizeThatFits:size
+                      context:context]);
+}
+
+
+//
+// Enclose subviews by default. If there are none, enlarge to superview.
+// Hope that's useful as default behaviour.
+//
+- (void) sizeToFit
+{
+   CGRect   frame;
+   CGRect   rect;
+   UIView   *view;
+   UIView   *superview;
+
+   rect = CGRectZero;
+   mulle_pointerarray_for( &_subviews, view)
+   {
+      frame = [view frame];
+      rect  = CGRectUnion( rect, frame);
+   }
+
+   superview = [self superview];
+   if( CGRectGetArea( rect) == 0.0f)
+      rect = [superview bounds];
+
+   frame = [self convertRect:rect
+                      toView:superview];
+
+   [self setFrame:frame];
+}
+
 
 #pragma mark - layout
 
@@ -44,6 +98,12 @@
 - (void) layoutLayer:(id <UILayer>) layer
               inRect:(CGRect) rect
 {
+   if( layer == _shadowLayer)
+   {
+      [self layoutShadowLayer:layer
+                       inRect:rect];
+   }
+
    if( layer == _mainLayer)
    {
       [layer setFrame:rect];
@@ -53,135 +113,17 @@
 
 
 //
-// restore "builtin" size for layout
-// therefore multiple resizes don't accumulate FP errors
-// Method is only used if there is autoresizing enabled!
+// Layout:
 //
-- (CGRect) originalFrame
-{
-   if( _originalFrame.size.width == 0.0)
-      _originalFrame = _frame;
-
-   return( _originalFrame);
-}
-
-
-- (void) layoutSubview:(UIView *) view
-                inRect:(CGRect) bounds
-      autoresizingMask:(UIViewAutoresizing) autoresizingMask
-{
-   CGRect         frame;
-   CGRect         newFrame;
-   CGRect         originalFrame;
-   CGRect         marginalBounds;
-   NSInteger      resizeMask;
-   NSInteger      stickMask;
-   UIEdgeInsets   insets;
-
-   if( ! autoresizingMask)
-      return;
-
-   frame          = [view frame];
-   originalFrame  = [view originalFrame];
-   newFrame       = isinf( originalFrame.size.width) ? frame : originalFrame;
-
-   resizeMask     = autoresizingMask & (UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight);
-   stickMask      = autoresizingMask & (UIViewAutoresizingStickToMiddle|UIViewAutoresizingStickToCenter);
-
-   insets         = [view margins];
-   marginalBounds = UIEdgeInsetsInsetRect( bounds, insets);
-
-   // if too small now, remove from drawing
-   // as the drawing code does it too, what's really the point though ?
-   // we can cull earlier...
-   //
-   if( resizeMask)
-   {
-      if( resizeMask & UIViewAutoresizingFlexibleWidth)
-      {
-         newFrame.origin.x   = 0.0; // will be added to later
-         newFrame.size.width = marginalBounds.size.width;
-         if( newFrame.size.width < 0.5)
-            newFrame.size.width = 0.0;
-      }
-
-      if( resizeMask & UIViewAutoresizingFlexibleHeight)
-      {
-         newFrame.origin.y    = 0.0; // will be added to later
-         newFrame.size.height = marginalBounds.size.height;
-         if( newFrame.size.height < 0.5)
-            newFrame.size.height = 0.0;
-      }
-   }
-
-   if( stickMask & UIViewAutoresizingStickToTop)
-   {
-      if( stickMask & UIViewAutoresizingStickToBottom)
-      {
-         newFrame.origin.y = CGRectGetMidY( marginalBounds) - newFrame.size.height / 2.0;;
-      }
-      else
-         newFrame.origin.y = marginalBounds.origin.y;
-   }
-   else
-      if( stickMask & UIViewAutoresizingStickToBottom)
-      {
-         newFrame.origin.y = CGRectGetMaxY( marginalBounds) - newFrame.size.height;
-      }
-      else
-         newFrame.origin.y += marginalBounds.origin.y;
-
-
-   if( stickMask & UIViewAutoresizingStickToLeft)
-   {
-      if( stickMask & UIViewAutoresizingStickToRight)
-      {
-         newFrame.origin.x = CGRectGetMidX( marginalBounds) - newFrame.size.width / 2.0;
-      }
-      else
-         newFrame.origin.x = marginalBounds.origin.x;
-   }
-   else
-      if( stickMask & UIViewAutoresizingStickToRight)
-      {
-         newFrame.origin.x = CGRectGetMaxX( marginalBounds) - newFrame.size.width;
-      }
-      else
-         newFrame.origin.x += marginalBounds.origin.x;
-
-//   fprintf( stderr, "view: %s f=[%s] o=[%s] m=[%s]\n",
-//               [view debugNameUTF8String],
-//               CGRectUTF8String( [view frame]),
-//               CGRectUTF8String( [view originalFrame]),
-//               UIEdgeInsetsUTF8String( [view margins]));
+// Easiest case: UIViewAutoresizingScaleToFill
+//               and all margins are flexible.
 //
-//   fprintf( stderr, "resizeMask     : 0x%x\n", resizeMask);
-//   fprintf( stderr, "stickMask      : 0x%x\n", stickMask);
-//   fprintf( stderr, "marginalBounds : %s\n", CGRectUTF8String( marginalBounds));
-//   fprintf( stderr, "newFrame       : %s\n", CGRectUTF8String( newFrame));
-//   fprintf( stderr, "bounds         : %s\n", CGRectUTF8String( bounds));
-
-   //
-   // if view doesn't fit into bounds, we do what ?
-   // culling is done in the renderQueue step (if clipping is set)
-   // If clipping is not set UIViewAutoresizingCullAtBounds will be useful
-   // as well
-   //
-   if( ! CGRectContainsRect( marginalBounds, newFrame))
-   {
-      if( autoresizingMask & UIViewAutoresizingCullAtBounds)
-         newFrame.size = CGSizeZero;
-      if( autoresizingMask & UIViewAutoresizingClipToBounds)
-         newFrame = CGRectIntersection( marginalBounds, newFrame);
-   }
-
-   if( ! CGRectEqualToRect( frame, newFrame))
-      [view setFrame:newFrame];
-
-   if( isinf( originalFrame.size.width))
-      [view setOriginalFrame:frame];
-}
-
+// We take the margins and use them to inset the bounds. The resulting CGRect
+// is our frame.
+// If a margin isn't flexible, then we substitute the current margin for it.
+//
+// Harder case: A dimension isn't flexible.
+//
 
 - (UILayoutStrategy) layoutStrategy
 {
@@ -191,9 +133,8 @@
 
 - (void) layoutLayers
 {
-   struct mulle_pointerarrayenumerator   rover;
-   id <UILayer>                          layer;
-   CGRect                                contentRect;
+   id <UILayer>   layer;
+   CGRect         contentRect;
 
    contentRect = [self contentRect]; // not layoutRect
 
@@ -209,36 +150,63 @@
 
    if( (*_willLayoutLayersCallback)( self))
    {
+      if( _shadowLayer)
+      {
+         [self layoutLayer:_shadowLayer
+                    inRect:contentRect];
+      }
+
       [self layoutLayer:_mainLayer
                  inRect:contentRect];
 
-      rover = mulle_pointerarray_enumerate( &_layers);
-      while( _mulle_pointerarrayenumerator_next( &rover, (void **) &layer))
+      mulle_pointerarray_for( &_layers, layer)
+      {
          [self layoutLayer:layer
                     inRect:contentRect];
-      mulle_pointerarrayenumerator_done( &rover);
-
+      }
       (*_didLayoutLayersCallback)( self);
    }
 }
 
 
+- (void) layoutSubview:(UIView *) view
+                inRect:(CGRect) rect
+      autoresizingMask:(UIViewAutoresizing) autoresizingMask
+{
+   CGRect  frame;
+
+   if( ! autoresizingMask)
+      return;
+
+   frame = [self autoresizedFrameOfObject:view
+                                   inRect:rect
+                         autoresizingMask:autoresizingMask];
+
+#ifndef UIVIEW_FRAME_USES_CGRECTINTEGRAL
+   if( autoresizingMask & UIViewAutoresizingIntegralFrame)
+      frame = UIViewIntegralFrame( frame);
+#endif
+   if( ! CGRectEqualToRect( [view frame], frame))
+      [view setFrame:frame];
+}
+
+
 - (BOOL) layoutSubviews
 {
-   UIView   *view;
-   CGRect   bounds;
    BOOL     flag;
+   CGRect   contentRect;
+   UIView   *view;
 
    if( (*_willLayoutSubviewsCallback)( self))
    {
       // TODO: could "cull" subviews here, that, after layout, are not
       //       visible.. is this beneficial ?
       //
-      bounds = [self layoutRect];
+      contentRect = [self contentRect];
       mulle_pointerarray_for( &_subviews, view)
       {
          [self layoutSubview:view
-                      inRect:bounds
+                      inRect:contentRect
             autoresizingMask:[view autoresizingMask]];
       }
    }
@@ -249,11 +217,15 @@
 
 - (void) _setFrame:(CGRect) frame
 {
-#ifdef UIVIEW_FRAME_USES_CGRECTINTEGRAL
-   _frame = CGRectIntegral( frame);
-#else
+   // keep
+   // if( _lastBounds.size.width == 0.0)
+   //   _lastBounds = [self bounds];
+
+   frame  = UIViewMakeFrameWithRect( frame);
    _frame = frame;
-#endif
+
+   UIViewMouseMotionEventLog( nil, "Tracking areas need updates");
+
    _needsTrackingAreaUpdate = YES;
 }
 
@@ -263,13 +235,7 @@
    assert( ! [(id) [self window] isLayoutedView:self]);
 
    [self willChange];
-
-#ifdef UIVIEW_FRAME_USES_CGRECTINTEGRAL
-   _frame = CGRectIntegral( frame);
-#else
-   _frame = frame;
-#endif
-   _needsTrackingAreaUpdate = YES;
+   [self _setFrame:frame];
 }
 
 
@@ -278,7 +244,9 @@
    UIView   *view;
 
    mulle_pointerarray_for( &_subviews, view)
-      [view layout];   
+   {
+      [view layout];
+   }
 }
 
 //
@@ -312,18 +280,23 @@
       return;
    }
 
+
    // this is the flat possibly hardcoded code, that layouts each layer
    [self layoutLayers];
 
    // this is the flat possibly hardcoded code, that layouts each subview
-   if( ! [self layoutSubviews])
-      return;
+   if( [self layoutSubviews])
+   {
+      //
+      // this is recursive code, triggering possibly more autoresizes
+      // or yogas..
+      //
+      [self performLayoutOnSubviews];
+   }
 
-   //
-   // this is recursive code, triggering possibly more autoresizes
-   // or yogas..
-   //
-   [self performLayoutOnSubviews];
+   // now subviews are layouted, so _lastBounds can be reset to zero
+   // is this necessary though ?
+   // _lastBounds.size.width = 0.0;
 }
 
 

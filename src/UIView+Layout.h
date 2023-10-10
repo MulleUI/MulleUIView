@@ -7,44 +7,6 @@
 
 
 
-typedef enum
-{
-   UIViewContentModeScaleToFill     = CGContentModeScaleToFill,
-   UIViewContentModeScaleAspectFit  = CGContentModeScaleAspectFit,
-   UIViewContentModeScaleAspectFill = CGContentModeScaleAspectFill,
-
-//   UIViewContentModeRedraw,  // not supported
-
-   UIViewContentModeCenter      = CGContentModeCenterPoint,
-
-   UIViewContentModeTop         = CGContentModeTop,
-   UIViewContentModeBottom      = CGContentModeBottom,
-   UIViewContentModeLeft        = CGContentModeLeft,
-   UIViewContentModeRight       = CGContentModeRight,
-
-   UIViewContentModeTopLeft     = CGContentModeTopLeft,
-   UIViewContentModeTopRight    = CGContentModeTopRight,
-   UIViewContentModeBottomLeft  = CGContentModeBottomLeft,
-   UIViewContentModeBottomRight = CGContentModeBottomRight
-} UIViewContentMode;
-#define N_UIViewContentModes 12
-
-
-#define UIViewContentModeNames      CGContentModeNames
-
-static inline char   *UIViewContentModeUTF8String( UIViewContentMode mode)
-{
-   return( CGContentModeUTF8String( (CGContentMode) mode));
-}
-
-
-static inline UIViewContentMode  UIViewContentModeParseCString( char *s)
-{
-   return( (UIViewContentMode) CGContentModeParseCString( s));
-}
-
-
-
 typedef NS_ENUM( NSUInteger, UILayoutStrategy)
 {
    UILayoutStrategyDefault,
@@ -84,12 +46,18 @@ static inline BOOL
    UIViewAutoresizingIsFlexibleInAxis( UIViewAutoresizing bits,
                                        UILayoutConstraintAxisIndex index)
 {
-   NSUInteger   bit;
+   NSUInteger   mask;
 
-   bit = (index == UILayoutConstraintAxisVerticalIndex)
-         ? UIViewAutoresizingFlexibleHeight
-         : UIViewAutoresizingFlexibleWidth;
-   return( (bits & bit) ? YES : NO);
+   mask = (index == UILayoutConstraintAxisHorizontalIndex)
+         ? UIViewAutoresizingFlexibleLeftMargin
+           | UIViewAutoresizingFlexibleWidth
+           | UIViewAutoresizingFlexibleRightMargin
+           | CGContentModeScaleToFillHorizontal
+         : UIViewAutoresizingFlexibleTopMargin
+           | UIViewAutoresizingFlexibleHeight
+           | UIViewAutoresizingFlexibleBottomMargin
+           | CGContentModeScaleToFillVertical;
+   return( (bits & mask) ? YES : NO);
 }
 
 
@@ -97,7 +65,11 @@ static inline BOOL
 
 // actual method: context is usually CGContext
 - (CGSize) sizeThatFits:(CGSize) size
-                context:(id <UIGraphicsContext>) context;
+                context:(id <UILayoutContext>) context;
+
+- (CGSize) sizeThatFits:(CGSize) size;
+
+- (void) sizeToFit;
 
 //
 // You do not need not to call super in UIView subclasses, if you manually
@@ -130,19 +102,17 @@ static inline BOOL
 //  }
 - (void) layout;
 
-
-
-// will layout the subview in the bounds according to the autoresizingMask
-- (void) layoutSubview:(UIView *) view
-                inRect:(CGRect) bounds
-      autoresizingMask:(UIViewAutoresizing) autoresizingMask;
-
 //
 // will layout the all layers so that its frame equals the bounds, will leave
 // all other layers untouched
 //
 - (void) layoutLayer:(id <UILayer>) layer
               inRect:(CGRect) bounds;
+
+
+- (void) layoutSubview:(UIView *) view
+                inRect:(CGRect) rect
+      autoresizingMask:(UIViewAutoresizing) autoresizingMask;
 
 // yoga uses this to its layout
 - (UILayoutStrategy) layoutStrategy;
@@ -160,6 +130,8 @@ static inline BOOL
 
 @interface UIView( LayoutFuture)
 
+- (id <UILayoutContext>) layoutContext;
+
 - (void) beginLayout:(void *) info;
 - (void) endLayout;
 
@@ -167,4 +139,6 @@ static inline BOOL
 - (void) setNeedsLayout;
 - (BOOL) needsLayout;
 
+- (void) layoutShadowLayer:(id <UILayer>) layer
+                    inRect:(CGRect) rect;
 @end

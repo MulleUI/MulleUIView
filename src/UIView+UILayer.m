@@ -5,6 +5,8 @@
 
 #import "import-private.h"
 
+#import "UIView+DebugPrivate.h"
+
 
 #if 0
 @implementation CALayer ( UIView)
@@ -104,6 +106,7 @@
    return( translated);
 }
 
+
 // TODO: highly dubious and untested code!!
 - (CGPoint) convertPoint:(CGPoint) point
                fromLayer:(id <UILayer>) layer
@@ -119,6 +122,7 @@
    translated = CGPointApplyAffineTransformInline( point, xform);
    return( translated);
 }
+
 
 // TODO: highly dubious and untested code!!
 - (CGRect) convertRect:(CGRect) rect
@@ -138,6 +142,7 @@
    translated = CGRectApplyAffineTransformInline( rect, xform);
    return( translated);
 }              
+
 
 // TODO: highly dubious and untested code!!
 - (CGRect) convertRect:(CGRect) rect 

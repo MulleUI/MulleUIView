@@ -13,11 +13,8 @@ static void  drawStuff( CALayer *layer, CGContext *context)
    NSUInteger          y;
    NSUInteger          w;
    NSUInteger          h;
-   struct NVGcontext   *vg;
-   CGRect              bounds;
-   CGFloat             col;
-   CGFloat             col_inc;
    CGRect              canvas;
+   struct NVGcontext   *vg;
 
    vg = CGContextGetNVGContext( context);
 
@@ -84,64 +81,66 @@ static void   drawCircle( CALayer *layer, CGContext *context)
 #define ROWS  3
 
 
-static void   setupViewForRowColumn( UIView *view, int row, int column)
+static BOOL   didLayoutGridView( UIView *view)
 {
-   CGRect   bounds;
-   UIView   *subview;
+   UIGridView   *gridView = (UIGridView *) view;
+   UIView       *subview;
+   NSUInteger   row;
+   NSUInteger   column;
+   CGRect       frame;
+   CGRect       bounds;
 
-   [view setDebugNameUTF8String:"view"];
-   [view setDrawCallback:(CALayerDrawCallback_t *) drawStuff];
-   [view setBorderWidth:1.0];
-   [view setBorderColor:CGColorMakeWithHexColor( 0x00FF00FF)];
+   for( row = 0; row < ROWS; row++)
+      for( column = 0; column < COLS; column++)
+      {
+         subview = [gridView viewForRow:row
+                                 column:column];
+         if( ! subview)
+            continue;
 
-   bounds = [view bounds];
-   if( row == 1)
-   {
-      bounds.size.width  *= 2.0;
-      bounds.size.height *= 2.0;
-   }
-   if( row == 2)
-   {
-      bounds.size.width  *= 0.5;
-      bounds.size.height *= 0.5;
-   }
+         frame  = [subview frame];
+         bounds = [subview bounds];
+         if( row == 1)
+         {
+            bounds.size.width  = frame.size.width * 2.0;
+            bounds.size.height = frame.size.height * 2.0;
+         }
 
-   if( column == 1)
-   {
-      bounds.origin.x     = -10;
-      bounds.origin.y     = -10;
-   }
+         if( row == 2)
+         {
+            bounds.size.width  = frame.size.width * 0.5;
+            bounds.size.height = frame.size.height * 0.5;
+         }
 
-   if( column == 2)
-   {
-      bounds.origin.x     = 10;
-      bounds.origin.y     = 10;
-   }
-   [view setBounds:bounds];
+         if( column == 1)
+         {
+            bounds.origin.x     = -10;
+            bounds.origin.y     = -10;
+         }
 
-   subview = [UIView viewWithFrame:CGRectMake( 20, 20, 40, 40)];
-   [subview setDrawCallback:(CALayerDrawCallback_t *) drawCircle];
-   [subview setDebugNameUTF8String:"subview"];
-   [subview setBackgroundColor:CGColorMakeTransparent()];
-   [subview setBorderColor:CGColorMakeWithHexColor( 0xD0D0D0FF)];
-   [subview setBorderWidth:1.0];
-   [view addSubview:subview];
+         if( column == 2)
+         {
+            bounds.origin.x     = 10;
+            bounds.origin.y     = 10;
+         }
+
+         [subview setBounds:bounds];
+      }
+
+   return( YES);
 }
 
 
-void   setupSceneInContentPlane( UIWindowPlane *plane)
+void   setupSceneInContentView( UIView *contentView)
 {
-   CGRect             contentRect;
-   CGRect             bounds;
-   CGRect             frame;
-   CGRect             row_frames[ ROWS];
-   CGRect             frames[ ROWS][ COLS];
-   NSUInteger         row;
-   NSUInteger         column;
-   UIView             *view;
-   UIView             *subview;
+   CGRect       contentRect;
+   NSUInteger   row;
+   NSUInteger   column;
+   UIGridView   *gridView;
+   UIView       *view;
+   UIView       *subview;
 
-   contentRect = [plane contentRect];
+   contentRect = [contentView contentRect];
    contentRect = CGRectInset( contentRect, 20.0, 40.0);
 
 //   contentRect.size.width  = 8 * 20;
@@ -149,34 +148,40 @@ void   setupSceneInContentPlane( UIWindowPlane *plane)
 //
 //   view  = [UIView viewWithFrame:contentRect];
 //   setupViewForRowColumn( view, 2, 0);
-//   [plane addSubview:view];
+//   [contentView addSubview:view];
 //   return;
 
-   CGRectPartitionVertically( contentRect, 20.0, ROWS, row_frames);
+   gridView  = [UIGridView viewWithFrame:contentRect];
+   [gridView setRows:ROWS];
+   [gridView setColumns:COLS];
+   [gridView setSpace:CGSizeMake( 20, 20)];
+   [gridView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+   [contentView addSubview:gridView];
+   [gridView setDidLayoutSubviewsCallback:didLayoutGridView];
 
    for( row = 0; row < ROWS; row++)
-   {
-      CGRectPartitionHorizontally( row_frames[ row], 20.0, COLS, frames[ row]);
       for( column = 0; column < COLS; column++)
       {
-         frame = CGRectInset( frames[ row][ column], 5, 5);
+         view  = [UIView object];
+         [view setDrawCallback:(CALayerDrawCallback_t *) drawStuff];
+         [view setDebugNameUTF8String:"view"];
+         [view setBorderWidth:1.0];
+         [view setBorderColor:CGColorMakeWithHexColor( 0x00FF00FF)];
+         [gridView addSubview:view];
 
-         view  = [UIView viewWithFrame:frame];
-         setupViewForRowColumn( view, row, column);
-         [plane addSubview:view];
-
-         fprintf( stderr, "view %ld.%ld: f=[%s] b=[%s]\n\n",
-                     column, row,
-                     CGRectUTF8String( [view frame]),
-                     CGRectUTF8String( [view bounds]));
+         subview = [UIView viewWithFrame:CGRectMake( 20, 20, 40, 40)];
+         [subview setDrawCallback:(CALayerDrawCallback_t *) drawCircle];
+         [subview setDebugNameUTF8String:"subview"];
+         [subview setBackgroundColor:CGColorMakeTransparent()];
+         [subview setBorderColor:CGColorMakeWithHexColor( 0xD0D0D0FF)];
+         [subview setBorderWidth:1.0];
+         [view addSubview:subview];
       }
-   }
 }
 
 
 int   main()
 {
-   CGContext       *context;
    UIWindow        *window;
    UIApplication   *app;
 
@@ -188,7 +193,7 @@ int   main()
    window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800, 600)];
    [window setBackgroundColor:CGColorMakeWithRGBA( 1.0, 1.0, 1.0, 1.0)];
 
-   setupSceneInContentPlane( [window contentPlane]);
+   setupSceneInContentView( [window contentView]);
 
    [window dump];
 

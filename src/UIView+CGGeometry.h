@@ -39,5 +39,8 @@
 // views, the result is the visible contents in the space of the view
 - (CGRect) visibleRect;
 
+// same as above, but returns rect in window space
+- (CGRect) visibleWindowRect;
+
 @end
 
