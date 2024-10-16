@@ -17,7 +17,7 @@ int   main()
       [view setMargins:UIEdgeInsetsMake( 10, 10, 10, 10)];
       [view setBackgroundColor:CGColorMakeLightGray()];
 
-      layer = [CALayer layerWithFrame:CGRectMake( 2, 2, 96, 96)];
+      layer = [CGGraphicsLayer layerWithFrame:CGRectMake( 2, 2, 96, 96)];
       [layer setBackgroundColor:CGColorMakeMintCream()];
       [layer setBorderColor:CGColorMakeMistyRose()];
       [layer setCornerRadius:25.0];
@@ -25,7 +25,7 @@ int   main()
 
       [view addLayer:layer];
 
-      layer = [CALayer layerWithFrame:CGRectMake( 102, 2, 96, 96)];
+      layer = [CGGraphicsLayer layerWithFrame:CGRectMake( 102, 2, 96, 96)];
       [layer setBackgroundColor:CGColorMakeMoccasin()];
       [layer setBorderColor:CGColorMakeNavajoWhite()];
       [layer setCornerRadius:25.0];
@@ -33,7 +33,7 @@ int   main()
 
       [view addLayer:layer];
 
-      layer = [CALayer layerWithFrame:CGRectMake( 2, 102, 96, 96)];
+      layer = [CGGraphicsLayer layerWithFrame:CGRectMake( 2, 102, 96, 96)];
       [layer setBackgroundColor:CGColorMakeSandyBrown()];
       [layer setBorderColor:CGColorMakePapayaWhip()];
       [layer setCornerRadius:25.0];
@@ -41,7 +41,7 @@ int   main()
 
       [view addLayer:layer];
 
-      layer = [CALayer layerWithFrame:CGRectMake( 102, 102, 96, 96)];
+      layer = [CGGraphicsLayer layerWithFrame:CGRectMake( 102, 102, 96, 96)];
       [layer setBackgroundColor:CGColorMakeOliveDrab()];
       [layer setBorderColor:CGColorMakeBlanchedAlmond()];
       [layer setCornerRadius:25.0];
@@ -57,6 +57,6 @@ int   main()
 
       [app addWindow:window];
    }
-   return( [app run]);
+   return( [app runApp]);
 }
 

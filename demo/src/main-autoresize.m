@@ -35,7 +35,7 @@
 @end
 
 
-static BOOL   drawGrid( CALayer *layer, void *_context)
+static BOOL   drawGrid( CGGraphicsLayer *layer, CGContext *_context)
 {
    CGContext    *context = _context;
    CGRect       canvas;
@@ -80,27 +80,20 @@ static NSUInteger   autoresizingMask[ ROWS][ COLS] =
       UIViewAutoresizingScaleToFill,
       UIViewAutoresizingScaleAspectFill,
       UIViewAutoresizingScaleAspectFit,
-      UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingScaleToFill,
+      UIViewAutoresizingScaleToFill,
    },
-   {
-      UIViewAutoresizingFlexibleWidth,
-      UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleWidth,
-      UIViewAutoresizingFlexibleRightMargin|UIViewAutoresizingFlexibleWidth,
-      UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleRightMargin|UIViewAutoresizingFlexibleWidth,
-      UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleRightMargin
-   },
-   { 
-      UIViewAutoresizingFlexibleHeight, 
-      UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleHeight, 
-      UIViewAutoresizingFlexibleBottomMargin|UIViewAutoresizingFlexibleHeight, 
-      UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin|UIViewAutoresizingFlexibleHeight, 
-      UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin
-   },   
    { 
       UIViewAutoresizingTop,
       UIViewAutoresizingLeft,
       UIViewAutoresizingBottom,
       UIViewAutoresizingRight,
+      0
+   },
+   { 
+      UIViewAutoresizingTopLeft,
+      UIViewAutoresizingTopRight,
+      UIViewAutoresizingBottomLeft,
+      UIViewAutoresizingBottomRight,
       0
    }
 };
@@ -235,7 +228,6 @@ void   setupScene( UIView *plane)
 
 
 static void   willLayoutCallback( UIWindow *window,
-                                  id <UIGraphicsContext> context,
                                   struct CGFrameInfo *frameInfo)
 {
    UIWindowPlane      *plane;
@@ -290,11 +282,10 @@ int   main()
 
    window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, WIN_W, WIN_H)
                       titleUTF8String:"Demo"
-                            styleMask:UIWindowStyleMaskDefault & ~UIWindowStylePanes];
+                            styleMask:UIWindowStyleMaskDefault & ~UIWindowStylePlanes];
    [window setBackgroundColor:CGColorMakeWithRGBA( 1.0, 1.0, 1.0, 1.0)];
 
-   assert( ! [window contentPlane]);
-   setupScene( window);
+   setupScene( [window contentView]);
 
    [window setFrameRateHz:30.0];
    [window setWillLayoutCallback:willLayoutCallback];
@@ -302,6 +293,6 @@ int   main()
 
    [app addWindow:window];
 
-   return( [app run]);
+   return( [app runApp]);
 }
 

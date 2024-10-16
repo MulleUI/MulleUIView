@@ -7,6 +7,7 @@
 
 #import "UIView+DebugPrivate.h"
 #import "UIView+CGGeometry.h"
+#import "UIViewController.h"
 #import "UIEdgeInsets+UTF8String.h"
 
 //#define LEGACY_DEBUG
@@ -71,7 +72,7 @@
    UIView   *superview;
 
    rect = CGRectZero;
-   mulle_pointerarray_for( &_subviews, view)
+   UIViewSubviewsFor( self, view)
    {
       frame = [view frame];
       rect  = CGRectUnion( rect, frame);
@@ -164,50 +165,85 @@
          [self layoutLayer:layer
                     inRect:contentRect];
       }
-      (*_didLayoutLayersCallback)( self);
    }
+   (*_didLayoutLayersCallback)( self);
 }
 
 
-- (void) layoutSubview:(UIView *) view
-                inRect:(CGRect) rect
-      autoresizingMask:(UIViewAutoresizing) autoresizingMask
+- (void) setLayoutedFrame:(CGRect) frame
+         autoresizingMask:(UIViewAutoresizing) autoresizingMask
 {
-   CGRect  frame;
-
-   if( ! autoresizingMask)
-      return;
-
-   frame = [self autoresizedFrameOfObject:view
-                                   inRect:rect
-                         autoresizingMask:autoresizingMask];
-
 #ifndef UIVIEW_FRAME_USES_CGRECTINTEGRAL
    if( autoresizingMask & UIViewAutoresizingIntegralFrame)
       frame = UIViewIntegralFrame( frame);
 #endif
-   if( ! CGRectEqualToRect( [view frame], frame))
-      [view setFrame:frame];
+   if( ! CGRectEqualToRect( [self frame], frame))
+      [self setFrame:frame];
 }
+
+
+void   UIViewAutoresize( UIView *self,
+                         struct UILayoutContext *context,
+                         UIViewAutoresizing autoresizingMask)
+{
+   CGRect   frame;
+
+   frame = [self autoresizeWithContext:context
+                      autoresizingMask:autoresizingMask];
+
+   [self setLayoutedFrame:frame
+         autoresizingMask:autoresizingMask];
+}
+
+
+- (void) layoutWithContext:(struct UILayoutContext *) context
+          autoresizingMask:(UIViewAutoresizing) autoresizingMask
+{
+   if( [_controller layoutView:self
+                 layoutContext:context
+              autoresizingMask:autoresizingMask])
+   {
+      return;
+   }
+
+   UIViewAutoresize( self, context, autoresizingMask);
+}
+
+
+
+// "legacy" support
+- (void) layoutSubview:(UIView *) subview
+                inRect:(CGRect) contentRect
+       autoresizingMask:(UIViewAutoresizing) autoresizingMask
+{
+   struct UILayoutContext   context;
+
+   context = UILayoutContextMake( contentRect, [self padding]);
+   [subview layoutWithContext:&context
+             autoresizingMask:autoresizingMask];
+}
+
+
 
 
 - (BOOL) layoutSubviews
 {
-   BOOL     flag;
-   CGRect   contentRect;
-   UIView   *view;
+   BOOL                     flag;
+   UIView                   *view;
+   struct UILayoutContext   context;
 
    if( (*_willLayoutSubviewsCallback)( self))
    {
       // TODO: could "cull" subviews here, that, after layout, are not
       //       visible.. is this beneficial ?
       //
-      contentRect = [self contentRect];
-      mulle_pointerarray_for( &_subviews, view)
+      context = UILayoutContextMakeWithView( self);
+      UIViewSubviewsFor( self, view)
       {
-         [self layoutSubview:view
-                      inRect:contentRect
-            autoresizingMask:[view autoresizingMask]];
+         UIViewLayoutLog( "layout Subview %@ %s", view, CGRectUTF8String( [view frame]));
+
+         [view layoutWithContext:&context
+                autoresizingMask:[view autoresizingMask]];
       }
    }
    flag = (*_didLayoutSubviewsCallback)( self);
@@ -217,16 +253,21 @@
 
 - (void) _setFrame:(CGRect) frame
 {
+   BOOL   flag;
    // keep
    // if( _lastBounds.size.width == 0.0)
    //   _lastBounds = [self bounds];
+   frame = UIViewMakeFrameWithRect( frame);
+   flag  = ! CGRectEqualToRect( _frame, frame);
+   if( flag)
+   {
+      UIViewLayoutLog( "-> frame %s", CGRectUTF8String( _frame));
+      UIViewMouseTrackingEventLog( nil, "Tracking areas need updates");
+      _needsTrackingAreaUpdate = flag;
+      // [[self window] setViewsNeedTrackingAreaUpdate:YES];
+   }
 
-   frame  = UIViewMakeFrameWithRect( frame);
    _frame = frame;
-
-   UIViewMouseMotionEventLog( nil, "Tracking areas need updates");
-
-   _needsTrackingAreaUpdate = YES;
 }
 
 
@@ -243,7 +284,7 @@
 {
    UIView   *view;
 
-   mulle_pointerarray_for( &_subviews, view)
+   UIViewSubviewsFor( self, view)
    {
       [view layout];
    }
@@ -260,7 +301,6 @@
 //
 - (void) layout
 {
-
 #ifndef NDEBUG
    [(id) [self window] addLayoutedView:self];
 #endif
@@ -280,19 +320,27 @@
       return;
    }
 
+   UIViewLayoutLog( "frame %s ->", CGRectUTF8String( _frame));
 
    // this is the flat possibly hardcoded code, that layouts each layer
    [self layoutLayers];
 
+   //
    // this is the flat possibly hardcoded code, that layouts each subview
-   if( [self layoutSubviews])
+   // skip if there are none
+
+   if( UIViewSubviewsCount( self)) // this is too likely not to check
    {
-      //
-      // this is recursive code, triggering possibly more autoresizes
-      // or yogas..
-      //
-      [self performLayoutOnSubviews];
+      if( [self layoutSubviews])
+      {
+         //
+         // this is recursive code, triggering possibly more autoresizes
+         // or yogas..
+         //
+         [self performLayoutOnSubviews];
+      }
    }
+
 
    // now subviews are layouted, so _lastBounds can be reset to zero
    // is this necessary though ?

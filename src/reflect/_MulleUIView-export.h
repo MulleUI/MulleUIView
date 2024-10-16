@@ -9,8 +9,8 @@
  *
  *      mulle-sde environment set MULLE_MATCH_TO_C_RUN DISABLE
  */
-#ifndef mulle_ui_view_export_h__
-#define mulle_ui_view_export_h__
+#ifndef _mulle_ui_view__export_h__
+#define _mulle_ui_view__export_h__
 
 
 #import "MulleObjCLoader+MulleUIView.h"
@@ -18,7 +18,9 @@
 #import "UIEdgeInsets+UTF8String.h"
 #import "UIEdgeInsets.h"
 #import "UIInputEvent+UIView.h"
+#import "UILayoutContext.h"
 #import "UIView+CGGeometry.h"
+#import "UIViewController.h"
 #import "UIView+Layout.h"
 #import "UIView+UIEvent.h"
 #import "UIView+UILayer.h"

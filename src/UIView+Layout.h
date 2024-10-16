@@ -5,6 +5,15 @@
 #import "UIView.h"
 
 
+#import "UILayoutContext.h"
+
+
+static inline struct UILayoutContext
+   UILayoutContextMakeWithView( UIView *view)
+{
+   return( UILayoutContextMake( [view contentRect], [view padding]));
+}
+
 
 
 typedef NS_ENUM( NSUInteger, UILayoutStrategy)
@@ -110,8 +119,18 @@ static inline BOOL
               inRect:(CGRect) bounds;
 
 
-- (void) layoutSubview:(UIView *) view
-                inRect:(CGRect) rect
+- (void) layoutWithContext:(struct UILayoutContext *) context
+          autoresizingMask:(UIViewAutoresizing) autoresizingMask;
+
+
+// used by UIViewController to set the layouted frame
+- (void) setLayoutedFrame:(CGRect) frame
+         autoresizingMask:(UIViewAutoresizing) autoresizingMask;
+
+// this method was used before -layoutWithContext:autoresizingMask: was written
+// its in here to support older code
+- (void) layoutSubview:(UIView *) subview
+                inRect:(CGRect) contentRect
       autoresizingMask:(UIViewAutoresizing) autoresizingMask;
 
 // yoga uses this to its layout
@@ -136,9 +155,15 @@ static inline BOOL
 - (void) endLayout;
 
 // this flag is handled by UIWindow
-- (void) setNeedsLayout;
-- (BOOL) needsLayout;
+- (void) setNeedsLayout    MULLE_OBJC_THREADSAFE_METHOD;
+- (BOOL) needsLayout       MULLE_OBJC_THREADSAFE_METHOD;
 
 - (void) layoutShadowLayer:(id <UILayer>) layer
                     inRect:(CGRect) rect;
 @end
+
+
+MULLE_UI_CORE_EXTERN_GLOBAL
+void   UIViewAutoresize( UIView *self,
+                         struct UILayoutContext *context,
+                         UIViewAutoresizing autoresizingMask);

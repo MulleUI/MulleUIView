@@ -7,6 +7,15 @@
 
 
 
+// just get rid of some warnings
+@interface NSObject( UIResponder)
+
+- (UIMouseMotionEvent *) handleMouseMotionEvent:(UIMouseMotionEvent *) event;
+- (UIEvent *) handleEvent:(UIEvent *) event;
+
+@end
+
+
 //#define EVENT_DEBUG
 //#define EVENT_DEBUG_VERBOSE
 // #define HITTEST_DEBUG
@@ -82,21 +91,114 @@
 }
 
 
-// This method will get clobbered by UIView+UIResponder later, to
-// implement a super call to UIResponder
+//
+// UIResponder
+//
 - (UIMouseMotionEvent *) handleMouseMotionEvent:(UIMouseMotionEvent *) event
 {
-   // _mouseMotionEventCallback is never nil
-   return( (self->_mouseMotionEventCallback)( self, event));
+   // _eventCallback is never nil
+   event = (self->_mouseMotionEventCallback)( self, event);
+   if( ! event)
+      return( event);
+
+   // this will end up in UIResponder
+   return( [super handleMouseMotionEvent:event]);
 }
 
 
-// This methods will get clobbered by UIView+UIResponder later, to
-// implement a super call to UIResponder
+- (UIInputEvent *) handleInputEvent:(UIInputEvent *) event
+{
+   CGPoint        location;
+   CGPoint        contentLocation;
+   UIView         *view;
+   UIInputEvent   *changableEvent;
+   CGRect         frame;
+   CGRect         bounds;
+
+// from UIView+CGGeometry
+   location        = [(UIInputEvent *) event locationInWindow];
+   frame           = [self frame];
+   bounds          = [self bounds];
+   contentLocation = CGPointProjectToBounds( location, frame, bounds);
+
+   UIViewEventLogVerbose( event, "translated: %s -> %s [c=%s]\n",
+                                 CGPointUTF8String( location),
+                                 CGPointUTF8String( contentLocation),
+                                 CGRectUTF8String( bounds));
+
+   if( ! [self directHitTest:contentLocation
+              withInputEvent:event])
+      return( event);
+
+   changableEvent = event;
+   view           = [self hitSearchSubviews:contentLocation
+                      withInputEventPointer:&changableEvent];
+   if( changableEvent)
+      changableEvent = (UIInputEvent *) [view handleEvent:changableEvent];
+   return( changableEvent);
+}
+
+
+// this is called by the controller, to avoid recursion in handleEvent:
+- (UIEvent *) handleForwardedEvent:(UIEvent *) event
+{
+   // end up in UIResponder
+   return( [super handleEvent:event]);
+}
+
+
 - (UIEvent *) handleEvent:(UIEvent *) event
 {
    // _eventCallback is never nil
-   return( (self->_eventCallback)( self, event));
+   event = (self->_eventCallback)( self, event);
+   if( ! event)
+      return( event);
+
+   // end up in UIResponder
+   return( [super handleEvent:event]);
+}
+
+
+
+- (id <UIResponder>) nextResponder
+{
+   return( _superview);  // AppKit also does direct reads here
+}
+
+
+- (void) didBecomeFirstResponder
+{
+   UIViewEventLog( nil,  "");
+}
+
+
+- (void) didResignFirstResponder
+{
+   UIViewEventLog( nil,  "");
+}
+
+
+// will be clobbered by UIWindow
+- (BOOL) becomeFirstResponder
+{
+   return( NO);
+}
+
+
+// will be clobbered by UIWindow
+- (BOOL) resignFirstResponder
+{
+   if( ! [self isFirstResponder])
+      return( YES);
+
+   return( NO);
+}
+
+
+// will be clobbered by UIWindow
+- (BOOL) isFirstResponder
+{
+   return( NO);
 }
 
 
@@ -108,9 +210,9 @@
 - (UIView *) hitTest:(CGPoint) point
            withEvent:(UIEvent *) event
 {
-   UIView   *view;
-   CGPoint  contentLocation;
-   UIView   *found;
+   CGPoint   contentLocation;
+   UIView    *found;
+   UIView    *view;
 
    if( ! [self respondsToInputEvents])
    {

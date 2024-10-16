@@ -6,6 +6,8 @@
 
 #import "UIEdgeInsets.h"
 
+#import "UILayoutContext.h"
+
 
 typedef NS_OPTIONS( NSUInteger, UIViewAutoresizing)
 {
@@ -13,11 +15,11 @@ typedef NS_OPTIONS( NSUInteger, UIViewAutoresizing)
 
 
    // This is a simplified form "margins" resizing
-   // UIViewAutoresizingTop and friends are used by UIStackView
-   // mainly.
+   // UIViewAutoresizingTop and friends are used by UIStackView mainly.
+   // You use this for automated layouts
 
    //  CGContentModeScaleToFill is same as UIViewAutoresizingFillBoth but is 0
-//   UIViewAutoresizingRedraw,  // not supported
+   //   UIViewAutoresizingRedraw,  // not supported
 
    UIViewAutoresizingCenter                = CGContentModeCenterPoint,
 
@@ -38,9 +40,18 @@ typedef NS_OPTIONS( NSUInteger, UIViewAutoresizing)
    UIViewAutoresizingScaleAspectFill       = CGContentModeScaleAspectFill,
 
 
-   // "Flexible" is "legacy" resizing
-   // it ignores "margins" but takes "padding" of the superview into account
+   //
+   // "Flexible" is "legacy" resizing, you use this for manual layouts
+   //
+   // It ignores "margins" but takes "padding" of the superview into account.
+   // "Legacy" resizing uses the frame of the view has it was setup originally.
+   // For example, if you have setup the superview "padding", then the view
+   // must have been placed properly into the superview, so that it does not
+   // overlap the padding. Legacy resizing tries to keep the view in its
+   // relative position and uses the "Flexible" info for that. That's in
+   // contrast to contentMode, which does not care about the original position.
    // See NSView/UIView for a description how this works
+   //
    UIViewAutoresizingFlexibleTopMargin     = 0x010000,
    UIViewAutoresizingFlexibleBottomMargin  = 0x020000,
 
@@ -50,13 +61,15 @@ typedef NS_OPTIONS( NSUInteger, UIViewAutoresizing)
    UIViewAutoresizingFlexibleHeight        = 0x100000,
    UIViewAutoresizingFlexibleWidth         = 0x200000,
 
-      // 8 bits for legacy
+   // 8 bits for legacy
    // 16 bits for contentMode (future)
    UIViewAutoresizingClipToBounds          = 0x1000000,    // clip to fit into bounds if smaller
    UIViewAutoresizingCullAtBounds          = 0x2000000,    // set to size 0.0 if exceeds bounds
-   UIViewAutoresizingIntegralFrame         = 0x4000000     // make frame values integers
+   UIViewAutoresizingIntegralFrame         = 0x4000000,    // make frame values integers
+   UIViewAutoresizingMixedMode             = 0x8000000     // intentional mix of legacy and contentMode
 };
 
+#define UIViewAutoresizingFlexibleSize      (UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight)
 
 #define UIViewAutoresizingLegacyBits        0x003F0000
 #define UIViewAutoresizingContentModeBits   0x0000FFFF
@@ -78,7 +91,11 @@ static inline char  *UIViewAutoresizingUTF8String( UIViewAutoresizing bits)
 
 // "backwards" compatibility
 
-char   *UIViewAutoresizingMaskUTF8String( UIViewAutoresizing bits);
+static inline 
+char   *UIViewAutoresizingMaskUTF8String( UIViewAutoresizing bits)
+{
+   return( UIViewAutoresizingUTF8String( bits));
+}
 char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 
 
@@ -124,16 +141,9 @@ UIAutoresizingProperties;
 - (CGRect) frame;         
 
 @optional
-- (CGRect) bounds;         // default CGRectZero;
-- (UIEdgeInsets) padding;  // default UIEdgeInsetsZero;
 - (UIEdgeInsets) margins;  // default UIEdgeInsetsZero;
 
-- (CGRect) autoresizedFrameOfObject:(id <UIAutoresizing>) view
-                             inRect:(CGRect) rect
-                   autoresizingMask:(UIViewAutoresizing) autoresizingMask;
-
-// actual "legacy" autoresizer
-- (CGRect) legacyFrameWithBounds:(CGRect) bounds
+- (CGRect) autoresizeWithContext:(struct UILayoutContext *) context
                 autoresizingMask:(UIViewAutoresizing) autoresizingMask;
 
 PROTOCOLCLASS_END();
@@ -147,3 +157,9 @@ PROTOCOLCLASS_END();
 // @implementation Adopter
 // @end
 
+
+MULLE_UI_CORE_EXTERN_GLOBAL
+CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
+                                     CGRect lastBounds,
+                                     CGRect bounds,
+                                     UIViewAutoresizing autoresizingMask);

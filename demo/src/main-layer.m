@@ -16,7 +16,7 @@ int   main()
       view  = [UIView viewWithFrame:CGRectMake( 0, 0, 200, 75)];
       [view setMargins:UIEdgeInsetsMake( 10, 10, 10, 10)];
 
-      layer = (CALayer *) [view layer];
+      layer = (CGGraphicsLayer *) [view layer];
       [layer setBackgroundColor:CGColorMakeWithRGB( 0.0, 1.0, 0.0)];
       [layer setBorderColor:CGColorMakeWithRGB( 1.0, 0.0, 0.0)];
       [layer setCornerRadius:20];
@@ -29,6 +29,6 @@ int   main()
 
       [app addWindow:window];
    }
-   return( [app run]);
+   return( [app runApp]);
 }
 

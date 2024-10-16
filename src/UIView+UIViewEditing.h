@@ -18,5 +18,8 @@
 - (void) exchangeSubviewAtIndex:(NSInteger) index1
              withSubviewAtIndex:(NSInteger) index2;
 
+- (void) replaceSubview:(UIView *) view
+               withView:(UIView *) other;
+
 @end
 

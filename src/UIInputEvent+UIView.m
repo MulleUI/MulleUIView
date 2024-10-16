@@ -30,17 +30,23 @@
    if( view == _locationView)
       return( _location);
 
-   return( CGPointMake( CGFLOAT_MIN, CGFLOAT_MIN));
+   return( CGPointNull);
 }
 
 
 - (void) _setLocation:(CGPoint) point
               forView:(UIView *) view
 {
-   assert( point.x != CGFLOAT_MIN);
+   assert( ! CGPointIsNull( point));
 
    _location      = point;
    _locationView  = view;
+}
+
+
+- (UIView *) _view
+{
+   return( _locationView);
 }
 
 @end

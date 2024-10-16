@@ -67,6 +67,6 @@ int   main( int argc, char *argv[])
 
    [application addWindow:window];
 
-   return( [application run]);
+   return( [application runApp]);
 }
 

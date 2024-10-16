@@ -88,6 +88,6 @@ if( NOT MULLE_UI_APPLICATION_LIBRARY)
       endif()
    else()
       # Disable with: `mulle-sourcetree mark MulleUIApplication no-require-link`
-      message( FATAL_ERROR "MULLE_UI_APPLICATION_LIBRARY was not found")
+      message( SEND_ERROR "MULLE_UI_APPLICATION_LIBRARY was not found")
    endif()
 endif()

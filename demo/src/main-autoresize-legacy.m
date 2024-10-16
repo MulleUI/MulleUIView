@@ -20,7 +20,7 @@
 #define PADDING  2
 
 
-static BOOL   drawGrid( CALayer *layer, void *_context)
+static BOOL   drawGrid( CGGraphicsLayer *layer, CGContext *_context)
 {
    CGContext    *context = _context;
    CGRect       canvas;
@@ -158,29 +158,7 @@ static void   setupViewForRowColumn( UIView *view, int row, int column)
 }
 
 
-void   setupScene( UIView *plane)
-{
-   NSUInteger   row;
-   NSUInteger   column;
-   UIView       *view;
-
-   for( row = 0; row < ROWS; row++)
-   {
-      for( column = 0; column < COLS; column++)
-      {
-         if( (DEBUG_ROW < 0 || row == DEBUG_ROW) && (DEBUG_COL < 0 || column == DEBUG_COL))
-         {
-            view = [UIView object];
-            setupViewForRowColumn( view, row, column);
-            [plane addSubview:view];
-         }
-      }
-   }
-}
-
-
 static void   willLayoutCallback( UIWindow *window,
-                                  id <UIGraphicsContext> context,
                                   struct CGFrameInfo *frameInfo)
 {
    UIWindowPlane      *plane;
@@ -219,6 +197,28 @@ static void   willLayoutCallback( UIWindow *window,
 }
 
 
+void   setupScene( UIView *plane)
+{
+   NSUInteger   row;
+   NSUInteger   column;
+   UIView       *view;
+
+   for( row = 0; row < ROWS; row++)
+   {
+      for( column = 0; column < COLS; column++)
+      {
+         if( (DEBUG_ROW < 0 || row == DEBUG_ROW) && (DEBUG_COL < 0 || column == DEBUG_COL))
+         {
+            view = [UIView object];
+            setupViewForRowColumn( view, row, column);
+            [plane addSubview:view];
+         }
+      }
+   }
+}
+
+
+
 int   main()
 {
    UIWindow        *window;
@@ -231,11 +231,10 @@ int   main()
 
    window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, WIN_W, WIN_H)
                       titleUTF8String:"Demo"
-                            styleMask:UIWindowStyleMaskDefault & ~UIWindowStylePanes];
+                            styleMask:UIWindowStyleMaskDefault & ~UIWindowStylePlanes];
    [window setBackgroundColor:CGColorMakeWithRGBA( 1.0, 1.0, 1.0, 1.0)];
 
-   assert( ! [window contentPlane]);
-   setupScene( window);
+   setupScene( [window contentView]);
 
    [window setFrameRateHz:30.0];
    [window setWillLayoutCallback:willLayoutCallback];
@@ -243,6 +242,6 @@ int   main()
 
    [app addWindow:window];
 
-   return( [app run]);
+   return( [app runApp]);
 }
 

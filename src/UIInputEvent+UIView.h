@@ -21,8 +21,11 @@
 // this is to be used by hitTest: exclusively and
 // locationInView exclusively. Always use -locationInView to query.
 - (CGPoint) _locationForView:(UIView *) view;
+
 - (void) _setLocation:(CGPoint) point
               forView:(UIView *) view;
+
+- (UIView *) _view;
 
 @end
 

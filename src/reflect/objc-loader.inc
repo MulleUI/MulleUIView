@@ -11,3 +11,4 @@
       { @selector( UIView), @selector( UILayer) },      // 155b6ee8;UIView;fcc9d94f;UILayer
       { @selector( UIView), @selector( UIViewEditing) },      // 155b6ee8;UIView;ca3588ee;UIViewEditing
       { @selector( UIView), MULLE_OBJC_NO_CATEGORYID },      // 155b6ee8;UIView;;
+      { @selector( UIViewController), MULLE_OBJC_NO_CATEGORYID },      // 3e001cef;UIViewController;;

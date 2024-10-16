@@ -215,6 +215,22 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
 }
 
 
+- (void) replaceSubview:(UIView *) view
+               withView:(UIView *) other
+{
+   NSInteger   index;
+
+   index = UIViewGetIndexOfSubview( self, view);
+   if( index == NSNotFound)
+      abort();
+
+   [view removeFromSuperview];
+   if( other)
+      [self insertSubview:other
+                  atIndex:index];
+}
+
+
 /*
  *
  */
@@ -254,13 +270,13 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
 {
    UIView   *candidate;
 
-   mulle_pointerarray_for( &_subviews, candidate)
+   UIViewSubviewsFor( self, candidate)
    {
       if( view == candidate)
          return( YES);
    }
 
-   mulle_pointerarray_for( &_subviews, candidate)
+   UIViewSubviewsFor( self, candidate)
    {
       if( [candidate _isSubviewOrDescendantview:view])
          return( YES);

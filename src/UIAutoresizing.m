@@ -6,12 +6,16 @@
 #import "import-private.h"
 
 
+#ifdef DEBUG
+//# define LEGACY_DEBUG
+#endif
+
 
 NS_OPTIONS_TABLE( UIViewAutoresizing, 25) =
 {
    NS_OPTIONS_ITEM( UIViewAutoresizingNone),
 
-   NS_OPTIONS_ITEM( UIViewAutoresizingScaleToFill),      // keep above next two
+   NS_OPTIONS_ITEM( UIViewAutoresizingFlexibleSize),  // keep above next two
    NS_OPTIONS_ITEM( UIViewAutoresizingFlexibleWidth),
    NS_OPTIONS_ITEM( UIViewAutoresizingFlexibleHeight),
 
@@ -20,7 +24,7 @@ NS_OPTIONS_TABLE( UIViewAutoresizing, 25) =
    NS_OPTIONS_ITEM( UIViewAutoresizingFlexibleLeftMargin),
    NS_OPTIONS_ITEM( UIViewAutoresizingFlexibleRightMargin),
 
-   NS_OPTIONS_ITEM( UIViewAutoresizingScaleToFill), // keep above next two
+   NS_OPTIONS_ITEM( UIViewAutoresizingScaleToFill), // keep above next four
    NS_OPTIONS_ITEM( UIViewAutoresizingScaleToFillHorizontal),
    NS_OPTIONS_ITEM( UIViewAutoresizingScaleToFillVertical),
    NS_OPTIONS_ITEM( UIViewAutoresizingScaleAspectFit),
@@ -127,18 +131,6 @@ char   *UIViewAutoresizingMaskShortUTF8String( NSUInteger bits)
 PROTOCOLCLASS_IMPLEMENTATION( UIAutoresizing)
 
 
-- (CGRect) bounds 
-{
-   return( CGRectZero);
-}
-
-
-- (UIEdgeInsets) padding 
-{
-   return( UIEdgeInsetsZero);
-}
-
-
 - (UIEdgeInsets) margins 
 {
    return( UIEdgeInsetsZero);
@@ -167,47 +159,20 @@ static inline CGFloat    autoresizeAmount( CGFloat x, NSUInteger bits)
 }
 
 
-- (CGRect) legacyFrameWithBounds:(CGRect) bounds
-                autoresizingMask:(UIViewAutoresizing) autoresizingMask
+//
+// bounds is actually contentRect - padding. contentRect is zero, bounds.size
+//
+CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
+                                     CGRect lastBounds,
+                                     CGRect bounds,
+                                     UIViewAutoresizing autoresizingMask)
 {
    CGSize   change;
    CGSize   sizeChange;
    CGRect   frame;
-   CGRect   originalFrame;
-   CGRect   lastBounds;
 
    assert( autoresizingMask);
 
-   //
-   // originalFrame will copy _frame if needed, if its zero, we just recopy
-   // frame again, until valid. The reason for "originalFrame" is, that we
-   // want to a compose a UI with some absolute frame values and then be able
-   // to resize it (usually with the window resize or maybe a device geometry
-   // change (mobile phone)). But resizes may accumulate errors, so instead
-   // of using incremental changes, we calculate from the "original frame" the
-   // size change to the desired size. The problem is, that its hard to
-   // discern between "intentional" resizes due to direct user interaction and
-   // "forced" resizes due to window changes. Currently the -setNeedsLayout
-   // method is abused to clear _originalFrame and _originalBounds, thus
-   // marking an "intentional" frame change.
-   //
-   originalFrame = [self originalFrame];
-   if( originalFrame.size.width == 0.0)
-   {
-      originalFrame  = [self frame];
-      [self setOriginalFrame:originalFrame];
-      [self setLastBounds:bounds];
-
-#ifdef LEGACY_DEBUG
-      MulleUILog( "originalFrame change to: %s", CGRectUTF8String( _originalFrame));
-#endif
-   }
-   lastBounds = [self lastBounds];
-
-//   if( sizeChange.width < 0.5 && sizeChange.height < 0.5)
-//      return( _originalFrame);
-
-   // adjust top left point (but don't increase size)
    frame             = originalFrame;
 
    change.width      = CGRectGetWidth( bounds) - CGRectGetWidth( lastBounds);
@@ -218,7 +183,7 @@ static inline CGFloat    autoresizeAmount( CGFloat x, NSUInteger bits)
    sizeChange.height = autoresizeAmount( change.height, autoresizingMask & UIViewLegacyVerticalBits);
 
 #ifdef LEGACY_DEBUG
-   MulleUILog( "change: %s sizeChange: %s",
+   MulleUICLog( "change: %s sizeChange: %s",
                   CGSizeUTF8String( change),
                   CGSizeUTF8String( sizeChange));
 #endif
@@ -233,66 +198,119 @@ static inline CGFloat    autoresizeAmount( CGFloat x, NSUInteger bits)
    if( autoresizingMask & UIViewAutoresizingFlexibleHeight)
       frame.size.height += sizeChange.height;
 
-
-#ifdef LEGACY_DEBUG
-   MulleUILog( "frame: %s -> %s", CGRectUTF8String( originalFrame), CGRectUTF8String( frame));
-#endif
    return( frame);
 }
 
 
 //
-// we get layoutRect as rect, which includes "padding"
+// We get contentRect as rect, which does not include "padding"
+// contentRect is { { 0, 0 }, bounds.size }
 //
-- (CGRect) autoresizedFrameOfObject:(id <UIAutoresizing>) obj
-                             inRect:(CGRect) rect
-                   autoresizingMask:(UIViewAutoresizing) autoresizingMask
+- (CGRect) autoresizeWithContext:(struct UILayoutContext *) context
+                autoresizingMask:(UIViewAutoresizing) autoresizingMask
 {
-   CGRect          bounds;
+   CGContentMode   contentMode;
    CGRect          frame;
+   CGRect          lastBounds;
+   CGRect          legacyBounds;
    CGRect          marginedRect;
+   CGRect          originalFrame;
    NSUInteger      contentModeBits;
    NSUInteger      legacyBits;
-   CGContentMode   contentMode;
-   UIEdgeInsets    padding;
-   UIEdgeInsets    margins;
    UIEdgeInsets    edges;
-
-   assert( autoresizingMask);
+   UIEdgeInsets    margins;
 
    legacyBits      = autoresizingMask & UIViewAutoresizingLegacyBits;
    contentModeBits = autoresizingMask & UIViewAutoresizingContentModeBits;
 
-   padding         = [self padding];
+#ifdef LEGACY_DEBUG
+   MulleUICLog( "%@ legacy: 0x%tx contentMode: 0x%tx %s (%s)",
+                self,
+                legacyBits,
+                contentModeBits,
+                CGRectUTF8String( [self frame]),
+                CGRectUTF8String( [self originalFrame]));
+#endif
 
-   if( legacyBits)
+
+   // in mixed mode, the initial positioning is done by the contentModeBits
+   // but resizes are only performed with legacy resizing, since then
+   // originalFrame is used and the modified "contentMode" frame is ignored
+   if( ! (autoresizingMask & UIViewAutoresizingMixedMode))
    {
-      // we can use "bounds" here, because we just care for the size
-      bounds        = [self bounds];
-      bounds        = UIEdgeInsetsInsetRect( bounds, padding);
-
-      // like resizeWithOldSuperviewSize:
-      frame         = [obj legacyFrameWithBounds:bounds
-                                autoresizingMask:autoresizingMask];
+      if( legacyBits && contentModeBits)
+      {
+         fprintf( stderr, "Do not mix legacy autoresizing and contentMode autoresizing\n");
+         abort();
+      }
    }
-   else
-      frame         = [obj frame];
+
+   frame = [self frame];
 
    if( contentModeBits)
    {
-      margins       = [obj margins];
-      edges.top     = CGFloatMaximum( padding.top, margins.top);
-      edges.left    = CGFloatMaximum( padding.left, margins.left);
-      edges.bottom  = CGFloatMaximum( padding.bottom, margins.bottom);
-      edges.right   = CGFloatMaximum( padding.right, margins.right);
-      marginedRect  = UIEdgeInsetsInsetRect( rect, edges);
+      margins      = [self margins];
+      edges.top    = CGFloatMaximum( context->padding.top, margins.top);
+      edges.left   = CGFloatMaximum( context->padding.left, margins.left);
+      edges.bottom = CGFloatMaximum( context->padding.bottom, margins.bottom);
+      edges.right  = CGFloatMaximum( context->padding.right, margins.right);
+      marginedRect = UIEdgeInsetsInsetRect( context->contentRect, edges);
 
-      contentMode   = UIViewAutoresizingGetContentMode( autoresizingMask);
-      frame         = CGRectPlaceInRect( frame, marginedRect, contentMode);
+      contentMode  = UIViewAutoresizingGetContentMode( autoresizingMask);
+      frame        = CGRectPlaceInRect( frame, marginedRect, contentMode);
+   }
+
+   if( legacyBits)
+   {
+      //
+      // originalFrame will copy frame if needed, if its zero, we just recopy
+      // frame again, until valid. The reason for "originalFrame" is, that we
+      // want to a compose a UI with some absolute frame values and then be able
+      // to resize it (usually with the window resize or maybe a device geometry
+      // change (mobile phone)). But resizes may accumulate errors, so instead
+      // of using incremental changes, we calculate from the "original frame" the
+      // size change to the desired size. The problem is, that its hard to
+      // discern between "intentional" resizes due to direct user interaction and
+      // "forced" resizes due to window changes. Currently the -setNeedsLayout
+      // method is abused to clear _originalFrame and _originalBounds, thus
+      // marking an "intentional" frame change.
+      //
+      originalFrame = [self originalFrame];
+      if( originalFrame.size.width == 0.0)
+      {
+         originalFrame  = frame;
+         lastBounds     = context->contentRect;
+
+         // if the original frame had zero components, it will want to stretch out
+         // most likely, we can't have the lastBounds hampering this. If this turns
+         // out to be a problem in the long run: rethink when do set lastBounds.
+         // probably this part of the code shouldn't run yet at all
+         if( originalFrame.size.width == 0.0)
+            lastBounds.size.width = 0.0;
+         if( originalFrame.size.height == 0.0)
+            lastBounds.size.height = 0.0;
+
+         [self setOriginalFrame:originalFrame];
+         [self setLastBounds:lastBounds];
+
+#ifdef LEGACY_DEBUG
+         MulleUILog( "%@ -originalFrame change to: %s", self, CGRectUTF8String( originalFrame));
+#endif
+      }
+      lastBounds   = [self lastBounds];
+
+      // use "contentRect" really
+      legacyBounds = UIEdgeInsetsInsetRect( context->contentRect, context->padding);
+
+      // like resizeWithOldSuperviewSize:
+      frame        = UIAutoresizingLegacyResize( originalFrame,
+                                                 lastBounds,
+                                                 legacyBounds,
+                                                 autoresizingMask);
    }
 
    //
-   // if obj doesn't fit into rect, we do what ?
+   // if self doesn't fit into rect, we do what ?
    // culling is done in the renderQueue step (if clipping is set)
    // If clipping is not set UIViewAutoresizingCullAtBounds will be useful
    // as well
@@ -303,13 +321,20 @@ static inline CGFloat    autoresizeAmount( CGFloat x, NSUInteger bits)
       frame.size.height = 0.0;
 
    // use rect here I guess
-   if( ! CGRectContainsRect( rect, frame))
+   if( ! CGRectContainsRect( context->contentRect, frame))
    {
       if( autoresizingMask & UIViewAutoresizingCullAtBounds)
          frame.size = CGSizeZero;
       if( autoresizingMask & UIViewAutoresizingClipToBounds)
-         frame = CGRectIntersection( rect, frame);
+         frame = CGRectIntersection( context->contentRect, frame);
    }
+
+#ifdef LEGACY_DEBUG
+   MulleUICLog( "%@ frame: -> %s (%s)",
+                self,
+                CGRectUTF8String( frame),
+                CGRectUTF8String( [self originalFrame]));
+#endif
    return( frame);
 }
 

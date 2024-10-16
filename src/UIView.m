@@ -3,6 +3,10 @@
 #import "import-private.h"
 
 #import "UIView+DebugPrivate.h"
+#import "UIViewController.h"
+
+
+#define DUMP_LAYERS
 
 
 @interface UIView( Forward)
@@ -20,6 +24,11 @@
 
 
 @implementation NSObject ( UIView)
+
+- (BOOL) __isUILayer
+{
+   return( NO);
+}
 
 - (BOOL) __isUIView
 {
@@ -69,6 +78,41 @@ static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view
 }
 
 
+static struct
+{
+   NSUInteger   _debuggingFlags;
+} Self;
+
+
++ (void) initialize
+{
+   char   *s;
+
+   // don't rerun for subclass
+   if( MulleObjCClassGetID( self) != @selector( UIView))
+      return;
+
+   s = getenv( MULLE_C_STRINGIFY( UIView) "DebuggingFlags");
+   if( ! s)
+      s = getenv( "UIResponderDebuggingFlags");
+   if( ! s)
+      s = getenv( "UIDebuggingFlags");
+   if( s)
+      Self._debuggingFlags = strtol( s, NULL, 0);
+}
+
+
++ (void) deinitialize
+{
+}
+
+
++ (void) setDebuggingFlags:(NSUInteger) flag   MULLE_OBJC_THREADSAFE_METHOD
+{
+   Self._debuggingFlags = flag;
+}
+
+
 + (Class) layerClass
 {
    return( [UINullLayer class]);
@@ -84,6 +128,72 @@ static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view
 + (instancetype) viewWithLayer:(id <UILayer>) layer
 {
    return( [[[self alloc] initWithLayer:layer] autorelease]);
+}
+
+
+- (void) mulleGainAccess
+{
+   UIView        *subview;
+   id <UILayer>  layer;
+   id            area;
+
+   [super mulleGainAccess];
+
+   // we would lose this
+   assert( ! self->_snapshot);
+   assert( ! self->_animationStorage);
+
+   [_mainLayer mulleGainAccess];
+   [_cacheLayer mulleGainAccess];
+   [_shadowLayer mulleGainAccess];
+
+   mulle_pointerarray_for( &_layers, layer)
+   {
+      [layer mulleGainAccess];
+   }
+
+   mulle_pointerarray_for( &_trackingAreas, area)
+   {
+      [area mulleGainAccess];
+   }
+
+   UIViewSubviewsFor( self, subview)
+   {
+      [subview mulleGainAccess];
+   }
+}
+
+
+// reverse order for no good reason, except that it looks prettier :)
+- (void) mulleRelinquishAccess
+{
+   UIView        *subview;
+   id <UILayer>  layer;
+   id            area;
+
+   assert( ! self->_snapshot);
+   assert( ! self->_animationStorage);
+
+   UIViewSubviewsFor( self, subview)
+   {
+      [subview mulleRelinquishAccess];
+   }
+
+   mulle_pointerarray_for( &_trackingAreas, area)
+   {
+      [area mulleRelinquishAccess];
+   }
+
+   mulle_pointerarray_for( &_layers, layer)
+   {
+      [layer mulleRelinquishAccess];
+   }
+
+   [_shadowLayer mulleRelinquishAccess];
+   [_cacheLayer mulleRelinquishAccess];
+   [_mainLayer mulleRelinquishAccess];
+
+   [super mulleRelinquishAccess];
 }
 
 
@@ -119,17 +229,27 @@ static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view
 {
    struct mulle_allocator   *allocator;
 
-   assert( ! layer || [layer conformsToProtocol:@protocol( UILayer)]);
-
    if( ! layer)
    {
       [self release];
       return( nil);
    }
 
+   assert( [layer conformsToProtocol:@protocol( UILayer)]);
+
+   self       = [super initNoLock];
    _mainLayer = [layer retain];
    _frame     = UIViewMakeFrameWithRect( frame);
+
    [self resetForInit];
+
+#ifdef UIVIEW_DEBUGGING_FLAGS
+   _debuggingFlags = UIVIEW_DEBUGGING_FLAGS;
+#else
+   _debuggingFlags = Self._debuggingFlags;
+#endif
+
+   UIViewLayoutLog( "frame %s", CGRectUTF8String( _frame));
 
    // initially a UIView with only its mainLayer is fairly slim, and only
    // needs one allocation for itself
@@ -153,6 +273,14 @@ static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view
    rect  = CGRectMake( 0.0f, 0.0f, frame.size.width, frame.size.height);
    cls   = [[self class] layerClass];
    layer = [[[cls alloc] initWithFrame:rect] autorelease];
+
+#if 0
+   // some layers correct the frame
+   if( frame.size.width == 0.0 || isinf( frame.size.width))
+      frame.size.width = [layer frame].size.width;
+   if( frame.size.height == 0.0 || isinf( frame.size.height))
+      frame.size.height = [layer frame].size.height;
+#endif
    self  = [self initWithLayer:layer
                          frame:frame];
    return( self);
@@ -186,8 +314,23 @@ static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view
 {
    assert( ! _window);  // remove from window before explicitly finalizing ?
 
+   [_hoverTimer mullePerformFinalize];
+   [_hoverTimer autorelease];
+   _hoverTimer = nil;
+
+   // finalize it all, assume that the context where layers or views can
+   // properly releave themselves will already be gone in -dealloc
+
+   [_cacheLayer mullePerformFinalize];
    [_cacheLayer autorelease];
    _cacheLayer = nil;
+
+   mulle_idarray_call_all( &_trackingAreas, @selector( mullePerformFinalize), NULL);
+   mulle_idarray_call_all( &_subviews, @selector( mullePerformFinalize), NULL);
+   mulle_idarray_call_all( &_layers, @selector( mullePerformFinalize), NULL);
+
+   [_shadowLayer mullePerformFinalize];
+   [_mainLayer mullePerformFinalize];
 
    [super finalize];
 }
@@ -195,13 +338,13 @@ static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view
 
 - (void) dealloc
 {
-   mulle_pointerarray_release_all( &_trackingAreas);
+   mulle_idarray_release_all( &_trackingAreas);
    mulle_pointerarray_done( &_trackingAreas);
 
-   mulle_pointerarray_release_all( &_subviews);
+   mulle_idarray_release_all( &_subviews);
    mulle_pointerarray_done( &_subviews);
 
-   mulle_pointerarray_release_all( &_layers);
+   mulle_idarray_release_all( &_layers);
    mulle_pointerarray_done( &_layers);
 
    [_shadowLayer release];
@@ -213,45 +356,84 @@ static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view
 }
 
 
-- (id) copy 
+//
+// MEMO: this is not -copy, because the returned object is mutable and
+//       also autoreleased!
+//
+- (id) mutableCopy
 {
-   UIView         *copy;
-   id <UILayer>   layer;
-   UIView         *subview;
-
-   layer = [[self->_mainLayer copy] autorelease];
-   copy  = [[[self class] alloc] initWithLayer:layer];
+   UIView                   *copy;
+   struct mulle_allocator   *allocator;
+   //
+   // MEMO: if we init a new instance of the same class and call
+   //       initWithLayer on it, we are likely to get populated with fresh
+   //       layers and subviews by the subclass.
+   //       This is not what we want though, as we want to copy as much state
+   //       as possible.
+   //       Instead lets make a [super copy] first and then
+   //       copy all the stuff we can copy and free/nil/reinit that what
+   //       can not be copied. The subclass then must do the rest.
+   //
+   copy = [super mutableCopy];
    {
-      copy->_shadowLayer = [_shadowLayer copy];
+      allocator          = MulleObjCInstanceGetAllocator( copy);
 
-      mulle_pointerarray_for( &_layers, layer)
-      {
-         layer = [layer copy];
-         [copy mulleAddRetainedLayer:layer];
-      }
+      copy->_mainLayer   = [copy->_mainLayer mutableCopy];
+      copy->_shadowLayer = [copy->_shadowLayer mutableCopy];
+      copy->_cacheLayer  = [copy->_cacheLayer retain]; // why not ?
 
-      mulle_pointerarray_for( &_subviews, subview)
-      {
-         subview = [subview copy];
-         [copy mulleAddRetainedSubview:subview];
-      }
+      mulle_pointerarray_init( &copy->_layers, mulle_pointerarray_get_count( &self->_layers), allocator);
+      mulle_pointerarray_add_array( &copy->_layers, &self->_layers, mulle_range_make_all());
+      mulle_idarray_mutablecopy_all( &copy->_layers);
 
-      copy->_hidden                 = self->_hidden;
-      copy->_userInteractionEnabled = self->_userInteractionEnabled;
-      copy->_clipsToBounds          = self->_clipsToBounds;
-      copy->_padding                = self->_padding;
-      copy->_margins                = self->_margins;
-      copy->_alpha                  = self->_alpha;
-      copy->_autoresizingMask       = self->_autoresizingMask;
+      mulle_pointerarray_init( &copy->_subviews, mulle_pointerarray_get_count( &self->_subviews), allocator);
+      mulle_pointerarray_add_array( &copy->_subviews, &self->_subviews, mulle_range_make_all());
+      mulle_idarray_mutablecopy_all( &copy->_subviews);
 
-      // useful to copy this
-      MulleObjCObjectSetDuplicatedUTF8String( copy,
-                                              &copy->_reuseIdentifierUTF8String,
-                                              self->_reuseIdentifierUTF8String);
+      // tracking areas do not have NSCopying!
+      mulle_pointerarray_init( &copy->_trackingAreas, 0, allocator);
+
+      // a clever compiler might have it easier here due to consecutive offsets
+      copy->_debugNameUTF8String  = NULL;
+      copy->_superview            = nil;
+      copy->_snapshot             = nil;
+      copy->_animationStorage     = NULL;
+
+      copy->_window               = nil;
    }
    return( copy);
 }
 
+//
+// UIViews and CALayers of a view hierarchy share a common recursive lock
+//
+// When this lock changes, this needs to propagate down to subviews and layers
+//
+- (void) didShareRecursiveLock:(NSRecursiveLock *) lock
+{
+   UIView                  *view;
+   MulleObject <UILayer>   *layer;
+
+   UIViewSubviewsFor( self, view)
+   {
+      [view shareRecursiveLock:lock];
+   }
+
+   [(MulleObject <UILayer> *) _mainLayer shareRecursiveLock:lock];
+
+   mulle_pointerarray_for( &_layers, layer)
+   {
+      [(MulleObject <UILayer> *) layer shareRecursiveLock:lock];
+   }
+
+   // do this first or last ... maybe depending on lock being nil or not ?
+   [super didShareRecursiveLock:lock];
+}
+
+
+//
+// FRAME AND BOUNDS
+//
 
 static inline CGRect   getBounds( UIView *self)
 {
@@ -286,6 +468,8 @@ static inline CGRect   getBounds( UIView *self)
 //   if( _lastBounds.size.width == 0.0)
 //      _lastBounds = getBounds( self);
 
+   UIViewLayoutLog( "bounds %s -> %s", CGRectUTF8String( _bounds), CGRectUTF8String( bounds));
+
    _bounds.origin = bounds.origin;
    if( CGSizeEqualToSize( _frame.size, bounds.size))
       _bounds.size.width = INFINITY;
@@ -319,7 +503,7 @@ static inline CGRect   getBounds( UIView *self)
 - (void) setAutoresizingMask:(NSUInteger) mask
 {
    // weed out illegal values
-   CGContentModeAssert( mask);
+   CGContentModeAssert( mask & UIViewAutoresizingContentModeBits);
 
    _autoresizingMask = mask;
 }
@@ -336,47 +520,38 @@ static inline CGRect   getBounds( UIView *self)
 
 - (void) setMouseMotionEventCallback:(UIMouseMotionEvent *(*)(UIView *, UIMouseMotionEvent *)) callback
 {
-   if( ! callback)
-      callback = defaultHandleMouseMotionEventCallback;
-   _mouseMotionEventCallback = callback;
+   _mouseMotionEventCallback = callback ? callback : defaultHandleMouseMotionEventCallback;
 }
 
 
 - (void) setEventCallback:(UIEvent *(*)(UIView *, UIEvent *)) callback
 {
-   if( ! callback)
-      callback = defaultHandleEventCallback;
-   _eventCallback = callback;
+   _eventCallback = callback ? callback : defaultHandleEventCallback;
 }
+
 
 // return NO, if default layoutSubviews code should not run
 - (void) setWillLayoutSubviewsCallback:(BOOL (*)( UIView *)) callback
 {
-   if( ! callback)
-      callback = defaultYESCallback;
-   _willLayoutSubviewsCallback = callback;
+   _willLayoutSubviewsCallback = callback ? callback : defaultYESCallback;
 }
+
 
 - (void) setDidLayoutSubviewsCallback:(BOOL (*)( UIView *)) callback
 {
-   if( ! callback)
-      callback = defaultYESCallback;
-   _didLayoutSubviewsCallback = callback;
+   _didLayoutSubviewsCallback = callback ? callback : defaultYESCallback;
 }
+
 
 - (void) setWillLayoutLayersCallback:(BOOL (*)( UIView *)) callback
 {
-   if( ! callback)
-      callback = defaultYESCallback;
-   _willLayoutLayersCallback = callback;
+   _willLayoutLayersCallback = callback ? callback : defaultYESCallback;
 }
 
 
 - (void) setDidLayoutLayersCallback:(void (*)( UIView *)) callback
 {
-   if( ! callback)
-      callback = defaultVoidCallback;
-   _didLayoutLayersCallback = callback;
+   _didLayoutLayersCallback = callback ? callback : defaultVoidCallback;
 }
 
 
@@ -420,6 +595,8 @@ static inline CGRect   getBounds( UIView *self)
 - (void) didMoveToWindow:(id <UIWindow>) newWindow
 {
    UIViewLog( "%#@", newWindow);
+   [_controller view:self
+     didMoveToWindow:newWindow];
 }
 
 
@@ -441,8 +618,10 @@ static inline CGRect   getBounds( UIView *self)
    {
       self->_window = newWindow;
 
-      mulle_pointerarray_for( &_subviews, view)
+      UIViewSubviewsFor( self, view)
+      {
          [view setWindow:newWindow];
+      }
    }
    [self didMoveToWindow:newWindow];
 }
@@ -469,6 +648,7 @@ static inline CGRect   getBounds( UIView *self)
       _mulle_pointerarray_add( subviews, view);
 
       [view setWindow:self->_window];
+      [view shareRecursiveLockWithObject:self];
    }
    [view didMoveToSuperview:self];
 
@@ -476,13 +656,23 @@ static inline CGRect   getBounds( UIView *self)
 }
 
 
+- (void) addToSubviews:(UIView *) view
+{
+   [self mulleAddRetainedSubview:[view retain]];
+}
+
+
+//
+// .. and sets its next responder to the receiver, which is its new superview.
+// we don't have a nextResponder ivar though...
+//
 - (void) addSubview:(UIView *) view
 {
    [self mulleAddRetainedSubview:[view retain]];
 }
 
 
-- (void) removeSubview:(UIView *) view
+- (void) removeFromSubviews:(UIView *) view
 {
    NSUInteger   index;
 
@@ -505,14 +695,22 @@ static inline CGRect   getBounds( UIView *self)
       mulle_pointerarray_remove_in_range( &_subviews,
                                           mulle_range_make( (unsigned int) index, 1));
    [view setWindow:nil];
+   [view shareRecursiveLockWithObject:nil];
 
    [view didMoveToSuperview:nil];
 }
 
 
+- (void) removeSubview:(UIView *) view
+{
+   [self removeFromSubviews:view];
+}
+
+
+
 - (void) removeFromSuperview
 {
-   [_superview removeSubview:self];
+   [_superview removeFromSubviews:self];
 
    // lose original frame information here, as we are placed into
    // different surroundings (or not at all)
@@ -523,17 +721,37 @@ static inline CGRect   getBounds( UIView *self)
 
 - (void) removeAllSubviews
 {
-   UIView    *view;
+   UIView   *view;
 
    while( (view = mulle_pointerarray_get_last( &_subviews)))
       [view removeFromSuperview];
 }
 
 
+- (void) removeAllSubviewsOfClass:(Class) cls
+{
+   struct mulle_pointerarray   tmp;
+   UIView                      *view;
+
+   memcpy( &tmp, &_subviews, sizeof( tmp));
+   mulle_pointerarray_init( &self->_subviews,
+                            mulle_pointerarray_get_count( &self->_subviews),
+                            mulle_pointerarray_get_allocator( &self->_subviews));
+
+   mulle_pointerarray_for( &tmp, view)
+   {
+      if( [view isKindOfClass:cls])
+         mulle_pointerarray_add( &_subviews, view);
+      else
+         [view removeFromSuperview];
+   }
+}
+
+
 /*
  *
  */
-- (NSUInteger) subviewCount
+- (NSUInteger) numberOfSubviews
 {
    return( mulle_pointerarray_get_count( &_subviews));
 }
@@ -555,7 +773,7 @@ static inline CGRect   getBounds( UIView *self)
    if( range.location + range.length > n)
       return( -1);
 
-   mulle_pointerarray_copy_range( &_subviews, buf, range);
+   mulle_idarray_get_in_range( &_subviews, buf, range);
 
    return( n);
 }
@@ -595,7 +813,7 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
    UIView   *view;
 
    flag = ! flag;
-   mulle_pointerarray_for( &_subviews, view)
+   UIViewSubviewsFor( self, view)
       if( CGRectIntersectsRect( [view frame], rect) == flag)
          mulle_pointerarray_add( array, view);
 }
@@ -612,12 +830,15 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 }
 
 
+//
+// direct access to make it snappier
+//
 - (UIView *) subviewWithTag:(NSInteger) tag
 {
    UIView   *view;
 
-   mulle_pointerarray_for( &_subviews, view)
-      if( [view tag] == tag)
+   UIViewSubviewsFor( self, view)
+      if( view->_tag == tag)
          break;
 
    return( view);
@@ -625,20 +846,28 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 
 
 //
-// this is deep, it only searches views contained as subviews
-// "local" views like contentView, won't be found
+// this is deep, it only searches views contained as subviews.
+// "local" views like maybe a -contentView, if its not also in the usual
+// view hierarchy, won't be found
 //
-- (UIView *) findSubviewWithTag:(NSInteger) tag;
+- (UIView *) findViewWithTag:(NSInteger) tag;
 {
    UIView   *view;
 
-   mulle_pointerarray_for( &_subviews, view)
+   UIViewSubviewsFor( self, view)
    {
-      if( [view tag] == tag)
+      if( view->_tag == tag)
          break;
-      view = [view findSubviewWithTag:tag];
-      if( view)
-         break;
+   }
+
+   if( ! view)
+   {
+      UIViewSubviewsFor( self, view)
+      {
+         view = [view findViewWithTag:tag];
+         if( view)
+            break;
+      }
    }
 
    return( view);
@@ -654,12 +883,6 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
    [_cacheLayer autorelease];
    _cacheLayer = nil;
 #endif
-}
-
-
-- (void) setReuseIdentifierUTF8String:(char *) s
-{
-   MulleObjCObjectSetDuplicatedUTF8String( self, &_reuseIdentifierUTF8String, s);
 }
 
 
@@ -709,7 +932,7 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
    if( s)
       hash = _mulle_string_hash( s);
    else
-      hash  = mulle_pointer_hash( self);
+      hash = mulle_pointer_hash( self);
 
    color  = (hash % (230 - 22)) + 22;
    mulle_asprintf( &result, "\033[38;5;%dm", color);;
@@ -726,12 +949,12 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 
 // TODO: need to add shadowLayer to t
 #if 0
-- (CGLayer *) cachedLayerWithFrameInfo:(struct CGFrameInfo *) info
+- (CGFramebuffer *) cachedLayerWithFrameInfo:(struct CGFrameInfo *) info
 {
    if( _needsCaching)
    {
 #ifdef HAVE_RENDER_CACHE
-      CGLayer   *layer;
+      CGFramebuffer   *layer;
 
       assert( _cacheLayer == nil);
       _needsCaching = NO;
@@ -747,8 +970,9 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 #endif
 
 
-- (void) willRenderWithAbsoluteTime:(mulle_absolutetime_t) time
+- (UIWindowDisplayBits) willRenderWithAbsoluteTime:(mulle_absolutetime_t) time
 {
+   return( 0);
 }
 
 
@@ -772,6 +996,7 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 
 - (id <UILayer>) layer
 {
+   assert( _mainLayer);
    return( _mainLayer);
 }
 
@@ -783,12 +1008,15 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
    if( ! _mainLayer)
    {
       _mainLayer = layer;
-      return;
    }
-   assert(_mainLayer != layer);
+   else
+   {
+      assert(_mainLayer != layer);
 
-   assert( _mulle_pointerarray_find( &_layers, layer) == mulle_not_found_e);
-   _mulle_pointerarray_add( &_layers, layer);
+      assert( _mulle_pointerarray_find( &_layers, layer) == mulle_not_found_e);
+      _mulle_pointerarray_add( &_layers, layer);
+   }
+   [(MulleObject <UILayer> *) layer shareRecursiveLockWithObject:self];
 }
 
 
@@ -801,6 +1029,22 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 - (struct mulle_pointerarray *) _layers
 {
    return( &_layers);
+}
+
+
+- (id <UILayer>) layerWithTag:(NSInteger) tag
+{
+   id <UILayer>   layer;
+
+   mulle_pointerarray_for( &_layers, layer)
+   {
+      if( [layer tag] == tag)
+         break;
+   }
+
+   if( ! layer && [_mainLayer tag] == tag)
+      layer = _mainLayer;
+   return( layer);
 }
 
 
@@ -829,7 +1073,7 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
       range.length -= 1;
    }
 
-   mulle_pointerarray_copy_range( &_layers, buf, range);
+   mulle_idarray_get_in_range( &_layers, buf, range);
 
    return( n);
 }
@@ -839,25 +1083,23 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 {
    NSUInteger   index;
 
-   if( ! layer)
-      return;
-
    if( layer == _mainLayer)
    {
-      // or assert that this is bad ?
-      [_mainLayer autorelease];
       _mainLayer = nil;
-      return;
+   }
+   else
+   {
+      // nil will not be found, that's good
+      index = mulle_pointerarray_find( &self->_layers, layer);
+      if( index == NSNotFound)
+         return;
+
+      mulle_pointerarray_remove_in_range( &_layers,
+                                          mulle_range_make( (unsigned int) index, 1));
    }
 
-   // nil will not be found, that's good
-   index = mulle_pointerarray_find( &self->_layers, layer);
-   if( index == NSNotFound)
-      return;
-
    [layer autorelease];
-   mulle_pointerarray_remove_in_range( &_layers,
-                                       mulle_range_make( (unsigned int) index, 1));
+   [(MulleObject <UILayer> *) layer shareRecursiveLockWithObject:nil];
 }
 
 
@@ -885,9 +1127,9 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 - (void *) forward:(void *) param
 {
    assert( _mainLayer); // window should not forward...
-   return( mulle_objc_object_call_variablemethodid_inline( _mainLayer,
-                                                          (mulle_objc_methodid_t) _cmd,
-                                                          param));
+   return( mulle_objc_object_call_variable_inline( _mainLayer,
+                                                   (mulle_objc_methodid_t) _cmd,
+                                                   param));
 }
 
 
@@ -961,17 +1203,176 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 }
 
 
+- (void) dumpSubviewsWithIndent:(NSUInteger) indent
+                           FILE:(FILE *) fp
+{
+   UIView   *view;
+
+   UIViewSubviewsFor( self, view)
+   {
+      [view dumpWithIndent:indent
+                      FILE:fp];
+   }
+}
+
+
+- (void) dumpLayersWithIndent:(NSUInteger) indent
+                         FILE:(FILE *) fp
+{
+   id <UILayer>   layer;
+
+   // fake cast to squelch warning, we don't really know
+   // what _mainLaye is
+   [ _mainLayer dumpWithIndent:indent
+                          FILE:fp];
+
+   mulle_pointerarray_for( &_layers, layer)
+   {
+      [layer dumpWithIndent:indent
+                       FILE:fp];
+   }
+}
+
+
+- (void) dumpTrackingAreasWithIndent:(NSUInteger) indent
+                                FILE:(FILE *) fp
+{
+   id   area;
+
+   // fake cast to squelch warning, we don't really know
+   // what _mainLaye is
+   [ _mainLayer dumpWithIndent:indent
+                          FILE:fp];
+
+   mulle_pointerarray_for( &_trackingAreas, area)
+   {
+      [area dumpWithIndent:indent
+                       FILE:fp];
+   }
+}
+
+
+
+
+- (void) dumpWithIndent:(NSUInteger) indent
+                   FILE:(FILE *) fp
+{
+   NSUInteger   i;
+   char         *s;
+
+   for( i = 0; i < indent; i++)
+      fputc( ' ', fp);
+
+   if( [self isHidden])
+      fprintf( fp, "%s: hidden\n",
+                  [self UTF8String]);
+   else
+   {
+      fprintf( fp, "%s: f=[%s] b=[%s]",
+                  [self UTF8String],
+                  CGRectUTF8String( [self frame]),
+                  CGRectUTF8String( [self bounds]));
+      if( [self clipsToBounds])
+         fprintf ( fp, " clips");
+      if( [self isUserInteractionEnabled])
+         fprintf ( fp, " interactive");
+
+      s = UIViewAutoresizingMaskShortUTF8String( [self autoresizingMask]);
+      if( *s)
+         fprintf ( fp, " %s", s);
+
+      fprintf( fp, "\n");
+   }
+
+   [self dumpTrackingAreasWithIndent:indent + 3
+                                FILE:fp];
+   [self dumpLayersWithIndent:indent + 3
+                         FILE:fp];
+
+//   if( _yoga)
+//   {
+//      fprintf( fp, "%s\n", [[_yoga debugDescription] UTF8String]);
+//   }
+   [self dumpSubviewsWithIndent:indent + 3
+                           FILE:fp];
+}
+
+
+- (void) dump
+{
+   [self dumpWithIndent:0
+                   FILE:mulleui_log_fp];
+   fflush( mulleui_log_fp);
+}
+
+
+#ifdef DEBUG
+
+void  UIViewDumpLayers( UIView *self)
+{
+   mulle_buffer_do_FILE( buffer, stdout)
+   {
+      mulle_buffer_sprintf( buffer, "mainLayer : %p\n", self->_mainLayer);
+      if( mulle_pointerarray_get_count( &self->_layers))
+      {
+         mulle_buffer_add_string( buffer, "\nlayers : ");
+         mulle_pointerarray_describe_buffer( &self->_layers, buffer);
+      }
+   }
+   fflush( stdout);
+}
+
+
+void  UIViewDumpSubviews( UIView *self)
+{
+   mulle_buffer_do_FILE( buffer, stdout)
+   {
+      mulle_pointerarray_describe_buffer( &self->_subviews, buffer);
+   }
+   fflush( stdout);
+}
+
+
+void  UIViewDumpTrackingAreas( UIView *self)
+{
+   char   *s;
+
+   mulle_buffer_do_FILE( buffer, stdout)
+   {
+      // written this way to have mulle_pointerarray_describe linked also for
+      // debugging purposes
+      s = mulle_pointerarray_describe( &self->_trackingAreas);
+      mulle_buffer_add_string( buffer, s);
+      mulle_free( s);
+   }
+   fflush( stdout);
+}
+#endif
+
 @end
 
 
 
 @implementation UINullLayer
 
+- (void) willChange
+{
+   // ignore
+}
+
 - (instancetype) initWithFrame:(CGRect) frame
 {
    _frame       = frame;
    _bounds.size = frame.size;
+
    return( self);
+}
+
+
+- (instancetype) initWithFrame:(CGRect) frame
+                      OSWindow:(id <UIOSWindow>) osWindow
+{
+   return( [self initWithFrame:frame]);
 }
 
 
@@ -979,6 +1380,11 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 {
    MulleObjCObjectSetDuplicatedUTF8String( self, &_debugNameUTF8String, NULL);
    [super dealloc];
+}
+
+
+- (void) forgetImplicitAnimations
+{
 }
 
 
@@ -1000,6 +1406,21 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
    return( size);
 }
 
+
+- (void) dumpWithIndent:(NSUInteger) indent
+                   FILE:(FILE *) fp
+{
+   NSUInteger   i;
+
+   for( i = 0; i < indent; i++)
+      fputc( ' ', fp);
+
+   fprintf( fp, "%s: frame=[%s] bounds=[%s]",
+               [self UTF8String],
+               CGRectUTF8String( [self frame]),
+               CGRectUTF8String( [self bounds]));
+   fprintf( fp, "\n");
+}
+
+
 @end
-
-

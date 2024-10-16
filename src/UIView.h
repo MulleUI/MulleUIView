@@ -52,11 +52,12 @@ static inline CGRect   UIViewMakeFrameWithRect( CGRect frame)
 }
 
 
+
 //
 // In theory UIView can manage other layer types than CALayer. It might be fun
 // to write a CALayer that draws ASCII :)
 //
-@protocol UILayer < NSObject, NSCopying>
+@protocol UILayer < NSObject, NSMutableCopying>
 
 @property( observable) CGRect           frame;
 @property( observable) CGRect           bounds;
@@ -64,11 +65,21 @@ static inline CGRect   UIViewMakeFrameWithRect( CGRect frame)
 @property( assign) CGAffineTransform    transform;
 @property( assign) CGRect               clipRect;
 @property( assign) CGFloat              alpha;
+@property( assign) NSInteger            tag;
 
 - (instancetype) initWithFrame:(CGRect) frame;
 
+// default does nothing with osWindow
+- (instancetype) initWithFrame:(CGRect) frame
+                      OSWindow:(id <UIOSWindow>) osWindow;
+
 - (char *) debugNameUTF8String;
 - (void) setDebugNameUTF8String:(char *) s;
+
+- (void) setDebugNameUTF8String:(char *) s;
+
+- (void) dumpWithIndent:(NSUInteger) indent
+                   FILE:(FILE *) fp;
 
 - (CGSize) sizeThatFits:(CGSize) size
                 context:(id <UILayoutContext>) context;
@@ -79,7 +90,12 @@ static inline CGRect   UIViewMakeFrameWithRect( CGRect frame)
 @end
 
 
+@class UIViewController;
+@class NSTimer;
+
+
 struct CGFrameInfo;
+
 
 // The "raison d^etre" of UIView
 // =============================
@@ -140,44 +156,59 @@ struct CGFrameInfo;
 //
 // Other layers are composited on top of it.
 // Then the subviews are drawn/composited on those.
+// Trackingareas are not copied by NSCopying.
 //
-
-@interface UIView : NSObject <UIAutoresizing, UIAnimatableViewProperties, NSCopying>
+@interface UIView : MulleObject < MulleAutolockingObjectProtocols,
+                                  UIAutoresizing,
+                                  UIAnimatableViewProperties,
+                                  NSMutableCopying >
 {
    char                                    *_debugNameUTF8String;
-
    UIView                                  *_superview;
-
-   struct mulle_pointerarray               _layers;
-   struct mulle_pointerarray               _subviews;
-   struct mulle_pointerarray               _trackingAreas;
-
-   id < NSObject>                          _cacheLayer;  // CGLayer
 
    NSObject <UIAnimatableViewProperties>   *_snapshot;
 
-   // CALayer
+   // CAAnimationStorage (forward storage)
+   void                                    *_animationStorage;
+
+   struct mulle_pointerarray               _subviews;
+   struct mulle_pointerarray               _trackingAreas;
+
    //
+   // These four ivars together are the layers of the view. It would be nice
+   // to have a copy-on-write scheme, so that the layers stay unperturbed
+   // once they are handed of of to the renderer. But... if the renderer is
+   // in a different process anyway, we are just handing over copies anyway...
+   //
+   struct mulle_pointerarray               _layers;
+   // the mainLayer will be in -layers
+   id <UILayer>                            _mainLayer;
+
    // the _shadowLayer will not appear in -layers or -getLayers...
    //
    id <UILayer>                            _shadowLayer; // below mainLayer
 
+   // the _cacheLayer will not appear in -layers or -getLayers...
    //
-   // the mainLayer will be in -layers
-   id <UILayer>                            _mainLayer;
+   id < NSObject>                          _cacheLayer;  // CGFramebuffer
 
-   // CAAnimationStorage (forward storage)
-   void                                    *_animationStorage;
+   // used only by hover code in UIView+UITracking (MulleUIWindows)
+   NSTimer                                 *_hoverTimer;   // used later
 }
+
+#define UI_VIEW_FORWARD_SUPERID   ((mulle_objc_superid_t) 0x1a55cf25)  // 'UIView;forward:'
 
 
 UIAutoresizingProperties;
 
 
 // don't change window yourself!
-@property( assign) id <UIWindow>           window;  // UIWindow really #1#
+@property( assign) id <UIWindow>           window;     // UIWindow really #1#
+@property( assign) UIViewController        *controller; // more or less userData #2#
 
-@property( getter=isHidden) BOOL           hidden;  // default: NO
+@property( getter=isHidden) BOOL           hidden;          // default: NO
+@property( getter=isMouseHovering) BOOL    mouseHovering;  // default: NO
+
 
 // UIUserInteractionEnabled
 //
@@ -189,7 +220,7 @@ UIAutoresizingProperties;
 // https://stackoverflow.com/questions/10880868/on-ios-if-a-superviews-userinteractionenabled-is-no-then-all-subviews-are-dis
 @property( getter=isUserInteractionEnabled) BOOL   userInteractionEnabled;  // default: YES
 
-@property NSUInteger  debugEnabled;
+@property( assign) NSUInteger  debuggingFlags      MULLE_OBJC_THREADSAFE_PROPERTY;
 
 @property BOOL        clipsToBounds; // default: YES
 //@property BOOL   needsLayout;      // use setNeedsLayout for marking
@@ -201,8 +232,6 @@ UIAutoresizingProperties;
 
 // On UIView this does nothing
 //@property BOOL   needsDisplay;
-
-@property char        *reuseIdentifierUTF8String;
 
 //
 // This is used during layout of subviews to restrict the size of the bounds,
@@ -258,22 +287,22 @@ UIAutoresizingProperties;
 // return NO, if default layoutLayers code should not run
 @property BOOL  (*willLayoutLayersCallback)( UIView *view);
 
-// called after layoutLayers default code, not if willLayoutLayers returns NO
+// called after layoutLayers default code
 @property void  (*didLayoutLayersCallback)( UIView *view);
 
 
 // return NO, if default layoutTrackingAreas code should not run
 @property BOOL  (*willLayoutTrackingAreasCallback)( UIView *view);
 
-// called after layoutLayers default code, not if willLayoutLayers returns NO
+// called after layoutLayers default code
 @property void  (*didLayoutTrackingAreasCallback)( UIView *view);
 
 
 // return NO, if default layoutSubviews code should not run (if you want
-// to run custom subview layout code, do it in this callabck.)
+// to run custom subview layout code, do it in this callback.)
 @property BOOL  (*willLayoutSubviewsCallback)( UIView *view);
 
-// called after layoutSubviews default code. Will not be called if
+// called after layoutSubviews default code. Will be called if
 // willLayoutSubviews returned NO. Return 'YES' to commence recursive layouting
 @property BOOL  (*didLayoutSubviewsCallback)( UIView *view);
 
@@ -281,14 +310,13 @@ UIAutoresizingProperties;
 + (instancetype) viewWithLayer:(id <UILayer>) layer;
 + (instancetype) viewWithFrame:(CGRect) frame;
 
-//
-// designated initializer, override initWithLayer:frame: for setting defaults
-// as it will not call init
+// -initWithLayer:frame: is the designated initializer.
+// override initWithLayer:frame: for setting defaults as it will not call init
 //
 - (instancetype) initWithLayer:(id <UILayer>) layer
                          frame:(CGRect) frame;
-- (instancetype) initWithLayer:(id <UILayer>) layer;
 
+- (instancetype) initWithLayer:(id <UILayer>) layer;
 
 - (instancetype) initWithFrame:(CGRect) frame;
 
@@ -307,11 +335,14 @@ UIAutoresizingProperties;
 // if subview is already a subview somewhere else, you need to remove it
 // from its superview (iOS is more lenient, but this catches simple
 // setup errors)
-- (void) addSubview:(UIView *) view;
-- (void) removeSubview:(UIView *) view;
+- (void) addToSubviews:(UIView *) view;
+- (void) removeFromSubviews:(UIView *) view;
+
 - (void) removeAllSubviews;
+- (void) removeAllSubviewsOfClass:(Class) class;
 - (void) removeFromSuperview;
 - (void) sortSubviewsByOrigin;
+- (NSUInteger) numberOfSubviews;
 
 - (void) getSubviewsIntersectingRect:(CGRect) rect
                     intoPointerArray:(struct mulle_pointerarray *) views
@@ -325,8 +356,9 @@ UIAutoresizingProperties;
 - (void) didMoveToWindow:(id <UIWindow>) newSuperview;
 
 // called for each view, before the layout starts
-// if a subclass overrides, it should call super
-- (void) willRenderWithAbsoluteTime:(mulle_absolutetime_t) renderTime;
+// if a subclass overrides, it should call super. Do not setNeedsDisplay or
+// related state, instead return displayBits if needed
+- (UIWindowDisplayBits) willRenderWithAbsoluteTime:(mulle_absolutetime_t) renderTime;
 
 - (NSInteger) getSubviews:(UIView **) buf
                     range:(NSRange) range;
@@ -337,7 +369,7 @@ UIAutoresizingProperties;
 - (UIView *) subviewAtIndex:(NSUInteger) index;
 
 // this is deep,
-- (UIView *) findSubviewWithTag:(NSInteger) tag;
+- (UIView *) findViewWithTag:(NSInteger) tag;
 
 - (UIView *) superview;
 
@@ -361,6 +393,8 @@ UIAutoresizingProperties;
 - (NSInteger) getLayers:(id <UILayer> *) buf
                   range:(NSRange) range;
 
+- (id <UILayer>) layerWithTag:(NSInteger) tag;
+
 // will remove mainLayer, but not the hidden shadowLayer
 - (void) removeAllLayers;
 
@@ -370,35 +404,58 @@ UIAutoresizingProperties;
 - (char *) debugNameUTF8String;
 - (void) setDebugNameUTF8String:(char *) s;
 
+// older API:
+- (void) addSubview:(UIView *) view;
+- (void) removeFromSubviews:(UIView *) view;
+
 @end
 
+//
+// #2# the controller is not used by UIView, but when a Controller wants
+//     to tap into events, he sets the C callbacks and then queries the
+//     view for -controller. Now [controller handleEvent:] can be called.
+//
+
+
+@interface UIView( UILayerFuture)
 
 //
 // the default will be a UINullLayer which will do absolutely nothing
 // not even draw a background
 //
-@interface UIView( UILayerFuture)
-
 + (Class) layerClass;
 
 @end
 
 
+@interface UIView( Dump)
+
+- (void) dump;
+- (void) dumpWithIndent:(NSUInteger) indent
+                   FILE:(FILE *) fp;
+
+@end
+
 //
 // this layer does nothing, it's just there so we can run tests
 // on UIView
 //
-@interface UINullLayer : NSObject <UILayer>
+@interface UINullLayer : MulleObject < MulleAutolockingObjectProtocols,
+                                       NSMutableCopying,
+                                       UILayer>
 {
    char   *_debugNameUTF8String;
 }
 
-@property( observable) CGRect          frame;
-@property( observable) CGRect          bounds;
+// not observable, because we don't implement -willChange (this layer
+// shouldn't really be used
+@property( assign) CGRect              frame;
+@property( assign) CGRect              bounds;
 
 @property( assign) CGAffineTransform   transform;
 @property( assign) CGRect              clipRect;
 @property( assign) CGFloat             alpha;
+@property( assign) NSInteger           tag;
 
 @end
 
@@ -406,33 +463,10 @@ UIAutoresizingProperties;
 
 //
 // these all get fowarded to the "main" layer
-//
-@interface UIView( UILayerForwarding)
+// @interface UIView( UILayerForwarding)
+// @end
+// done in MulleUIOS now !
 
-/*
-- (void) setBackgroundColor:(CGColor) color;
-- (void) setBorderColor:(CGColor) color;
-- (void) setBorderWidth:(CGFloat) value;
-- (void) setCornerRadius:(CGFloat) color;
-- (CGColor) backgroundColor;
-- (CGColor) borderColor;
-- (CGFloat) borderWidth;
-- (CGFloat) cornerRadius;
-*/
-
-
-// TODO: move to UIWindow
-
-//@property void                      (*drawCallback)( id <UILayer>layer, CGContext *ctxt);
-//@property( observable) CGFloat      cornerRadius;
-//@property( observable) CGFloat      borderWidth;
-//@property( observable) CGFloat      opacity;
-//@property( observable) CGColor      borderColor;
-//@property( observable) CGColor      backgroundColor;
-//@property( observable) CGPoint      pixelCenter;
-//@property( observable) BOOL         masksToBounds;
-
-@end
 
 
 // didn't want those exposed I guess.
@@ -452,7 +486,26 @@ UIAutoresizingProperties;
  * 
  */
 
+#define UIViewSubviewsCount( self) \
+   mulle_pointerarray_get_count( self ? &((struct { @defs( UIView); } *) self)->_subviews : 0)
 
-#define UIViewSubviewsFor( view, subview) \
-   mulle_pointerarray_for( & ((struct { @defs( UIView); } *) view)->_subviews, \
+#define UIViewSubviewsFor( self, subview) \
+   mulle_pointerarray_for( self ? &((struct { @defs( UIView); } *) self)->_subviews : NULL, \
                            subview)
+
+#define UIViewLayerCount( self)                                                     \
+   mulle_pointerarray_get_count( self                                               \
+                                 ? &((struct { @defs( UIView); } *) self)->_layers  \
+                                 : 0) +                                             \
+      (self ? &((struct { @defs( UIView); } *) self)->_mainLayer != nil : 1)
+
+#define UIViewLayerFor( self, layer)                                                                           \
+   for( struct mulle__pointerarrayenumerator                                                                   \
+           rover__ ## layer = mulle__pointerarray_enumerate( &((struct { @defs( UIView); } *) self)->_layers), \                         \
+           *rover___  ## layer ## __i = (void *) 0;                                                            \
+        ! rover___  ## layer ## __i;                                                                           \
+        rover___ ## layer ## __i = (_mulle__pointerarrayenumerator_done( &rover__ ## layer),                   \
+                                   (void *) 1))                                                                \
+      for( id <UILayer> layer = (self ? &((struct { @defs( UIView); } *) self)->_mainLayer != nil);            \
+           layer;                                                                                              \
+           _mulle__pointerarrayenumerator_next( &rover__ ## layer, (void **) &layer))

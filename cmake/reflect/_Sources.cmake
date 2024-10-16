@@ -15,6 +15,7 @@ src/UIAutoresizing.m
 src/UIEdgeInsets+UTF8String.m
 src/UIInputEvent+UIView.m
 src/UIView+CGGeometry.m
+src/UIViewController.m
 src/UIView+Layout.m
 src/UIView+UIEvent.m
 src/UIView+UILayer.m

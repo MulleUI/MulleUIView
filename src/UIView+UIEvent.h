@@ -7,7 +7,7 @@
 
 // only input events are distributed to UIViews
 
-@interface UIView ( UIEvent)
+@interface UIView ( UIEvent) < UIResponder>
 
 
 // pointInside is not declared as UIInputEvent, for compatibility
@@ -37,6 +37,24 @@
 - (UIView *) subviewAtContentLocation:(CGPoint) point;
 - (id <UILayer>) layerAtContentLocation:(CGPoint) point;
 
+// UIResponder...
+- (UIMouseMotionEvent *) handleMouseMotionEvent:(UIMouseMotionEvent *) event;
+- (UIInputEvent *) handleInputEvent:(UIInputEvent *) event;
+- (UIEvent *) handleEvent:(UIEvent *) event;
+
+// used by customers of the eventCallback (i.e. Controller) to avoid recursion
+// in special cases.
+- (UIEvent *) handleForwardedEvent:(UIEvent *) event;
+
+- (void) didBecomeFirstResponder;
+- (void) didResignFirstResponder;
+- (BOOL) becomeFirstResponder;
+- (BOOL) resignFirstResponder;
+- (BOOL) isFirstResponder;
+- (id <UIResponder>) nextResponder;
+
+
 @end
+
 
 

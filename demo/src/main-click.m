@@ -3,9 +3,11 @@
 #import <string.h>
 
 
-#define LEVELS   3
-#define TRICKY_BOUNDS
-#define OBSCURING_VIEW
+#ifndef LEVELS
+# define LEVELS           3
+# define TRICKY_BOUNDS
+# define OBSCURING_VIEW
+#endif
 
 
 struct Point
@@ -41,7 +43,7 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
 //
 // The PointsLayer draws an array of points
 //
-@interface PointsLayer : CALayer
+@interface PointsLayer : CGGraphicsLayer
 {
    struct mulle_structarray   _points;
 }
@@ -155,7 +157,10 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
    CGColor        color;
    PointsLayer    *layer;
 
-   // faster
+   // MEMO: in terms of API, using _locationForView: is wrong as it is
+   //       not guaranteed that we are called by code, following the 
+   //       "official" hitTest: code. This is just here to check that 
+   //       it works as expected.
    point  = [event _locationForView:self];
    point2 = [event locationInView:self];
 
@@ -168,7 +173,7 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
    layer = (PointsLayer *) _mainLayer;
    if( (rand() & 0x8000) == 0x8000)
    {
-      // use translatedPointForView
+      // use _locationForView
       color = CGColorMakeWithHSL( fmod( CGFloatMakeRandom(), 0.5), 0.75, 0.5);
       [layer addCircleAtPoint:point
                         color:color];
@@ -366,6 +371,7 @@ int   main( int argc, char *argv[])
    UIApplication   *application;
 
    application = [UIApplication sharedInstance];
+   
    /*
     * window and app
     */
@@ -377,6 +383,6 @@ int   main( int argc, char *argv[])
 
    [application addWindow:window];
 
-   return( [application run]);
+   return( [application runApp]);
 }
 

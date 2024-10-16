@@ -15,11 +15,14 @@ src/main-autoresize-legacy.m
 src/main-autoresize.m
 src/main-autoresizingmask.m
 src/main-click.m
+src/main-click-simple.m
 src/main-clip.m
+src/main-controller.m
 src/main-layer.m
 src/main-sublayers.m
 src/main-subviews.m
 src/main-view-bounds.m
+src/main-view-hittest.m
 src/main-view-shadow.m
 src/main-view-windowresize.m
 )

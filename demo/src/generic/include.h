@@ -33,7 +33,7 @@
 
 /* You can add some more include statements here */
 
-#include "demo-version.h"
+//#include "demo-version.h"
 
 #endif
 

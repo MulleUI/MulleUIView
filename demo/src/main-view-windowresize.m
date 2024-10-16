@@ -16,8 +16,8 @@
 
 #define SPACE  3.0
 
-@implementation MyWindow
 
+@implementation MyWindow
 
 - (void) setupViews
 {
@@ -85,7 +85,7 @@ int   main( int argc, char *argv[])
 
       [app addWindow:window];
    }
-   return( [app run]);
+   return( [app runApp]);
 }
 
 

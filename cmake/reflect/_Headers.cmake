@@ -66,7 +66,9 @@ src/UIAutoresizing.h
 src/UIEdgeInsets+UTF8String.h
 src/UIEdgeInsets.h
 src/UIInputEvent+UIView.h
+src/UILayoutContext.h
 src/UIView+CGGeometry.h
+src/UIViewController.h
 src/UIView+Layout.h
 src/UIView+UIEvent.h
 src/UIView+UILayer.h
