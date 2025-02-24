@@ -3,10 +3,10 @@
 
 int   main()
 {
-   UIWindow        *window;
-   UIApplication   *app;
-   CALayer         *layer;
-   UIView          *view;
+   UIWindow          *window;
+   UIApplication     *app;
+   CGGraphicsLayer   *layer;
+   UIView            *view;
 
    /*
     * window and app

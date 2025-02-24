@@ -3,6 +3,7 @@ enum
    UIViewDebug                        = 0x00000001,
    UIViewDebugEvent                   = 0x00000002,
    UIViewDebugLayout                  = 0x00000004,
+   UIViewDebugDisplayBits             = 0x00000040,
    UIViewDebugVerbose                 = 0x00001000,
    UIViewDebugEventVerbose            = 0x00002000,
    UIViewDebugMouseTrackingEvent      = 0x01000000,
@@ -10,6 +11,7 @@ enum
 
    // memo don't use more than 0x0400000 to not get in conflict with UIWindow
 };
+
 
 
 @interface NSObject ( UIView)
@@ -79,6 +81,18 @@ do                                                                          \
 }                                                                           \
 while( 0)
 
+
+#define UIViewDisplayBitsLog( format, ...)                                  \
+do                                                                          \
+{                                                                           \
+   assert( [self __isUIView]);                                              \
+   if( self->_debuggingFlags & UIViewDebugDisplayBits)                      \
+      mulleui_log_object_method( self, (char *) __PRETTY_FUNCTION__,        \
+                                       (char *) format, ## __VA_ARGS__);    \
+}                                                                           \
+while( 0)
+
+
 #define UIViewMouseTrackingEventLog( event, format, ...)                    \
 do                                                                          \
 {                                                                           \
@@ -109,6 +123,7 @@ while( 0)
 #define UIViewLogVerbose( format, ...)                     do {} while( 0)
 #define UIViewEventLog( event, format, ...)                do {} while( 0)
 #define UIViewEventLogVerbose( event, format, ...)         do {} while( 0)
+#define UIViewDisplayBitsLog( event, format, ...)          do {} while( 0)
 #define UIViewMouseMotionEventLog( event, format, ...)     do {} while( 0)
 #define UIViewMouseTrackingEventLog( event, format, ...)   do {} while( 0)
 

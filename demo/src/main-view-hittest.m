@@ -49,7 +49,6 @@ void   setupSceneInContentView( UIView *contentView)
    CGRect       rects[ 3][ 3];
    NSUInteger   x, y;
    CGRect       bounds;
-   BOOL         flag;
 
    contentRect = [contentView contentRect];
    contentRect = CGRectInset( contentRect, 10.0, 10.0);

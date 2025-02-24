@@ -265,13 +265,15 @@ static CGPoint   CGRectMirrorPointAlongAxes( CGRect  rect, CGPoint point, CGAxis
 static void   setupScene( UIWindowPlane *contentPlane)
 {
    UIView         *view;
+   CGRect         frame;
+   UIEdgeInsets   insets;
+#ifdef TRICKY_BOUNDS
+   CGRect         bounds;
+   CGRect         obscuringViewFrame;
    UIView         *obscuringView;
    UIView         *subview;
    UIView         *subview2;
-   CGRect         frame;
-   CGRect         bounds;
-   CGRect         obscuringViewFrame;
-   UIEdgeInsets   insets;
+#endif
 
 #ifdef TRICKY_BOUNDS
    insets = UIEdgeInsetsMake( 25, 25, 25, 25);

@@ -320,7 +320,8 @@
          }
 
          // need to recalc location now
-         location = [self convertPoint:[event locationInWindow]
+         location = [event locationInWindow];
+         location = [self convertPoint:location
                               fromView:nil];
       }
       if( found && ! best)

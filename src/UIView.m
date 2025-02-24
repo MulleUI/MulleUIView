@@ -269,11 +269,12 @@ static struct
    Class          cls;
    CGRect         rect;
 
-   frame = UIViewMakeFrameWithRect( frame);
-   rect  = CGRectMake( 0.0f, 0.0f, frame.size.width, frame.size.height);
-   cls   = [[self class] layerClass];
-   layer = [[[cls alloc] initWithFrame:rect] autorelease];
-
+   frame    = UIViewMakeFrameWithRect( frame);
+   rect     = CGRectMake( 0.0f, 0.0f, frame.size.width, frame.size.height);
+   cls      = [[self class] layerClass];
+   layer    = [cls alloc];
+   layer    = [layer initWithFrame:rect];
+   layer    = [layer autorelease];
 #if 0
    // some layers correct the frame
    if( frame.size.width == 0.0 || isinf( frame.size.width))
@@ -356,53 +357,51 @@ static struct
 }
 
 
-//
-// MEMO: this is not -copy, because the returned object is mutable and
-//       also autoreleased!
-//
-- (id) mutableCopy
-{
-   UIView                   *copy;
-   struct mulle_allocator   *allocator;
-   //
-   // MEMO: if we init a new instance of the same class and call
-   //       initWithLayer on it, we are likely to get populated with fresh
-   //       layers and subviews by the subclass.
-   //       This is not what we want though, as we want to copy as much state
-   //       as possible.
-   //       Instead lets make a [super copy] first and then
-   //       copy all the stuff we can copy and free/nil/reinit that what
-   //       can not be copied. The subclass then must do the rest.
-   //
-   copy = [super mutableCopy];
-   {
-      allocator          = MulleObjCInstanceGetAllocator( copy);
-
-      copy->_mainLayer   = [copy->_mainLayer mutableCopy];
-      copy->_shadowLayer = [copy->_shadowLayer mutableCopy];
-      copy->_cacheLayer  = [copy->_cacheLayer retain]; // why not ?
-
-      mulle_pointerarray_init( &copy->_layers, mulle_pointerarray_get_count( &self->_layers), allocator);
-      mulle_pointerarray_add_array( &copy->_layers, &self->_layers, mulle_range_make_all());
-      mulle_idarray_mutablecopy_all( &copy->_layers);
-
-      mulle_pointerarray_init( &copy->_subviews, mulle_pointerarray_get_count( &self->_subviews), allocator);
-      mulle_pointerarray_add_array( &copy->_subviews, &self->_subviews, mulle_range_make_all());
-      mulle_idarray_mutablecopy_all( &copy->_subviews);
-
-      // tracking areas do not have NSCopying!
-      mulle_pointerarray_init( &copy->_trackingAreas, 0, allocator);
-
-      // a clever compiler might have it easier here due to consecutive offsets
-      copy->_debugNameUTF8String  = NULL;
-      copy->_superview            = nil;
-      copy->_snapshot             = nil;
-      copy->_animationStorage     = NULL;
-
-      copy->_window               = nil;
-   }
-   return( copy);
-}
+// - (id) mutableCopy
+// {
+//    abort();
+// 
+//    UIView                   *copy;
+//    struct mulle_allocator   *allocator;
+//    //
+//    // MEMO: if we init a new instance of the same class and call
+//    //       initWithLayer on it, we are likely to get populated with fresh
+//    //       layers and subviews by the subclass.
+//    //       This is not what we want though, as we want to copy as much state
+//    //       as possible.
+//    //       Instead lets make a [super copy] first and then
+//    //       copy all the stuff we can copy and free/nil/reinit that what
+//    //       can not be copied. The subclass then must do the rest.
+//    //
+//    copy = [super mutableCopy];
+//    {
+//       allocator          = MulleObjCInstanceGetAllocator( copy);
+// 
+//       copy->_mainLayer   = [copy->_mainLayer mutableCopy];
+//       copy->_shadowLayer = [copy->_shadowLayer mutableCopy];
+//       copy->_cacheLayer  = [copy->_cacheLayer retain]; // why not ?
+// 
+//       mulle_pointerarray_init( &copy->_layers, mulle_pointerarray_get_count( &self->_layers), allocator);
+//       mulle_pointerarray_add_array( &copy->_layers, &self->_layers, mulle_range_make_all());
+//       mulle_idarray_mutablecopy_all( &copy->_layers);
+// 
+//       mulle_pointerarray_init( &copy->_subviews, mulle_pointerarray_get_count( &self->_subviews), allocator);
+//       mulle_pointerarray_add_array( &copy->_subviews, &self->_subviews, mulle_range_make_all());
+//       mulle_idarray_mutablecopy_all( &copy->_subviews);
+// 
+//       // tracking areas do not have NSCopying!
+//       mulle_pointerarray_init( &copy->_trackingAreas, 0, allocator);
+// 
+//       // a clever compiler might have it easier here due to consecutive offsets
+//       copy->_debugNameUTF8String  = NULL;
+//       copy->_superview            = nil;
+//       copy->_snapshot             = nil;
+//       copy->_animationStorage     = NULL;
+// 
+//       copy->_window               = nil;
+//    }
+//    return( copy);
+// }
 
 //
 // UIViews and CALayers of a view hierarchy share a common recursive lock
@@ -1221,12 +1220,7 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 {
    id <UILayer>   layer;
 
-   // fake cast to squelch warning, we don't really know
-   // what _mainLaye is
-   [ _mainLayer dumpWithIndent:indent
-                          FILE:fp];
-
-   mulle_pointerarray_for( &_layers, layer)
+   UIViewLayersFor( self, layer)
    {
       [layer dumpWithIndent:indent
                        FILE:fp];
@@ -1239,23 +1233,16 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 {
    id   area;
 
-   // fake cast to squelch warning, we don't really know
-   // what _mainLaye is
-   [ _mainLayer dumpWithIndent:indent
-                          FILE:fp];
-
-   mulle_pointerarray_for( &_trackingAreas, area)
+   UIViewTrackingAreasFor( &_trackingAreas, area)
    {
       [area dumpWithIndent:indent
-                       FILE:fp];
+                      FILE:fp];
    }
 }
 
 
-
-
-- (void) dumpWithIndent:(NSUInteger) indent
-                   FILE:(FILE *) fp
+- (void) dumpViewWithIndent:(NSUInteger) indent
+                       FILE:(FILE *) fp
 {
    NSUInteger   i;
    char         *s;
@@ -1283,7 +1270,14 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 
       fprintf( fp, "\n");
    }
+}
 
+
+- (void) dumpWithIndent:(NSUInteger) indent
+                   FILE:(FILE *) fp
+{
+   [self dumpViewWithIndent:indent
+                       FILE:fp];
    [self dumpTrackingAreasWithIndent:indent + 3
                                 FILE:fp];
    [self dumpLayersWithIndent:indent + 3

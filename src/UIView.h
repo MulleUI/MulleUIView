@@ -57,7 +57,7 @@ static inline CGRect   UIViewMakeFrameWithRect( CGRect frame)
 // In theory UIView can manage other layer types than CALayer. It might be fun
 // to write a CALayer that draws ASCII :)
 //
-@protocol UILayer < NSObject, NSMutableCopying>
+@protocol UILayer < NSObject>
 
 @property( observable) CGRect           frame;
 @property( observable) CGRect           bounds;
@@ -68,10 +68,6 @@ static inline CGRect   UIViewMakeFrameWithRect( CGRect frame)
 @property( assign) NSInteger            tag;
 
 - (instancetype) initWithFrame:(CGRect) frame;
-
-// default does nothing with osWindow
-- (instancetype) initWithFrame:(CGRect) frame
-                      OSWindow:(id <UIOSWindow>) osWindow;
 
 - (char *) debugNameUTF8String;
 - (void) setDebugNameUTF8String:(char *) s;
@@ -160,8 +156,7 @@ struct CGFrameInfo;
 //
 @interface UIView : MulleObject < MulleAutolockingObjectProtocols,
                                   UIAutoresizing,
-                                  UIAnimatableViewProperties,
-                                  NSMutableCopying >
+                                  UIAnimatableViewProperties>
 {
    char                                    *_debugNameUTF8String;
    UIView                                  *_superview;
@@ -424,6 +419,7 @@ UIAutoresizingProperties;
 // not even draw a background
 //
 + (Class) layerClass;
+- (void) setNeedsDisplay      MULLE_OBJC_THREADSAFE_METHOD;
 
 @end
 
@@ -441,7 +437,6 @@ UIAutoresizingProperties;
 // on UIView
 //
 @interface UINullLayer : MulleObject < MulleAutolockingObjectProtocols,
-                                       NSMutableCopying,
                                        UILayer>
 {
    char   *_debugNameUTF8String;
@@ -493,19 +488,29 @@ UIAutoresizingProperties;
    mulle_pointerarray_for( self ? &((struct { @defs( UIView); } *) self)->_subviews : NULL, \
                            subview)
 
-#define UIViewLayerCount( self)                                                     \
+#define UIViewLayersCount( self)                                                    \
    mulle_pointerarray_get_count( self                                               \
                                  ? &((struct { @defs( UIView); } *) self)->_layers  \
                                  : 0) +                                             \
       (self ? &((struct { @defs( UIView); } *) self)->_mainLayer != nil : 1)
 
-#define UIViewLayerFor( self, layer)                                                                           \
-   for( struct mulle__pointerarrayenumerator                                                                   \
-           rover__ ## layer = mulle__pointerarray_enumerate( &((struct { @defs( UIView); } *) self)->_layers), \                         \
-           *rover___  ## layer ## __i = (void *) 0;                                                            \
-        ! rover___  ## layer ## __i;                                                                           \
-        rover___ ## layer ## __i = (_mulle__pointerarrayenumerator_done( &rover__ ## layer),                   \
-                                   (void *) 1))                                                                \
-      for( id <UILayer> layer = (self ? &((struct { @defs( UIView); } *) self)->_mainLayer != nil);            \
-           layer;                                                                                              \
-           _mulle__pointerarrayenumerator_next( &rover__ ## layer, (void **) &layer))
+#define UIViewLayersFor( view, layer)                                                                        \
+   for( struct mulle_pointerarrayenumerator                                                                  \
+           rover__ ## view = mulle_pointerarray_enumerate( &((struct { @defs( UIView); } *) view)->_layers), \
+           *rover___  ## view ## __i = (void *) 0;                                                           \
+        ! rover___  ## view ## __i;                                                                          \
+        rover___ ## view ## __i = (_mulle_pointerarrayenumerator_done( &rover__ ## view),                    \
+                                   (void *) 1))                                                              \
+      for( layer = (view ? ((struct { @defs( UIView); } *) view)->_mainLayer : nil);                         \
+           layer;                                                                                            \
+           _mulle_pointerarrayenumerator_next( &rover__ ## view, (void **) &layer))
+
+
+#define UIViewTrackingAreasCount( self)                                                    \
+   mulle_pointerarray_get_count( self                                                      \
+                                 ? &((struct { @defs( UIView); } *) self)->_trackingAreas  \
+                                 : 0)
+
+#define UIViewTrackingAreasFor( view, area)                                                      \
+   mulle_pointerarray_for( self ? &((struct { @defs( UIView); } *) self)->_trackingAreas : NULL, \
+                           area)

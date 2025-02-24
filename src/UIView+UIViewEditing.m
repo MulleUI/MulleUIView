@@ -35,6 +35,7 @@ void  _mulle_pointerarray_swap( struct mulle_pointerarray *array1,
 }
 
 
+#if 0
 void  mulle_pointerarray_remove( struct mulle_pointerarray *array,
                                  void *item)
 {
@@ -45,7 +46,7 @@ void  mulle_pointerarray_remove( struct mulle_pointerarray *array,
       return;
    mulle_pointerarray_remove_in_range( array, mulle_range_make( i, 1));
 }
-
+#endif
 
 //
 // if you have 'A B C' then an insert at 1 of D will get you

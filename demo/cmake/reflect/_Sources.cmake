@@ -19,7 +19,9 @@ src/main-click-simple.m
 src/main-clip.m
 src/main-controller.m
 src/main-layer.m
+src/main-scrollview.m
 src/main-sublayers.m
+src/main-subview-bounds.m
 src/main-subviews.m
 src/main-view-bounds.m
 src/main-view-hittest.m

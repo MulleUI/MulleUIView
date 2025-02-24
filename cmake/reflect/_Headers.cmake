@@ -61,12 +61,17 @@ src/include.h
 #
 set( PUBLIC_HEADERS
 src/MulleObjCLoader+MulleUIView.h
+src/MulleScrollIndicatorView.h
 src/MulleUIView.h
 src/UIAutoresizing.h
 src/UIEdgeInsets+UTF8String.h
 src/UIEdgeInsets.h
+src/UIGridView.h
 src/UIInputEvent+UIView.h
 src/UILayoutContext.h
+src/UIScrollView+UIEvent.h
+src/UIScrollView.h
+src/UIStackView.h
 src/UIView+CGGeometry.h
 src/UIViewController.h
 src/UIView+Layout.h

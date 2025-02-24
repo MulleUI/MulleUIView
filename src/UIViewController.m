@@ -14,6 +14,13 @@ static BOOL   willLayoutSubviewsCallback( UIView *view);
 static BOOL   didLayoutSubviewsCallback( UIView *view);
 
 
+@interface NSObject( UIResponder)
+
+- (UIEvent *) handleEvent:(UIEvent *) event;
+
+@end
+
+
 @implementation UIViewController
 
 + (instancetype) objectWithView:(UIView *) view

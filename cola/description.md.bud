@@ -17,3 +17,8 @@ UIView therefore imposes a structure (layout) on CALayers and facilitates the
 routing of events from the event receiver (usually a UIWindow or the
 UIApplication) to the code managing the CALayer (a UIView subclass ?).
 
+UIView contains these pure layouting views (UIViews that don't draw)
+
+* UIGridView
+* UIStackView
+* UIScrollView

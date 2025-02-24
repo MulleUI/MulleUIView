@@ -264,7 +264,7 @@ static CGRect   convertBoundsRectToFrameRect( CGRect rect, CGRect bounds, CGRect
 //      assert( toView);
 //   }
 
-   for( view = toView; view; view = [view superview])
+   for( view = toView; view; view = view->_superview)
    {
       if( view == self)
          goto up;
@@ -273,7 +273,7 @@ static CGRect   convertBoundsRectToFrameRect( CGRect rect, CGRect bounds, CGRect
          _mulle__pointerarray_add( &array, view, NULL);
    }
 
-   for( view = self; view; view = [view superview])
+   for( view = self; view; view = view->_superview)
    {
       if( view == toView)
          goto done;
@@ -331,7 +331,7 @@ done:
    _mulle__pointerarray_init_with_static_pointers( &array,
                                                    (void **) views,
                                                    sizeof( views) / sizeof( UIView *));
-   for( view = self; view; view = [view superview])
+   for( view = self; view; view = view->_superview)
    {
       if( view == fromView)
          goto up;
@@ -341,7 +341,7 @@ done:
          _mulle__pointerarray_add( &array, view, NULL);
    }
 
-   for( view = fromView; view; view = [view superview])
+   for( view = fromView; view; view = view->_superview)
    {
       if( view == self)
          goto done;
@@ -489,7 +489,7 @@ static CGPoint   convertBoundsPointToFramePoint( UIView *self, CGPoint point, CG
 
    // walk up the conversion chain and clip everything together, we
    // end up with a rect in window space
-   for( view = self; (parent = [view superview]); view = parent)
+   for( view = self; (parent = view->_superview); view = parent)
    {
       // this oughta be fairly cheap, as we are only doing one step
       rect = [view convertRect:rect
