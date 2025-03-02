@@ -1,6 +1,6 @@
 #import "import.h"
 
-#import "UIEdgeInsets.h"
+//#import "UIEdgeInsets.h"
 
 #import "UIAutoresizing.h"
 
@@ -302,6 +302,16 @@ UIAutoresizingProperties;
 @property BOOL  (*didLayoutSubviewsCallback)( UIView *view);
 
 
+//
+// MEMO: views are threadsafe object, but they are created with -initNoLock
+//       this means, that you need to provide them with a lock before putting
+//       them into a multithreaded situation. This lock assignment happens,
+//       when you add a UIView to a UIWindow. The same goes for the layers.
+//       This is an optimization, otherwise you would create too many locks
+//       that would then be thrown away anyway.
+// MEMO: But really ? The lock would probably be thrown away fairly fast and
+//       then reclaimed by the class reuse cache (if used)
+//
 + (instancetype) viewWithLayer:(id <UILayer>) layer;
 + (instancetype) viewWithFrame:(CGRect) frame;
 
@@ -353,7 +363,7 @@ UIAutoresizingProperties;
 // called for each view, before the layout starts
 // if a subclass overrides, it should call super. Do not setNeedsDisplay or
 // related state, instead return displayBits if needed
-- (UIWindowDisplayBits) willRenderWithAbsoluteTime:(mulle_absolutetime_t) renderTime;
+- (UIWindowDisplayBits) willLayoutWithAbsoluteTime:(mulle_absolutetime_t) renderTime;
 
 - (NSInteger) getSubviews:(UIView **) buf
                     range:(NSRange) range;

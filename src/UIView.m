@@ -419,6 +419,7 @@ static struct
    }
 
    [(MulleObject <UILayer> *) _mainLayer shareRecursiveLock:lock];
+   [(MulleObject <UILayer> *) _shadowLayer shareRecursiveLock:lock];
 
    mulle_pointerarray_for( &_layers, layer)
    {
@@ -969,7 +970,7 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 #endif
 
 
-- (UIWindowDisplayBits) willRenderWithAbsoluteTime:(mulle_absolutetime_t) time
+- (UIWindowDisplayBits) willLayoutWithAbsoluteTime:(mulle_absolutetime_t) time
 {
    return( 0);
 }

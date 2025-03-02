@@ -8,7 +8,7 @@
 #import "UIView+DebugPrivate.h"
 #import "UIView+CGGeometry.h"
 #import "UIViewController.h"
-#import "UIEdgeInsets+UTF8String.h"
+//#import "UIEdgeInsets+UTF8String.h"
 
 //#define LEGACY_DEBUG
 //#define TRACKING_AREA_DEBUG

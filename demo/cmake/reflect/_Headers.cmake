@@ -11,8 +11,8 @@ endif()
 # contents are derived from the file locations
 
 set( INCLUDE_DIRS
-src/generic
 src/reflect
+src/generic
 )
 
 #

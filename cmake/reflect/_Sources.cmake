@@ -11,14 +11,8 @@ endif()
 # contents selected with patternfile ??-source--sources
 #
 set( SOURCES
-src/MulleScrollIndicatorView.m
 src/UIAutoresizing.m
-src/UIEdgeInsets+UTF8String.m
-src/UIGridView.m
 src/UIInputEvent+UIView.m
-src/UIScrollView+UIEvent.m
-src/UIScrollView.m
-src/UIStackView.m
 src/UIView+CGGeometry.m
 src/UIViewController.m
 src/UIView+Layout.m

@@ -237,7 +237,7 @@ int   main()
    setupScene( [window contentView]);
 
    [window setFrameRateHz:30.0];
-   [window setWillLayoutCallback:willLayoutCallback];
+   [window setWillLayoutViewsCallback:willLayoutCallback];
    [window dump];
 
    [app addWindow:window];
