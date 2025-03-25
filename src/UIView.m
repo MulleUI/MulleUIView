@@ -80,13 +80,16 @@ static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view
 
 static struct
 {
-   NSUInteger   _debuggingFlags;
+   NSUInteger                 _debuggingFlags;
+   struct MulleObjCIMPArray   _initCategoryIMPs;
+   struct MulleObjCIMPArray   _deallocCategoryIMPs;
 } Self;
 
 
 + (void) initialize
 {
-   char   *s;
+   char                     *s;
+   struct mulle_allocator   *allocator;
 
    // don't rerun for subclass
    if( MulleObjCClassGetID( self) != @selector( UIView))
@@ -99,11 +102,17 @@ static struct
       s = getenv( "UIDebuggingFlags");
    if( s)
       Self._debuggingFlags = strtol( s, NULL, 0);
+
+   allocator = MulleObjCClassGetAllocator( self);
+   MulleObjCIMPArrayInitCategoryOnly( &Self._initCategoryIMPs, self, @selector( initCategory), allocator);
+   MulleObjCIMPArrayInitCategoryOnly( &Self._deallocCategoryIMPs, self, @selector( deallocCategory), allocator);
 }
 
 
 + (void) deinitialize
 {
+   MulleObjCIMPArrayDone( &Self._deallocCategoryIMPs);
+   MulleObjCIMPArrayDone( &Self._initCategoryIMPs);
 }
 
 
@@ -197,29 +206,37 @@ static struct
 }
 
 
-- (void) resetForInit
+- (id) _initWithFrame:(CGRect) rect
 {
-   _clipsToBounds                   = YES;  // default
-   _userInteractionEnabled          = YES;  // default
+   self = [self initNoLock];
+   if( ! self)
+      return( self);
+
+   _frame                           = UIViewMakeFrameWithRect( rect);
+
    _alpha                           = 1.0;
    _bounds.size.width               = INFINITY; // once we change the bounds size
-   _willLayoutLayersCallback        = defaultYESCallback;
-   _didLayoutLayersCallback         = defaultVoidCallback;
-   _willLayoutSubviewsCallback      = defaultYESCallback;
-   _didLayoutSubviewsCallback       = defaultYESCallback;
-   _willLayoutTrackingAreasCallback = defaultYESCallback;
-   _didLayoutTrackingAreasCallback  = defaultVoidCallback;
-   _eventCallback                   = defaultHandleEventCallback;
-   _mouseMotionEventCallback        = defaultHandleMouseMotionEventCallback;
+   _clipsToBounds                   = YES;  // default
+   _lastBounds.size.width           = 0.0;
    _needsTrackingAreaUpdate         = YES;
    _originalFrame.size.width        = 0.0;
-   _lastBounds.size.width           = 0.0;
+   _userInteractionEnabled          = YES;  // default
+
+   _eventCallback                   = defaultHandleEventCallback;
+   _mouseMotionEventCallback        = defaultHandleMouseMotionEventCallback;
+   _didLayoutLayersCallback         = defaultVoidCallback;
+   _didLayoutSubviewsCallback       = defaultYESCallback;
+   _didLayoutTrackingAreasCallback  = defaultVoidCallback;
+   _willLayoutLayersCallback        = defaultYESCallback;
+   _willLayoutSubviewsCallback      = defaultYESCallback;
+   _willLayoutTrackingAreasCallback = defaultYESCallback;
    // needs to be properly removed before reuse
    assert( ! _window);
 
 //   _needsDisplay           = YES;
 
    assert( mulle_pointerarray_get_count( &_trackingAreas) == 0);
+   return( self);
 }
 
 
@@ -237,11 +254,11 @@ static struct
 
    assert( [layer conformsToProtocol:@protocol( UILayer)]);
 
-   self       = [super initNoLock];
-   _mainLayer = [layer retain];
-   _frame     = UIViewMakeFrameWithRect( frame);
+   self = [self _initWithFrame:frame];
+   if( ! self)
+      return( self);
 
-   [self resetForInit];
+   _mainLayer = [layer retain];
 
 #ifdef UIVIEW_DEBUGGING_FLAGS
    _debuggingFlags = UIVIEW_DEBUGGING_FLAGS;
@@ -258,6 +275,8 @@ static struct
    mulle_pointerarray_init( &_trackingAreas, 0, allocator);
    mulle_pointerarray_init( &_subviews, 0, allocator);
    mulle_pointerarray_init( &_layers, 0, allocator);
+
+   MulleObjCIMPArrayCallReverse( &Self._initCategoryIMPs, self, self);
 
    return( self);
 }
@@ -339,6 +358,8 @@ static struct
 
 - (void) dealloc
 {
+   MulleObjCIMPArrayCall( &Self._deallocCategoryIMPs, self, self);
+
    mulle_idarray_release_all( &_trackingAreas);
    mulle_pointerarray_done( &_trackingAreas);
 
@@ -357,52 +378,61 @@ static struct
 }
 
 
-// - (id) mutableCopy
-// {
-//    abort();
-// 
-//    UIView                   *copy;
-//    struct mulle_allocator   *allocator;
-//    //
-//    // MEMO: if we init a new instance of the same class and call
-//    //       initWithLayer on it, we are likely to get populated with fresh
-//    //       layers and subviews by the subclass.
-//    //       This is not what we want though, as we want to copy as much state
-//    //       as possible.
-//    //       Instead lets make a [super copy] first and then
-//    //       copy all the stuff we can copy and free/nil/reinit that what
-//    //       can not be copied. The subclass then must do the rest.
-//    //
-//    copy = [super mutableCopy];
-//    {
-//       allocator          = MulleObjCInstanceGetAllocator( copy);
-// 
-//       copy->_mainLayer   = [copy->_mainLayer mutableCopy];
-//       copy->_shadowLayer = [copy->_shadowLayer mutableCopy];
-//       copy->_cacheLayer  = [copy->_cacheLayer retain]; // why not ?
-// 
-//       mulle_pointerarray_init( &copy->_layers, mulle_pointerarray_get_count( &self->_layers), allocator);
-//       mulle_pointerarray_add_array( &copy->_layers, &self->_layers, mulle_range_make_all());
-//       mulle_idarray_mutablecopy_all( &copy->_layers);
-// 
-//       mulle_pointerarray_init( &copy->_subviews, mulle_pointerarray_get_count( &self->_subviews), allocator);
-//       mulle_pointerarray_add_array( &copy->_subviews, &self->_subviews, mulle_range_make_all());
-//       mulle_idarray_mutablecopy_all( &copy->_subviews);
-// 
-//       // tracking areas do not have NSCopying!
-//       mulle_pointerarray_init( &copy->_trackingAreas, 0, allocator);
-// 
-//       // a clever compiler might have it easier here due to consecutive offsets
-//       copy->_debugNameUTF8String  = NULL;
-//       copy->_superview            = nil;
-//       copy->_snapshot             = nil;
-//       copy->_animationStorage     = NULL;
-// 
-//       copy->_window               = nil;
-//    }
-//    return( copy);
-// }
+- (id) copy
+{
+   struct mulle_allocator   *allocator;
+   id <UILayer>             layer;
+   UIView                   *copy;
 
+   //
+   // MEMO: if we init a new instance of the same class and call
+   //       initWithLayer on it, we are likely to get populated with fresh
+   //       layers and subviews by the subclass.
+   //       This is not what we want though, as we want to copy as much state
+   //       as possible.
+   //       Instead lets make a [super copy] first and then
+   //       copy all the stuff we can copy and free/nil/reinit that what
+   //       can not be copied. The subclass then must do the rest.
+   //
+   copy = [[[self class] alloc] _initWithFrame:self->_frame];
+   if( ! copy)
+      return( copy);
+
+   allocator = MulleObjCInstanceGetAllocator( copy);
+
+   copy->_bounds                 = self->_bounds;
+
+   copy->_clipsToBounds          = self->_clipsToBounds;  // default
+   copy->_userInteractionEnabled = self->_userInteractionEnabled;  // default
+   copy->_alpha                  = self->_alpha;
+   copy->_hidden                 = self->_hidden;
+   copy->_debuggingFlags         = self->_debuggingFlags;
+
+   copy->_margins                = self->_margins;
+   copy->_padding                = self->_padding;
+   copy->_autoresizingMask       = self->_autoresizingMask;
+
+   copy->_mainLayer              = [self->_mainLayer copy];
+   copy->_shadowLayer            = [self->_shadowLayer copy];
+   copy->_cacheLayer             = [self->_cacheLayer retain]; // why not ?
+
+   mulle_pointerarray_init( &copy->_layers, mulle_pointerarray_get_count( &self->_layers), allocator);
+   mulle_pointerarray_add_array( &copy->_layers, &self->_layers, mulle_range_make_all());
+   mulle_idarray_copy_all( &copy->_layers);
+
+   mulle_pointerarray_init( &copy->_subviews, mulle_pointerarray_get_count( &self->_subviews), allocator);
+   mulle_pointerarray_add_array( &copy->_subviews, &self->_subviews, mulle_range_make_all());
+   mulle_idarray_copy_all( &copy->_subviews);
+
+   // animationStorage ???
+
+   // tracking areas do not have NSCopying!
+   mulle_pointerarray_init( &copy->_trackingAreas, 0, allocator);
+
+   return( copy);
+}
+
+//
 //
 // UIViews and CALayers of a view hierarchy share a common recursive lock
 //
@@ -502,19 +532,10 @@ static inline CGRect   getBounds( UIView *self)
 
 - (void) setAutoresizingMask:(NSUInteger) mask
 {
-   // weed out illegal values
+   // weed out illegal contentMode values
    CGContentModeAssert( mask & UIViewAutoresizingContentModeBits);
 
    _autoresizingMask = mask;
-}
-
-
-- (void) setMargins:(UIEdgeInsets) m
-{
-   _margins = m;
-
-   if( _autoresizingMask == 0 && (m.top != 0.0 || m.left != 0.0 || m.bottom != 0.0 || m.right != 0.0))
-      _autoresizingMask = UIViewAutoresizingCenter;
 }
 
 
@@ -1126,6 +1147,13 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 
 - (void *) forward:(void *) param
 {
+   void   *rval;
+   int    fail = 0;
+
+   rval = _MulleDynamicObjectForward( self, _cmd, param, &fail);
+   if( ! fail)
+      return( rval);
+
    assert( _mainLayer); // window should not forward...
    return( mulle_objc_object_call_variable_inline( _mainLayer,
                                                    (mulle_objc_methodid_t) _cmd,
@@ -1305,7 +1333,7 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 
 void  UIViewDumpLayers( UIView *self)
 {
-   mulle_buffer_do_FILE( buffer, stdout)
+   mulle_flushablebuffer_do_FILE( buffer, stdout)
    {
       mulle_buffer_sprintf( buffer, "mainLayer : %p\n", self->_mainLayer);
       if( mulle_pointerarray_get_count( &self->_layers))
@@ -1320,7 +1348,7 @@ void  UIViewDumpLayers( UIView *self)
 
 void  UIViewDumpSubviews( UIView *self)
 {
-   mulle_buffer_do_FILE( buffer, stdout)
+   mulle_flushablebuffer_do_FILE( buffer, stdout)
    {
       mulle_pointerarray_describe_buffer( &self->_subviews, buffer);
    }
@@ -1332,7 +1360,7 @@ void  UIViewDumpTrackingAreas( UIView *self)
 {
    char   *s;
 
-   mulle_buffer_do_FILE( buffer, stdout)
+   mulle_flushablebuffer_do_FILE( buffer, stdout)
    {
       // written this way to have mulle_pointerarray_describe linked also for
       // debugging purposes

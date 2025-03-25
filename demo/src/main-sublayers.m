@@ -14,7 +14,6 @@ int   main()
    app = [UIApplication sharedInstance];
    {
       view  = [UIView viewWithFrame:CGRectMake( 0, 0, 200, 200)];
-      [view setMargins:UIEdgeInsetsMake( 10, 10, 10, 10)];
       [view setBackgroundColor:CGColorMakeLightGray()];
 
       layer = [CGGraphicsLayer layerWithFrame:CGRectMake( 2, 2, 96, 96)];

@@ -17,7 +17,8 @@ typedef NS_OPTIONS( NSUInteger, UIViewAutoresizing)
    // This is a simplified form "margins" resizing
    // UIViewAutoresizingTop and friends are used by UIStackView mainly.
    // You use this for automated layouts
-
+   // The autoresize will run each layout (contrary to the "Flexible"/Legacy
+   // autoresize).
    //  CGContentModeScaleToFill is same as UIViewAutoresizingFillBoth but is 0
    //   UIViewAutoresizingRedraw,  // not supported
 
@@ -42,6 +43,9 @@ typedef NS_OPTIONS( NSUInteger, UIViewAutoresizing)
 
    //
    // "Flexible" is "legacy" resizing, you use this for manual layouts
+   // The "Flexible" autoresize will only be triggered, if the parent view has 
+   // changed shape. So when you place a view in its parent and run layout 
+   // nothing will happen.
    //
    // It ignores "margins" but takes "padding" of the superview into account.
    // "Legacy" resizing uses the frame of the view has it was setup originally.

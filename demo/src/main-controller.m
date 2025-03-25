@@ -5,7 +5,9 @@
 
 //
 // A simple example, where we have a view controller which manages events
-// on behalf of its views
+// on behalf of its views. You click on a "button" and the other changes 
+// color. Obviously there has to be a connection, and that's the view 
+// controller.
 //
 @interface Button : UIView
 @end

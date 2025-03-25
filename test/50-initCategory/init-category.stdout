@@ -1,0 +1,21 @@
+=== Testing UIView Category Initialization ===
+Creating a UIView to verify its automatic category initialization...
+UIView(TestCategoryA): initCategory called
+UIView(TestCategoryB): initCategory called
+UIView created
+
+Default property values from initCategory:
+Category A value: 21
+Category B value: 42
+
+Updating property values...
+After modification:
+Category A value: 84
+Category B value: 200
+
+Deallocating UIView...
+UIView(TestCategoryB): deallocCategory called
+UIView(TestCategoryA): deallocCategory called
+UIView deallocated
+
+=== Test Complete ===

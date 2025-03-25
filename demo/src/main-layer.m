@@ -14,7 +14,6 @@ int   main()
    app = [UIApplication sharedInstance];
    {
       view  = [UIView viewWithFrame:CGRectMake( 0, 0, 200, 75)];
-      [view setMargins:UIEdgeInsetsMake( 10, 10, 10, 10)];
 
       layer = MULLE_OBJC_CLASS_CAST( CGGraphicsLayer, [view layer]);
       [layer setBackgroundColor:CGColorMakeWithRGB( 0.0, 1.0, 0.0)];

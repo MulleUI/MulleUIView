@@ -167,3 +167,9 @@ MULLE_UI_CORE_EXTERN_GLOBAL
 void   UIViewAutoresize( UIView *self,
                          struct UILayoutContext *context,
                          UIViewAutoresizing autoresizingMask);
+
+MULLE_UI_CORE_EXTERN_GLOBAL
+void  UIViewLayoutWithContext( UIView *self, struct UILayoutContext *context);
+
+MULLE_UI_CORE_EXTERN_GLOBAL
+void   UIViewLayoutSubviewInRect( UIView *self, UIView *view, CGRect contentRect);

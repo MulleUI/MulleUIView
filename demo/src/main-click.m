@@ -371,13 +371,20 @@ int   main( int argc, char *argv[])
 {
    UIWindow        *window;
    UIApplication   *application;
+   NSUInteger      styleMask;
 
    application = [UIApplication sharedInstance];
    
    /*
     * window and app
     */
-   window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800, 600)];
+   styleMask = UIWindowStyleMaskDefault;
+   styleMask = UIWindowsStyleMaskBySetting( styleMask, UIWindowStylePlanes, NO);
+   styleMask = UIWindowsStyleMaskBySetting( styleMask, UIWindowStyleResizable, NO);
+
+   window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800, 600)
+                      titleUTF8String:"Demo"
+                            styleMask:styleMask];   
 
    setupScene( [window contentView]);
 

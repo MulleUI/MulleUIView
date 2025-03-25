@@ -13,10 +13,10 @@ endif()
 set( SOURCES
 src/main-autoresize-legacy.m
 src/main-autoresize.m
-src/main-autoresizingmask.m
 src/main-click.m
 src/main-click-simple.m
 src/main-clip.m
+src/main-contentmode.m
 src/main-controller.m
 src/main-layer.m
 src/main-scrollview.m

@@ -57,7 +57,7 @@ static inline CGRect   UIViewMakeFrameWithRect( CGRect frame)
 // In theory UIView can manage other layer types than CALayer. It might be fun
 // to write a CALayer that draws ASCII :)
 //
-@protocol UILayer < NSObject>
+@protocol UILayer < NSObject, NSCopying>
 
 @property( observable) CGRect           frame;
 @property( observable) CGRect           bounds;
@@ -155,6 +155,7 @@ struct CGFrameInfo;
 // Trackingareas are not copied by NSCopying.
 //
 @interface UIView : MulleObject < MulleAutolockingObjectProtocols,
+                                  NSCopying,
                                   UIAutoresizing,
                                   UIAnimatableViewProperties>
 {
@@ -230,15 +231,15 @@ UIAutoresizingProperties;
 
 //
 // This is used during layout of subviews to restrict the size of the bounds,
-// where subviews can be placed.
+// where subviews can be placed. If autoresizingMask is set to 0
+// margins will not be used.
 //
 @property( observable) UIEdgeInsets    padding;
 
 //
 // Margins are used during subview layout. Its the distance of the view to
 // the superview or in stack views to other subviews.
-// If margins are set and autoResizingMask is 0, then autoresizingMask is set
-// to UIViewAutoresizingCenter
+// If autoresizingMask is set to 0 margins will not be used.
 @property( observable) UIEdgeInsets    margins;
 // this gets inherited down to all layers and subviews
 

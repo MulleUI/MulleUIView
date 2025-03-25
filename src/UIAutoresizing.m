@@ -212,7 +212,6 @@ CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
    CGContentMode   contentMode;
    CGRect          frame;
    CGRect          lastBounds;
-   CGRect          legacyBounds;
    CGRect          marginedRect;
    CGRect          originalFrame;
    NSUInteger      contentModeBits;
@@ -233,9 +232,11 @@ CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
 #endif
 
 
+   //
    // in mixed mode, the initial positioning is done by the contentModeBits
    // but resizes are only performed with legacy resizing, since then
    // originalFrame is used and the modified "contentMode" frame is ignored
+   //
    if( ! (autoresizingMask & UIViewAutoresizingMixedMode))
    {
       if( legacyBits && contentModeBits)
@@ -245,17 +246,21 @@ CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
       }
    }
 
-   frame = [self frame];
 
+   margins      = [self margins];
+   edges.top    = CGFloatMaximum( context->padding.top, margins.top);
+   edges.left   = CGFloatMaximum( context->padding.left, margins.left);
+   edges.bottom = CGFloatMaximum( context->padding.bottom, margins.bottom);
+   edges.right  = CGFloatMaximum( context->padding.right, margins.right);
+   marginedRect = UIEdgeInsetsInsetRect( context->contentRect, edges);
+
+   frame        = [self frame];
+
+   //
+   // TODO: could use marginedRect for legacyBounds ?
+   //
    if( contentModeBits)
    {
-      margins      = [self margins];
-      edges.top    = CGFloatMaximum( context->padding.top, margins.top);
-      edges.left   = CGFloatMaximum( context->padding.left, margins.left);
-      edges.bottom = CGFloatMaximum( context->padding.bottom, margins.bottom);
-      edges.right  = CGFloatMaximum( context->padding.right, margins.right);
-      marginedRect = UIEdgeInsetsInsetRect( context->contentRect, edges);
-
       contentMode  = UIViewAutoresizingGetContentMode( autoresizingMask);
       frame        = CGRectPlaceInRect( frame, marginedRect, contentMode);
    }
@@ -275,16 +280,19 @@ CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
       // method is abused to clear _originalFrame and _originalBounds, thus
       // marking an "intentional" frame change.
       //
+      // use "contentRect" really
+
       originalFrame = [self originalFrame];
       if( originalFrame.size.width == 0.0)
       {
          originalFrame  = frame;
-         lastBounds     = context->contentRect;
-
+         lastBounds     = marginedRect;
+         //
          // if the original frame had zero components, it will want to stretch out
          // most likely, we can't have the lastBounds hampering this. If this turns
          // out to be a problem in the long run: rethink when do set lastBounds.
          // probably this part of the code shouldn't run yet at all
+         //
          if( originalFrame.size.width == 0.0)
             lastBounds.size.width = 0.0;
          if( originalFrame.size.height == 0.0)
@@ -297,16 +305,16 @@ CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
          MulleUILog( "%@ -originalFrame change to: %s", self, CGRectUTF8String( originalFrame));
 #endif
       }
-      lastBounds   = [self lastBounds];
+      else
+      {
+         lastBounds = [self lastBounds];
 
-      // use "contentRect" really
-      legacyBounds = UIEdgeInsetsInsetRect( context->contentRect, context->padding);
-
-      // like resizeWithOldSuperviewSize:
-      frame        = UIAutoresizingLegacyResize( originalFrame,
-                                                 lastBounds,
-                                                 legacyBounds,
-                                                 autoresizingMask);
+         // like resizeWithOldSuperviewSize:
+         frame      = UIAutoresizingLegacyResize( originalFrame,
+                                                  lastBounds,
+                                                  marginedRect,
+                                                  autoresizingMask);
+      }
    }
 
    //

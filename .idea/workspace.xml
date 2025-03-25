@@ -6,18 +6,22 @@
   <component name="CMakePresetLoader">{
   &quot;useNewFormat&quot;: true
 }</component>
+  <component name="CMakeProjectFlavorService">
+    <option name="flavorId" value="CMakePlainProjectFlavor" />
+  </component>
   <component name="CMakeReloadState">
     <option name="reloaded" value="true" />
   </component>
   <component name="CMakeRunConfigurationManager">
     <generated>
-      <config projectName="MulleUIView" targetName="__objc_loader_inc__" />
       <config projectName="MulleUIView" targetName="mulle_sde_clean_all" />
-      <config projectName="MulleUIView" targetName="mulle_sde_upgrade" />
       <config projectName="MulleUIView" targetName="_3_MulleUIView" />
+      <config projectName="MulleUIView" targetName="mulle_sde_reflect" />
+      <config projectName="MulleUIView" targetName="MulleUIView__objc_loader_inc__" />
+      <config projectName="MulleUIView" targetName="mulle_sde_clean_target" />
+      <config projectName="MulleUIView" targetName="mulle_sde_upgrade" />
       <config projectName="MulleUIView" targetName="graphviz" />
       <config projectName="MulleUIView" targetName="mulle_sde_craft_craftorder" />
-      <config projectName="MulleUIView" targetName="mulle_sde_reflect" />
       <config projectName="MulleUIView" targetName="_1_MulleUIView" />
       <config projectName="MulleUIView" targetName="mulle_sde_clean_tidy" />
       <config projectName="MulleUIView" targetName="_2_MulleUIView" />
@@ -31,219 +35,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="62ab8b60-24d6-40ab-be46-45eeff84121f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-sde/idea" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake/share/IDESupport.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/demo/cmake/share/IDESupport.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/MulleUIView.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/MulleUIView.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/etc/sourcetree/config" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/etc/sourcetree/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/craft/definition.mingw/set/CC" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/craft/definition.windows/set/CC" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/craft/definition/set/CC" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/auxscope" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/env/auxscope" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/environment-plugin.sh" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/env/environment-plugin.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/environment.sh" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/env/environment.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/include-environment.sh" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/env/include-environment.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/libexec/mulle-env-bash-completion.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/libexec/mulle-sde-bash-completion.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/motd" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/tool-extension" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/env/tool-extension" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/tool-extension.darwin" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/env/tool-extension.darwin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/tool-extension.freebsd" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/tool-extension.linux" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/tool-extension.windows" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/env/tool-extension.windows" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/tool-plugin" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/env/tool-plugin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/version" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/env/version" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/env/version.old" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/monitor/bin/cmakefile-callback" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/monitor/bin/cmakefile-callback" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/monitor/bin/filesystem-callback" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/monitor/bin/filesystem-callback" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/monitor/bin/sourcetree-callback" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/monitor/bin/sourcetree-callback" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/monitor/libexec/filesystem-task.sh" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/monitor/libexec/filesystem-task.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/monitor/libexec/sourcetree-task.sh" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/monitor/libexec/sourcetree-task.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/sde/extension" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/sde/extension" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-c/c" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-c/c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-c/c-cmake" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-c/c-cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-objc/objc" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-objc/objc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-objc/objc-cmake" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-objc/objc-cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-objc/vscode-clang" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-objc/vscode-clang" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-sde/c" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-sde/c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-sde/c-cmake" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-sde/c-cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-sde/cmake" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-sde/cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-sde/sde" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-sde/sde" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-sde/vscode" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/sde/version/mulle-sde/vscode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/share/sourcetree/config" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/share/sourcetree/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/reflect/_Dependencies.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/reflect/_Dependencies.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/reflect/_Headers.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/reflect/_Headers.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/reflect/_Resources.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/reflect/_Resources.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/reflect/_Sources.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/reflect/_Sources.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/AAMSupportObjC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/AAMSupportObjC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/AllLoadC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/AllLoadC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/CMakeTweaksC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/CMakeTweaksC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/CompilerDetectionAuxC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/CompilerDetectionAuxC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/CompilerDetectionC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/CompilerDetectionC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/CompilerFlagsAuxC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/CompilerFlagsAuxC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/CompilerFlagsC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/CompilerFlagsC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/CompilerFlagsObjC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/CompilerFlagsObjC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/CreateLoaderIncObjC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/CreateLoaderIncObjC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/DefineLoaderIncObjC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/DefineLoaderIncObjC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/Dependencies.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/Dependencies.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/DependenciesAndLibraries.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/DependenciesAndLibraries.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/Environment.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/Environment.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/Executable.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/Executable.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/ExecutableAux.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/ExecutableAux.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/ExecutableAuxC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/ExecutableAuxC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/ExecutableObjC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/ExecutableObjC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/Files.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/Files.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/FinalOutput.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/FinalOutput.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/Framework.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/Framework.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/FrameworkAux.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/FrameworkAux.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/Headers.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/Headers.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/InstallExecutable.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/InstallExecutable.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/InstallFramework.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/InstallFramework.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/InstallLibrary.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/InstallLibrary.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/InstallRpath.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/InstallRpath.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/Library.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/Library.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/LibraryAux.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/LibraryAux.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/LibraryAuxC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/LibraryAuxC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/Motd.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/Motd.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/MultiPhase.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/MultiPhase.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/OptimizedLinkObjC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/OptimizedLinkObjC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/PostExecutable.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/PostExecutable.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/PostFiles.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/PostFiles.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/PostFilesAuxC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/PostFilesAuxC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/PostFramework.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/PostFramework.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/PostLibrary.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/PostLibrary.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/PostSharedLibrary.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/PostSharedLibrary.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/PostStandaloneAuxC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/PostStandaloneAuxC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/PreExecutable.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/PreExecutable.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/PreFiles.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/PreFiles.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/PreLibrary.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/PreLibrary.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/PreLibraryAuxC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/PreLibraryAuxC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/Resources.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/Resources.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/Sources.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/Sources.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/StandaloneC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/StandaloneC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/StringCase.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/StringCase.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/share/UnwantedWarningsC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/share/UnwantedWarningsC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/craft/definition.mingw/set/CC" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/craft/definition.windows/set/CC" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/craft/definition/set/CC" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/auxscope" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/env/auxscope" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/environment-plugin.sh" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/env/environment-plugin.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/environment.sh" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/env/environment.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/include-environment.sh" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/env/include-environment.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/libexec/mulle-env-bash-completion.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/libexec/mulle-sde-bash-completion.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/motd" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/tool-extension" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/env/tool-extension" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/tool-extension.darwin" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/env/tool-extension.darwin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/tool-extension.freebsd" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/tool-extension.linux" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/tool-extension.windows" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/env/tool-extension.windows" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/tool-plugin" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/env/tool-plugin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/version" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/env/version" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/env/version.old" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/monitor/bin/cmakefile-callback" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/monitor/bin/cmakefile-callback" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/monitor/bin/filesystem-callback" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/monitor/bin/filesystem-callback" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/monitor/bin/sourcetree-callback" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/monitor/bin/sourcetree-callback" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/monitor/libexec/filesystem-task.sh" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/monitor/libexec/filesystem-task.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/monitor/libexec/sourcetree-task.sh" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/monitor/libexec/sourcetree-task.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-c/c" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-c/c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-c/c-cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-c/c-cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-objc/objc" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-objc/objc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-objc/objc-cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-objc/objc-cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-sde/c" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-sde/c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-sde/c-cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-sde/c-cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-sde/cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-sde/cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-sde/sde" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/sde/version/mulle-sde/sde" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/.mulle/share/sourcetree/config" beforeDir="false" afterPath="$PROJECT_DIR$/demo/.mulle/share/sourcetree/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/reflect/_Dependencies.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/reflect/_Dependencies.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/reflect/_Resources.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/reflect/_Resources.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/AAMSupportObjC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/AAMSupportObjC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/AllLoadC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/AllLoadC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/CMakeTweaksC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/CMakeTweaksC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/CompilerDetectionAuxC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/CompilerDetectionAuxC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/CompilerDetectionC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/CompilerDetectionC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/CompilerFlagsAuxC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/CompilerFlagsAuxC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/CompilerFlagsC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/CompilerFlagsC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/CompilerFlagsObjC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/CompilerFlagsObjC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/CreateLoaderIncObjC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/CreateLoaderIncObjC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/DefineLoaderIncObjC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/DefineLoaderIncObjC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/Dependencies.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/Dependencies.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/DependenciesAndLibraries.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/DependenciesAndLibraries.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/Environment.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/Environment.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/Executable.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/Executable.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/ExecutableAux.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/ExecutableAux.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/ExecutableAuxC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/ExecutableAuxC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/ExecutableObjC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/ExecutableObjC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/Files.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/Files.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/FinalOutput.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/FinalOutput.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/Framework.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/Framework.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/FrameworkAux.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/FrameworkAux.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/Headers.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/Headers.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/InstallExecutable.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/InstallExecutable.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/InstallFramework.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/InstallFramework.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/InstallLibrary.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/InstallLibrary.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/InstallRpath.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/InstallRpath.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/Library.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/Library.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/LibraryAux.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/LibraryAux.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/LibraryAuxC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/LibraryAuxC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/Motd.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/Motd.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/MultiPhase.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/MultiPhase.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/OptimizedLinkObjC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/OptimizedLinkObjC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/PostExecutable.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/PostExecutable.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/PostFiles.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/PostFiles.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/PostFilesAuxC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/PostFilesAuxC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/PostFramework.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/PostFramework.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/PostLibrary.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/PostLibrary.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/PostSharedLibrary.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/PostSharedLibrary.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/PostStandaloneAuxC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/PostStandaloneAuxC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/PreExecutable.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/PreExecutable.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/PreFiles.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/PreFiles.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/PreLibrary.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/PreLibrary.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/PreLibraryAuxC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/PreLibraryAuxC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/Resources.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/Resources.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/Sources.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/Sources.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/StandaloneC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/StandaloneC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/StringCase.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/StringCase.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/share/UnwantedWarningsC.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/share/UnwantedWarningsC.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/src/main-click.m" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main-click.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/src/main-view-bounds.m" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main-view-bounds.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/overview.dot.svg" beforeDir="false" afterPath="$PROJECT_DIR$/overview.dot.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/UIInputEvent+UIView.m" beforeDir="false" afterPath="$PROJECT_DIR$/src/UIInputEvent+UIView.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/UITrackingArea.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/UITrackingArea.m" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/UIView+CGGeometry.m" beforeDir="false" afterPath="$PROJECT_DIR$/src/UIView+CGGeometry.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/UIView+Layout.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/UIView+Layout.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/UIView+Layout.m" beforeDir="false" afterPath="$PROJECT_DIR$/src/UIView+Layout.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/UIView+UIEvent.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/UIView+UIEvent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/UIView+UIEvent.m" beforeDir="false" afterPath="$PROJECT_DIR$/src/UIView+UIEvent.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/UIView+UILayer.m" beforeDir="false" afterPath="$PROJECT_DIR$/src/UIView+UILayer.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/UIView+UIViewEditing.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/UIView+UIViewEditing.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/UIView+UIViewEditing.m" beforeDir="false" afterPath="$PROJECT_DIR$/src/UIView+UIViewEditing.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/UIView.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/UIView.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/UIView.m" beforeDir="false" afterPath="$PROJECT_DIR$/src/UIView.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reflect/_MulleUIView-export.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/reflect/_MulleUIView-export.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reflect/_MulleUIView-include.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/reflect/_MulleUIView-include.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reflect/objc-loader.inc" beforeDir="false" afterPath="$PROJECT_DIR$/src/reflect/objc-loader.inc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/.mulle/share/env/auxscope" beforeDir="false" afterPath="$PROJECT_DIR$/test/.mulle/share/env/auxscope" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/.mulle/share/env/environment-extension.sh" beforeDir="false" afterPath="$PROJECT_DIR$/test/.mulle/share/env/environment-extension.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/.mulle/share/env/environment-plugin.sh" beforeDir="false" afterPath="$PROJECT_DIR$/test/.mulle/share/env/environment-plugin.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/.mulle/share/env/environment.sh" beforeDir="false" afterPath="$PROJECT_DIR$/test/.mulle/share/env/environment.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/.mulle/share/env/include-environment.sh" beforeDir="false" afterPath="$PROJECT_DIR$/test/.mulle/share/env/include-environment.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/.mulle/share/env/libexec/mulle-env-bash-completion.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/.mulle/share/env/tool-plugin" beforeDir="false" afterPath="$PROJECT_DIR$/test/.mulle/share/env/tool-plugin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/.mulle/share/env/version" beforeDir="false" afterPath="$PROJECT_DIR$/test/.mulle/share/env/version" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/.mulle/share/env/version.old" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/.mulle/share/sde/extension" beforeDir="false" afterPath="$PROJECT_DIR$/test/.mulle/share/sde/extension" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/.mulle/share/sde/version/mulle-sde/base-test-runtime" beforeDir="false" afterPath="$PROJECT_DIR$/test/.mulle/share/sde/version/mulle-sde/base-test-runtime" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/.mulle/share/sde/version/mulle-sde/c-test-runtime" beforeDir="false" afterPath="$PROJECT_DIR$/test/.mulle/share/sde/version/mulle-sde/c-test-runtime" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/.mulle/share/sde/version/mulle-sde/objc-test-runtime" beforeDir="false" afterPath="$PROJECT_DIR$/test/.mulle/share/sde/version/mulle-sde/objc-test-runtime" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/.mulle/share/sourcetree/config" beforeDir="false" afterPath="$PROJECT_DIR$/test/.mulle/share/sourcetree/config" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -261,80 +55,101 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
   <component name="ProjectId" id="2PtIrX2gsmlNQ7jBDw1IO9JP066" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "last_opened_file_path": "/home/src/srcO/MulleUI/MulleUIWindow",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ChatTagsLlmMigration&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.CodyAccountHistoryMigration&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.CodyAccountsIdsRefresh&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.CodyAssignOrphanedChatsToActiveAccount&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.CodyConvertUrlToCodebaseName&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.CodyHistoryLlmMigration&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.CodyMigrateChatHistory-v2&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.CodyProjectSettingsMigration&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.DeprecatedChatLlmMigration&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ToggleCodyToolWindowAfterMigration&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/src/srcO/MulleUI/MulleUIWindow&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="CMake Application.MulleUIView">
-    <configuration name="MulleUIView" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="MulleUIView" CONFIG_NAME="Debug">
+    <configuration name="MulleUIView" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="MulleUIView" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="_1_MulleUIView" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="_1_MulleUIView" CONFIG_NAME="Debug">
+    <configuration name="MulleUIView__objc_loader_inc__" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="MulleUIView__objc_loader_inc__" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="_2_MulleUIView" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="_2_MulleUIView" CONFIG_NAME="Debug">
+    <configuration name="_1_MulleUIView" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="_1_MulleUIView" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="_3_MulleUIView" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="_3_MulleUIView" CONFIG_NAME="Debug">
+    <configuration name="_2_MulleUIView" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="_2_MulleUIView" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="__objc_loader_inc__" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="__objc_loader_inc__" CONFIG_NAME="Debug">
+    <configuration name="_3_MulleUIView" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="_3_MulleUIView" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="graphviz" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="graphviz" CONFIG_NAME="Debug">
+    <configuration name="graphviz" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="graphviz" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="mulle_sde_clean_all" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="mulle_sde_clean_all" CONFIG_NAME="Debug">
+    <configuration name="mulle_sde_clean_all" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="mulle_sde_clean_all" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="mulle_sde_clean_tidy" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="mulle_sde_clean_tidy" CONFIG_NAME="Debug">
+    <configuration name="mulle_sde_clean_target" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="mulle_sde_clean_target" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="mulle_sde_craft_craftorder" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="mulle_sde_craft_craftorder" CONFIG_NAME="Debug">
+    <configuration name="mulle_sde_clean_tidy" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="mulle_sde_clean_tidy" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="mulle_sde_reflect" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="mulle_sde_reflect" CONFIG_NAME="Debug">
+    <configuration name="mulle_sde_craft_craftorder" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="mulle_sde_craft_craftorder" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="mulle_sde_upgrade" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="mulle_sde_upgrade" CONFIG_NAME="Debug">
+    <configuration name="mulle_sde_reflect" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="mulle_sde_reflect" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="mulle_sde_upgrade" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MulleUIView" TARGET_NAME="mulle_sde_upgrade" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -343,9 +158,10 @@
       <item itemvalue="CMake Application._1_MulleUIView" />
       <item itemvalue="CMake Application._2_MulleUIView" />
       <item itemvalue="CMake Application._3_MulleUIView" />
-      <item itemvalue="CMake Application.__objc_loader_inc__" />
+      <item itemvalue="CMake Application.MulleUIView__objc_loader_inc__" />
       <item itemvalue="CMake Application.graphviz" />
       <item itemvalue="CMake Application.mulle_sde_clean_all" />
+      <item itemvalue="CMake Application.mulle_sde_clean_target" />
       <item itemvalue="CMake Application.mulle_sde_clean_tidy" />
       <item itemvalue="CMake Application.mulle_sde_craft_craftorder" />
       <item itemvalue="CMake Application.mulle_sde_reflect" />
@@ -365,6 +181,9 @@
       <workItem from="1684442904204" duration="3290000" />
       <workItem from="1684485920782" duration="24000" />
       <workItem from="1684486709445" duration="2983000" />
+      <workItem from="1741184901790" duration="68000" />
+      <workItem from="1741184977163" duration="1571000" />
+      <workItem from="1741187055727" duration="569000" />
     </task>
     <servers />
   </component>

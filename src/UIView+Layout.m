@@ -224,6 +224,34 @@ void   UIViewAutoresize( UIView *self,
 }
 
 
+void  UIViewLayoutWithContext( UIView *self, struct UILayoutContext *context)
+{
+   NSUInteger   autoresizingMask;
+
+   autoresizingMask = [self autoresizingMask];
+   UIViewLayoutLog( "layout Subview %@ %s (%s)",
+                        self,
+                        CGRectUTF8String( [self frame]),
+                        UIViewAutoresizingMaskShortUTF8String( autoresizingMask));
+   [self layoutWithContext:context
+          autoresizingMask:autoresizingMask];
+}
+
+
+void   UIViewLayoutSubviewInRect( UIView *self, UIView *view, CGRect contentRect)
+{
+   NSUInteger   autoresizingMask;
+
+   autoresizingMask = [view autoresizingMask];
+   UIViewLayoutLog( "layout Subview %@ %s (%s)",
+                        view,
+                        CGRectUTF8String( [view frame]),
+                        UIViewAutoresizingMaskShortUTF8String( autoresizingMask));
+   [self layoutSubview:view
+                inRect:contentRect
+      autoresizingMask:autoresizingMask];
+}
+
 
 
 - (BOOL) layoutSubviews
@@ -240,10 +268,7 @@ void   UIViewAutoresize( UIView *self,
       context = UILayoutContextMakeWithView( self);
       UIViewSubviewsFor( self, view)
       {
-         UIViewLayoutLog( "layout Subview %@ %s", view, CGRectUTF8String( [view frame]));
-
-         [view layoutWithContext:&context
-                autoresizingMask:[view autoresizingMask]];
+         UIViewLayoutWithContext( view, &context);
       }
    }
    flag = (*_didLayoutSubviewsCallback)( self);

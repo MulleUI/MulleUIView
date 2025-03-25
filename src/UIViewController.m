@@ -326,4 +326,22 @@ static BOOL   didLayoutSubviewsCallback( UIView *view)
    _isLayoutingViews = flag;
 }
 
+
+- (BOOL) becomeFirstResponder
+{
+   return( NO);
+}
+
+
+- (BOOL) resignFirstResponder
+{
+   return( YES);
+}
+
+
+- (BOOL) isFirstResponder;
+{
+   return( NO);
+}
+
 @end

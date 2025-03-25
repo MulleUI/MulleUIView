@@ -37,15 +37,22 @@ void   setupSceneInContentView( UIView *contentView)
 
 int   main()
 {
-   UIWindow        *window;
    UIApplication   *app;
+   UIWindow        *window;
+   NSUInteger      styleMask;
 
+   app = [UIApplication sharedInstance];
+   
    /*
     * window and app
     */
-   app = [UIApplication sharedInstance];
+   styleMask = UIWindowStyleMaskDefault;
+   styleMask = UIWindowsStyleMaskBySetting( styleMask, UIWindowStylePlanes, NO);
+   styleMask = UIWindowsStyleMaskBySetting( styleMask, UIWindowStyleResizable, NO);
 
-   window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 400, 300)];
+   window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 400, 300)
+                      titleUTF8String:"Demo"
+                            styleMask:styleMask]; 
    [window setBackgroundColor:CGColorMakeGray()];
 
    setupSceneInContentView( [window contentView]);
