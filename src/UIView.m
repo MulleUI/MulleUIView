@@ -130,13 +130,23 @@ static struct
 
 + (instancetype) viewWithFrame:(CGRect) frame
 {
-   return( [[[self alloc] initWithFrame:frame] autorelease]);
+   UIView *obj;
+
+   obj = [self alloc];
+   obj = [obj initWithFrame:frame];
+   obj = [obj autorelease];
+   return(obj);
 }
 
 
 + (instancetype) viewWithLayer:(id <UILayer>) layer
 {
-   return( [[[self alloc] initWithLayer:layer] autorelease]);
+   UIView *obj;
+
+   obj = [self alloc];
+   obj = [obj initWithLayer:layer];
+   obj = [obj autorelease];
+   return(obj);
 }
 
 
@@ -358,6 +368,8 @@ static struct
 
 - (void) dealloc
 {
+   char  *s;
+
    MulleObjCIMPArrayCall( &Self._deallocCategoryIMPs, self, self);
 
    mulle_idarray_release_all( &_trackingAreas);
@@ -372,7 +384,8 @@ static struct
    [_shadowLayer release];
    [_mainLayer release];
 
-   MulleObjCObjectSetDuplicatedUTF8String( self, &_debugNameUTF8String, NULL);
+   s = _mulle_atomic_pointer_read( &_atomicNameUTF8String);
+   mulle_allocator_free( MulleObjCInstanceGetAllocator( self), s);
 
    [super dealloc];
 }
@@ -381,7 +394,6 @@ static struct
 - (id) copy
 {
    struct mulle_allocator   *allocator;
-   id <UILayer>             layer;
    UIView                   *copy;
 
    //
@@ -432,6 +444,7 @@ static struct
    return( copy);
 }
 
+
 //
 //
 // UIViews and CALayers of a view hierarchy share a common recursive lock
@@ -458,6 +471,42 @@ static struct
 
    // do this first or last ... maybe depending on lock being nil or not ?
    [super didShareRecursiveLock:lock];
+}
+
+
+//
+// NAME
+//
+
+- (char *) nameUTF8String
+{
+   char  *s;
+
+   s = _mulle_atomic_pointer_read( &_atomicNameUTF8String);
+   return( s);
+}
+
+
+- (void) setNameUTF8String:(char *) s
+{
+   struct mulle_allocator       *allocator;
+   struct _mulle_objc_universe  *universe;
+   void                         *actual;
+   void                         *old;
+
+   // need universe allocator for abafree
+   universe  = _mulle_objc_object_get_universe( self);
+   allocator = _mulle_objc_universe_get_allocator( universe);
+   old       = _mulle_atomic_pointer_read( &_atomicNameUTF8String);
+   if( s)
+      s = mulle_allocator_strdup( allocator, s);
+
+   actual = __mulle_atomic_pointer_cas( &_atomicNameUTF8String, s, old);
+
+   if( actual == old)
+      mulle_allocator_abafree( allocator, old);
+   else
+      mulle_allocator_free( allocator, s);
 }
 
 
@@ -907,34 +956,6 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 }
 
 
-- (char *) UTF8String
-{
-   char        *result;
-   char        *s;
-   auto char   buf[ 64];
-   size_t      len;
-   char        *format;
-   char        *name;
-
-   s = MulleObjCClassGetNameUTF8String( NSClassFromObject( self));
-   sprintf( buf, "%p",  self);
-
-   format = "<%s %s>";
-   name   = [self debugNameUTF8String];
-   len    = name ? strlen( name) : 0;
-   if( len)
-   {
-      format = "<%s %s \"%s\">";
-      len   += 3; // < "">\0"
-   }
-   len    += strlen( s) + strlen( buf) + 4; // < "">\0"
-   result  = mulle_malloc( len);
-   sprintf( result, format, s, buf, name);
-
-   return( MulleObjCAutoreleaseAllocation( result, NULL));
-}
-
-
 - (char *) colorizerPrefixUTF8String
 {
    char        *s;
@@ -948,7 +969,7 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
       s = [self titleUTF8String];
 
    if( ! s && _mainLayer)
-      s = [_mainLayer debugNameUTF8String];
+      s = [_mainLayer nameUTF8String];
 
    if( s)
       hash = _mulle_string_hash( s);
@@ -1219,18 +1240,6 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 //    _needsLayout = YES;
 // }
 
-- (char *) debugNameUTF8String
-{
-   return( _debugNameUTF8String);
-}
-
-
-- (void) setDebugNameUTF8String:(char *) s
-{
-   MulleObjCObjectSetDuplicatedUTF8String( self, &_debugNameUTF8String, s);
-}
-
-
 - (void) dumpSubviewsWithIndent:(NSUInteger) indent
                            FILE:(FILE *) fp
 {
@@ -1399,10 +1408,17 @@ void  UIViewDumpTrackingAreas( UIView *self)
 }
 
 
-- (void) dealloc 
+
+- (id) copy
 {
-   MulleObjCObjectSetDuplicatedUTF8String( self, &_debugNameUTF8String, NULL);
-   [super dealloc];
+   UINullLayer   *copy;
+
+   copy = [[[self class] alloc] _initWithFrame:self->_frame];
+   if( ! copy)
+      return( copy);
+
+   copy->_bounds = self->_bounds;
+   return( copy);
 }
 
 
@@ -1411,15 +1427,16 @@ void  UIViewDumpTrackingAreas( UIView *self)
 }
 
 
-- (char *) debugNameUTF8String
+- (char *) nameUTF8String
 {
-   return( _debugNameUTF8String);
+   return( NULL);
 }
 
 
-- (void) setDebugNameUTF8String:(char *) s
+- (void) setNameUTF8String:(char *) s
 {
-   MulleObjCObjectSetDuplicatedUTF8String( self, &_debugNameUTF8String, s);
+   if( s)
+      abort();
 }
 
 

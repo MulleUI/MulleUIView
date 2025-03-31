@@ -69,10 +69,7 @@ static inline CGRect   UIViewMakeFrameWithRect( CGRect frame)
 
 - (instancetype) initWithFrame:(CGRect) frame;
 
-- (char *) debugNameUTF8String;
-- (void) setDebugNameUTF8String:(char *) s;
-
-- (void) setDebugNameUTF8String:(char *) s;
+@property( assign) char                 *nameUTF8String;
 
 - (void) dumpWithIndent:(NSUInteger) indent
                    FILE:(FILE *) fp;
@@ -159,7 +156,7 @@ struct CGFrameInfo;
                                   UIAutoresizing,
                                   UIAnimatableViewProperties>
 {
-   char                                    *_debugNameUTF8String;
+   mulle_atomic_pointer_t                  _atomicNameUTF8String;
    UIView                                  *_superview;
 
    NSObject <UIAnimatableViewProperties>   *_snapshot;
@@ -278,6 +275,8 @@ UIAutoresizingProperties;
 // TODO: how is this different from originalFrame ? Why does originalFrame
 //       need an origin ?
 @property( assign) CGSize   mulleLayoutSize;
+
+@property( dynamic) char    *nameUTF8String;  // useful for debugging
 
 
 // return NO, if default layoutLayers code should not run
@@ -407,8 +406,8 @@ UIAutoresizingProperties;
 // does not count the hidden shadowLayer
 - (BOOL) isMultiLayer;
 
-- (char *) debugNameUTF8String;
-- (void) setDebugNameUTF8String:(char *) s;
+- (char *) nameUTF8String;
+- (void) setNameUTF8String:(char *) s;
 
 // older API:
 - (void) addSubview:(UIView *) view;
@@ -449,9 +448,6 @@ UIAutoresizingProperties;
 //
 @interface UINullLayer : MulleObject < MulleAutolockingObjectProtocols,
                                        UILayer>
-{
-   char   *_debugNameUTF8String;
-}
 
 // not observable, because we don't implement -willChange (this layer
 // shouldn't really be used
@@ -462,6 +458,8 @@ UIAutoresizingProperties;
 @property( assign) CGRect              clipRect;
 @property( assign) CGFloat             alpha;
 @property( assign) NSInteger           tag;
+
+@property( dynamic) char               *nameUTF8String;
 
 @end
 

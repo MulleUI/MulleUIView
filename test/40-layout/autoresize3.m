@@ -11,7 +11,7 @@ int   main( void)
    CGRect    rect;
 
    view    = [UIView viewWithFrame:CGRectMake( 2, 2, SCREEN_W - 4, SCREEN_H - 4)];
-   [view setDebugNameUTF8String:"parent"];
+   [view setNameUTF8String:"parent"];
 
    rect    = [view bounds];
    rect.size.height /= 2.0;
@@ -28,7 +28,7 @@ int   main( void)
                                 |UIViewAutoresizingFlexibleWidth
                                 |UIViewAutoresizingFlexibleHeight
                                 |UIViewAutoresizingFlexibleTopMargin];
-   [subview setDebugNameUTF8String:"child"];
+   [subview setNameUTF8String:"child"];
    [view addSubview:subview];
 
    // SETUP

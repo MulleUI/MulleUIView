@@ -222,7 +222,7 @@ static void   setupViewForRowColumn( UIView *view, int row, int column)
    CGGraphicsLayer   *layer;
 
    name = MulleObjC_asprintf( "view-r%d-c%d", row, column);
-   [view setDebugNameUTF8String:name];
+   [view setNameUTF8String:name];
    [view setBorderWidth:1.0];
    [view setBorderColor:CGColorMakeWithHexColor( 0x606060FF)];
    [view setPadding:UIEdgeInsetsMake( PADDING, PADDING, PADDING, PADDING)];
@@ -240,7 +240,7 @@ static void   setupViewForRowColumn( UIView *view, int row, int column)
 #define S_H   DISTANCE
 
    subview = [UIView viewWithFrame:CGRectMake( S_X, S_Y, S_W, S_H)];
-   [subview setDebugNameUTF8String:"blue"];
+   [subview setNameUTF8String:"blue"];
    [subview setBackgroundColor:CGColorMakeTransparent()];
    [subview setBorderColor:CGColorMakeWithHexColor( 0xA0A0F0FF)];
    [subview setBorderWidth:2.0];
@@ -248,7 +248,7 @@ static void   setupViewForRowColumn( UIView *view, int row, int column)
    [view addSubview:subview];
 
    subview = [UIView viewWithFrame:CGRectMake( S_X, S_Y + S_H, S_W, S_H)];
-   [subview setDebugNameUTF8String:"red"];
+   [subview setNameUTF8String:"red"];
    [subview setBackgroundColor:CGColorMakeTransparent()];
    [subview setBorderColor:CGColorMakeWithHexColor( 0xF0A0A0FF)];
    [subview setBorderWidth:2.0];

@@ -17,7 +17,7 @@ static void   setupScene( UIWindowPlane *contentPlane)
    frame  = UIEdgeInsetsInsetRect( frame, insets);
 
    view  = [UIView viewWithFrame:frame];
-   [view setDebugNameUTF8String:"parent"];
+   [view setNameUTF8String:"parent"];
    [view setBackgroundColor:CGColorMakeWithRGBA( 0.0, 1.0, 0.0, 1.0)];
    [view setBorderColor:CGColorMakeWithRGBA( 1.0, 0.0, 0.0, 1.0)];
    [view setBorderWidth:2];
@@ -29,7 +29,7 @@ static void   setupScene( UIWindowPlane *contentPlane)
 
    // clipped by view
    subview = [UIView viewWithFrame:frame];
-   [subview setDebugNameUTF8String:"child"];
+   [subview setNameUTF8String:"child"];
    [subview setBackgroundColor:CGColorMakeWithRGBA( 1.0, 1.0, 0.0, 1.0)];
    [subview setBorderColor:CGColorMakeWithRGBA( 0.0, 1.0, 1.0, 1.0)];
    [subview setBorderWidth:2];
@@ -41,7 +41,7 @@ static void   setupScene( UIWindowPlane *contentPlane)
 
    // clipped by view, but not by subview, which doesn't clip
    subview2 = [UIView viewWithFrame:frame];
-   [subview2 setDebugNameUTF8String:"grandchild"];
+   [subview2 setNameUTF8String:"grandchild"];
    [subview2 setBackgroundColor:CGColorMakeWithRGBA( 1.0, 0.0, 1.0, 1.0)];
    [subview2 setBorderColor:CGColorMakeWithRGBA( 0.0, 0.0, 1.0, 1.0)];
    [subview2 setBorderWidth:2];

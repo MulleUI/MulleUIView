@@ -25,7 +25,12 @@ static BOOL   didLayoutSubviewsCallback( UIView *view);
 
 + (instancetype) objectWithView:(UIView *) view
 {
-   return( [[[self alloc] initWithView:view] autorelease]);
+   UIViewController *obj;
+
+   obj = [self alloc];
+   obj = [obj initWithView:view];
+   obj = [obj autorelease];
+   return(obj);
 }
 
 
@@ -324,24 +329,6 @@ static BOOL   didLayoutSubviewsCallback( UIView *view)
       [view setDidLayoutSubviewsCallback:flag ? didLayoutSubviewsCallback : 0];
    }
    _isLayoutingViews = flag;
-}
-
-
-- (BOOL) becomeFirstResponder
-{
-   return( NO);
-}
-
-
-- (BOOL) resignFirstResponder
-{
-   return( YES);
-}
-
-
-- (BOOL) isFirstResponder;
-{
-   return( NO);
 }
 
 @end

@@ -43,18 +43,18 @@
    }
    [_views[ 0] setAutoresizingMask:UIViewAutoresizingFlexibleBottomMargin|UIViewAutoresizingFlexibleRightMargin|UIViewAutoresizingFlexibleHeight];
    [_views[ 0] setBackgroundColor:CGColorMakeDarkGreen()];
-   [_views[ 0] setDebugNameUTF8String:"Mr. Green"];
+   [_views[ 0] setNameUTF8String:"Mr. Green"];
    [_views[ 1] setBorderColor:CGColorMakeBlack()];
    [_views[ 1] setAutoresizingMask:UIViewAutoresizingFlexibleBottomMargin|UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
    [_views[ 1] setBackgroundColor:CGColorMakeDarkOrchid()];
-   [_views[ 1] setDebugNameUTF8String:"Mr. Orchid"];
+   [_views[ 1] setNameUTF8String:"Mr. Orchid"];
 //   [_views[ 1] setHidden:NO];
    [_views[ 2] setAutoresizingMask:UIViewAutoresizingFlexibleBottomMargin|UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleHeight];
    [_views[ 2] setBackgroundColor:CGColorMakeOrange()];
-   [_views[ 2] setDebugNameUTF8String:"Mr. Orange"];
+   [_views[ 2] setNameUTF8String:"Mr. Orange"];
 
    _views[ 3] = [UIView viewWithFrame:rows[ 1]];
-   [_views[ 3] setDebugNameUTF8String:"Mrs. Blue"];
+   [_views[ 3] setNameUTF8String:"Mrs. Blue"];
    [_views[ 3] setBorderWidth:1.0];
    [_views[ 3] setBorderColor:CGColorMakeLime()];
    [_views[ 3] setAutoresizingMask:UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];

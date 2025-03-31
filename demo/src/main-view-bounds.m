@@ -164,14 +164,14 @@ void   setupSceneInContentView( UIView *contentView)
       {
          view  = [UIView object];
          [view setDrawCallback:(CGGraphicsLayerDrawCallback_t *) drawStuff];
-         [view setDebugNameUTF8String:"view"];
+         [view setNameUTF8String:"view"];
          [view setBorderWidth:1.0];
          [view setBorderColor:CGColorMakeWithHexColor( 0x00FF00FF)];
          [gridView addSubview:view];
 
          subview = [UIView viewWithFrame:CGRectMake( 20, 20, 40, 40)];
          [subview setDrawCallback:(CGGraphicsLayerDrawCallback_t *) drawCircle];
-         [subview setDebugNameUTF8String:"subview"];
+         [subview setNameUTF8String:"subview"];
          [subview setBackgroundColor:CGColorMakeTransparent()];
          [subview setBorderColor:CGColorMakeWithHexColor( 0xD0D0D0FF)];
          [subview setBorderWidth:1.0];
