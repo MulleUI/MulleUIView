@@ -298,12 +298,12 @@ static struct
    Class          cls;
    CGRect         rect;
 
-   frame    = UIViewMakeFrameWithRect( frame);
-   rect     = CGRectMake( 0.0f, 0.0f, frame.size.width, frame.size.height);
-   cls      = [[self class] layerClass];
-   layer    = [cls alloc];
-   layer    = [layer initWithFrame:rect];
-   layer    = [layer autorelease];
+   frame = UIViewMakeFrameWithRect( frame);
+   rect  = CGRectMake( 0.0f, 0.0f, frame.size.width, frame.size.height);
+   cls   = [[self class] layerClass];
+   layer = [cls alloc];
+   layer = [layer initWithFrame:rect];
+   layer = [layer autorelease];
 #if 0
    // some layers correct the frame
    if( frame.size.width == 0.0 || isinf( frame.size.width))
@@ -395,6 +395,36 @@ static struct
 {
    struct mulle_allocator   *allocator;
    UIView                   *copy;
+   Class                    cls;
+
+   cls  = [self class];
+
+   // check that the subclass is actually implementing -copy, otherwise the
+   // user is probably in a world of pain soon afterwards
+   // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+   // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⠷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+   // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠳⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣴⠚⠋⢙⠉⠛⢶⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+   // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⠀⢴⣿⣷⣶⣤⣰⠆⠀⠀⢀⡰⢟⣩⣵⣷⣶⣶⣿⣿⣾⡀⢄⠐⠀⠐⠀⠂⠀⠆⠀⠆⠐⢀⣰⣠⣴⣿⣿⣶
+   // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠛⠛⠿⠿⠻⠀⠂⠀⠂⢻⣯⣿⣿⣿⣿⣿⣿⣿⣿⣷⣌⢮⡀⢆⠀⡂⢐⠀⡆⠠⠣⠌⢻⠛⠟⠩⠉⠍
+   // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠊⠹⣿⣿⠿⠋⠉⠉⢲⡆⠀⡂⠤⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠀⠀⠀⠀⠀
+   // ⣆⠀⣀⢠⡄⠤⢴⣴⣶⣶⣶⣶⣾⣿⣷⡄⠀⠀⢀⠀⠀⢠⣤⣤⣰⣶⣾⣿⣷⠆⠀⢀⠾⠿⠆⣧⣼⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⢺⠆⠀⠀⠀⠀
+   // ⡃⠀⠈⢸⢐⢚⣺⣿⠿⣿⣿⣿⣿⣿⣿⠁⠀⠐⠻⣿⣦⣾⣿⣿⣿⣧⣿⣿⣿⣿⣾⡔⣀⠀⣠⣿⣟⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀
+   // ⡁⠀⠐⠘⢈⣈⣆⣹⣃⣻⣿⣿⣿⣿⣷⣀⠀⠀⠀⣈⡉⠙⢿⣿⣿⠈⣿⣿⣿⣿⣿⢨⣾⣏⢙⣿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡄⠀⠀⠀⠀
+   // ⠀⠀⠀⠀⢀⢀⡀⢀⠶⢂⠟⣿⣿⣿⣿⣿⣷⣶⣿⣿⣿⣷⡄⠀⠟⠀⢸⣆⠀⠁⠀⠈⠉⠉⠀⠉⠀⠀⠀⠤⠤⠤⠶⠶⠴⠶⠶⠶⠷⠶⠿⠷⠶
+   // ⠂⠀⠀⠠⠶⣸⣘⣩⣉⣈⣉⣿⣿⣿⣿⣟⠉⠉⠙⠿⠿⢟⣵⣆⣠⡔⠀⠙⠷⡆⠀⠀⠀⠀⢀⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+   // ⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⢿⣦⡀⠀⠀⠐⣤⣔⡀⢶⣾⣿⡄⠀⠢⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+   // ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣏⣁⣠⣤⣭⣷⣿⣷⡄⠹⣷⣤⡀⠀⠈⠻⣿⣿⣿⣿⣿⡆⠀⠈⠛⢿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣿⣿
+   // ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠛⠛⠛⣛⣹⣿⣿⡧⠀⣿⣿⣿⣿⣦⠀⠙⢿⣿⣿⣿⡷⠀⠀⠀⣤⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+   // ⣿⣿⣿⣿⡿⠋⠠⠤⠀⠈⠋⠁⡀⠈⠹⢿⣦⣤⠀⠀⠻⢿⣿⣿⡇⠀⣻⣿⣿⣿⣿⣷⡄⠀⠈⠻⣿⡇⠀⠀⠀⠙⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+   // ⣿⣿⡟⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠃⠻⣿⡄⠀⠀⠀⠻⣿⠇⠀⣿⣿⣿⣿⣿⣿⣷⡀⠀⠀⠘⠁⠀⠀⠀⠀⠀⠙⣿⣷⣶⡞⢉⣴⡾⡟⠫
+   // ⡞⣷⠇⡟⣷⣿⢸⢸⢸⣻⢾⣟⢤⢸⡃⣿⣼⠘⡟⢸⣟⢸⣻⢸⡇⣷⣿⣼⣻⢹⢿⢿⢹⢹⣼⣧⡇⣿⣷⢸⣻⢸⡇⢸⢻⣎⢱⣿⡆⣟⡛⠛⠃
+   // ⣿⠿⢀⠧⠟⠻⠼⢸⡸⠸⠿⠧⢸⠸⠤⠿⠿⠀⠇⠸⠧⠸⠸⠸⠇⠏⠿⠻⠽⢸⠸⠻⢾⡼⣟⡿⠇⠿⠿⠸⠸⠺⠧⠸⠼⣿⣼⠿⡇⠇⠀⠀⠀
+   // ⠀⠀⢈⠀⠀⠀⠀⠉⠉⠈⠉⠉⠘⢛⠿⠸⠿⠇⠀⠀⠀⢀⣀⡀⣀⡀⣀⢐⢛⢻⣿⣿⣵⣿⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⣿⣿⣿⣿
+   // ⠀⠀⢀⠀⠀⠀⠀⠀⠀⠀⠀⠴⠦⠀⠀⣴⣶⣾⡀⠀⠀⢸⡷⢇⣏⡇⣿⢸⣿⢸⣿⣿⣿⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⡿⣽⣿⢹⣿⣿⣿
+   // ⡀⠀⢸⢀⣀⣀⡀⠤⢤⡄⠀⠀⠀⠀⠐⡿⠿⣿⣷⣤⣤⠘⡃⠘⠃⠓⠛⠘⣸⣼⣿⣿⣿⣿⣿⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀⡇⣇⣈⣈⣉⣉⣹
+   assert( MulleObjCClassImplementsSelector( cls, @selector( copy)) &&
+           "your subclass must implement -copy and then start by "
+           "calling [super copy] then add additional copy code");
 
    //
    // MEMO: if we init a new instance of the same class and call
@@ -406,7 +436,8 @@ static struct
    //       copy all the stuff we can copy and free/nil/reinit that what
    //       can not be copied. The subclass then must do the rest.
    //
-   copy = [[[self class] alloc] _initWithFrame:self->_frame];
+   copy = [cls alloc];
+   copy = [copy _initWithFrame:self->_frame];
    if( ! copy)
       return( copy);
 
@@ -429,11 +460,11 @@ static struct
    copy->_cacheLayer             = [self->_cacheLayer retain]; // why not ?
 
    mulle_pointerarray_init( &copy->_layers, mulle_pointerarray_get_count( &self->_layers), allocator);
-   mulle_pointerarray_add_array( &copy->_layers, &self->_layers, mulle_range_make_all());
+   mulle_pointerarray_add_pointerarray( &copy->_layers, &self->_layers, mulle_range_make_all());
    mulle_idarray_copy_all( &copy->_layers);
 
    mulle_pointerarray_init( &copy->_subviews, mulle_pointerarray_get_count( &self->_subviews), allocator);
-   mulle_pointerarray_add_array( &copy->_subviews, &self->_subviews, mulle_range_make_all());
+   mulle_pointerarray_add_pointerarray( &copy->_subviews, &self->_subviews, mulle_range_make_all());
    mulle_idarray_copy_all( &copy->_subviews);
 
    // animationStorage ???
@@ -1289,24 +1320,24 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
       fputc( ' ', fp);
 
    if( [self isHidden])
-      fprintf( fp, "%s: hidden\n",
-                  [self UTF8String]);
+      mulle_fprintf( fp, "%s: hidden\n",
+                         [self UTF8String]);
    else
    {
-      fprintf( fp, "%s: f=[%s] b=[%s]",
-                  [self UTF8String],
-                  CGRectUTF8String( [self frame]),
-                  CGRectUTF8String( [self bounds]));
+      mulle_fprintf( fp, "%s: f=[%s] b=[%s]",
+                         [self UTF8String],
+                         CGRectUTF8String( [self frame]),
+                         CGRectUTF8String( [self bounds]));
       if( [self clipsToBounds])
-         fprintf ( fp, " clips");
+         mulle_fprintf( fp, " clips");
       if( [self isUserInteractionEnabled])
-         fprintf ( fp, " interactive");
+         mulle_fprintf( fp, " interactive");
 
       s = UIViewAutoresizingMaskShortUTF8String( [self autoresizingMask]);
       if( *s)
-         fprintf ( fp, " %s", s);
+         mulle_fprintf( fp, " %s", s);
 
-      fprintf( fp, "\n");
+      mulle_fprintf( fp, "\n");
    }
 }
 

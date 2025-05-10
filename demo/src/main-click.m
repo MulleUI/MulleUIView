@@ -252,7 +252,7 @@ static CGPoint   CGRectMirrorPointAlongAxes( CGRect  rect, CGPoint point, CGAxis
    state.locationInWindow = [self convertPoint:mirrored
                                         toView:nil];
    newEvent = [[[[event class] alloc] initWithInputState:&state] autorelease];
-   MulleUILog( "Change event: %@ -> %@\n", event, newEvent);
+   MulleUILog( "Change event: %#@ -> %#@\n", event, newEvent);
 
    *event_p = newEvent;
 

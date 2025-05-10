@@ -223,7 +223,7 @@ CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
    contentModeBits = autoresizingMask & UIViewAutoresizingContentModeBits;
 
 #ifdef LEGACY_DEBUG
-   MulleUICLog( "%@ legacy: 0x%tx contentMode: 0x%tx %s (%s)",
+   MulleUICLog( "%#@ legacy: 0x%tx contentMode: 0x%tx %s (%s)",
                 self,
                 legacyBits,
                 contentModeBits,
@@ -302,7 +302,7 @@ CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
          [self setLastBounds:lastBounds];
 
 #ifdef LEGACY_DEBUG
-         MulleUILog( "%@ -originalFrame change to: %s", self, CGRectUTF8String( originalFrame));
+         MulleUILog( "%#@ -originalFrame change to: %s", self, CGRectUTF8String( originalFrame));
 #endif
       }
       else
@@ -319,7 +319,7 @@ CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
 
    //
    // if self doesn't fit into rect, we do what ?
-   // culling is done in the renderQueue step (if clipping is set)
+   // culling is done in the drawingQueue step (if clipping is set)
    // If clipping is not set UIViewAutoresizingCullAtBounds will be useful
    // as well
    //
@@ -338,7 +338,7 @@ CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
    }
 
 #ifdef LEGACY_DEBUG
-   MulleUICLog( "%@ frame: -> %s (%s)",
+   MulleUICLog( "%#@ frame: -> %s (%s)",
                 self,
                 CGRectUTF8String( frame),
                 CGRectUTF8String( [self originalFrame]));

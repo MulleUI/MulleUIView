@@ -152,6 +152,7 @@ struct CGFrameInfo;
 // Trackingareas are not copied by NSCopying.
 //
 @interface UIView : MulleObject < MulleAutolockingObjectProtocols,
+                                  MulleUINamedObject,
                                   NSCopying,
                                   UIAutoresizing,
                                   UIAnimatableViewProperties>

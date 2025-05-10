@@ -229,7 +229,7 @@ void  UIViewLayoutWithContext( UIView *self, struct UILayoutContext *context)
    NSUInteger   autoresizingMask;
 
    autoresizingMask = [self autoresizingMask];
-   UIViewLayoutLog( "layout Subview %@ %s (%s)",
+   UIViewLayoutLog( "layout Subview %#@ %s (%s)",
                         self,
                         CGRectUTF8String( [self frame]),
                         UIViewAutoresizingMaskShortUTF8String( autoresizingMask));
@@ -243,7 +243,7 @@ void   UIViewLayoutSubviewInRect( UIView *self, UIView *view, CGRect contentRect
    NSUInteger   autoresizingMask;
 
    autoresizingMask = [view autoresizingMask];
-   UIViewLayoutLog( "layout Subview %@ %s (%s)",
+   UIViewLayoutLog( "layout Subview %#@ %s (%s)",
                         view,
                         CGRectUTF8String( [view frame]),
                         UIViewAutoresizingMaskShortUTF8String( autoresizingMask));
