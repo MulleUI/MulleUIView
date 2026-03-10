@@ -8,7 +8,6 @@ static BOOL   drawGradient( CGGraphicsLayer *layer, CGContext *context)
 {
    CGPaint      *paint;
    CGRect       canvas;
-   NVGcontext   *vg;
    CGFloat      x, y;
 
    canvas = [layer canvas];
@@ -17,24 +16,32 @@ static BOOL   drawGradient( CGGraphicsLayer *layer, CGContext *context)
    paint  = [CGPaint paintWithStartColor:CGColorMakeWithHexColor( 0x202020FF)
                                endColor:CGColorMakeWithHexColor( 0xE0E0E0FF)];
 
-   vg = CGContextGetNVGContext( context);
-   mvgFillRectWithPaint( vg, canvas, paint);
+   // Replaced mvgFillRectWithPaint with CGContextFillRectWithPaint
+   CGContextFillRectWithPaintable( context, canvas, paint);
 
-   nvgBeginPath( vg);
+   // Replaced nvgBeginPath with CGContextBeginPath
+   CGContextBeginPath( context);
    for( y = 20; y < canvas.size.height; y += 20)
    {
-      nvgMoveTo( vg, CGRectGetMinX( canvas), y);
-      nvgLineTo( vg, CGRectGetMaxX( canvas), y);
+      // Replaced nvgMoveTo with CGContextMoveTo using CGPointMake
+      CGContextMoveTo( context, CGPointMake(CGRectGetMinX( canvas), y));
+      // Replaced nvgLineTo with CGContextLineTo using CGPointMake
+      CGContextLineTo( context, CGPointMake(CGRectGetMaxX( canvas), y));
 
       for( x = 20; x < canvas.size.width; x += 20)
       {
-         nvgMoveTo( vg, x, CGRectGetMinY( canvas));
-         nvgLineTo( vg, x, CGRectGetMaxY( canvas));
+         // Replaced nvgMoveTo with CGContextMoveTo using CGPointMake
+         CGContextMoveTo( context, CGPointMake(x, CGRectGetMinY( canvas)));
+         // Replaced nvgLineTo with CGContextLineTo using CGPointMake
+         CGContextLineTo( context, CGPointMake(x, CGRectGetMaxY( canvas)));
       }
    }
-   nvgStrokeColor( vg, CGColorMakeLightGray());
-   nvgStrokeWidth( vg, 1.0);
-   nvgStroke( vg);
+   // Replaced nvgStrokeColor with CGContextStrokeColor
+   CGContextStrokeColor( context, CGColorMakeLightGray());
+   // Replaced nvgStrokeWidth with CGContextStrokeWidth
+   CGContextStrokeWidth( context, 1.0);
+   // Replaced nvgStroke with CGContextStroke
+   CGContextStroke( context);
 
    return( YES);
 }

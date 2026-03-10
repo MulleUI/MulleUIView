@@ -4,6 +4,7 @@
 
 #import "UIView+DebugPrivate.h"
 #import "UIViewController.h"
+#import "UINullLayer.h"
 
 
 #define DUMP_LAYERS
@@ -63,8 +64,9 @@ static UIEvent   *defaultHandleEventCallback( UIView *view, UIEvent *event)
 }
 
 
-static UIMouseMotionEvent   *defaultHandleMouseMotionEventCallback( UIView *view,
-                                                                    UIMouseMotionEvent *event)
+static UIMouseMotionEvent *
+   defaultHandleMouseMotionEventCallback( UIView *view,
+                                          UIMouseMotionEvent *event)
 {
    return( event);
 }
@@ -104,8 +106,14 @@ static struct
       Self._debuggingFlags = strtol( s, NULL, 0);
 
    allocator = MulleObjCClassGetAllocator( self);
-   MulleObjCIMPArrayInitCategoryOnly( &Self._initCategoryIMPs, self, @selector( initCategory), allocator);
-   MulleObjCIMPArrayInitCategoryOnly( &Self._deallocCategoryIMPs, self, @selector( deallocCategory), allocator);
+   MulleObjCIMPArrayInitCategoryOnly( &Self._initCategoryIMPs,
+                                      self,
+                                      @selector( initCategory),
+                                      allocator);
+   MulleObjCIMPArrayInitCategoryOnly( &Self._deallocCategoryIMPs,
+                                      self,
+                                      @selector( deallocCategory),
+                                      allocator);
 }
 
 
@@ -150,69 +158,85 @@ static struct
 }
 
 
-- (void) mulleGainAccess
+- (void) mulleGainAccessWithUniquingSet:(struct mulle_pointerset *) uniquing
 {
    UIView        *subview;
    id <UILayer>  layer;
    id            area;
 
-   [super mulleGainAccess];
+   assert( mulle_pointerset_get( uniquing, self) == self);
+
+   [super mulleGainAccessWithUniquingSet:uniquing];
 
    // we would lose this
    assert( ! self->_snapshot);
    assert( ! self->_animationStorage);
 
-   [_mainLayer mulleGainAccess];
-   [_cacheLayer mulleGainAccess];
-   [_shadowLayer mulleGainAccess];
+   if( mulle_pointerset_insert( uniquing, _mainLayer))
+      [_mainLayer mulleGainAccessWithUniquingSet:uniquing];
+   if( mulle_pointerset_insert( uniquing, _cacheLayer))
+      [_cacheLayer mulleGainAccessWithUniquingSet:uniquing];
+   if( mulle_pointerset_insert( uniquing, _shadowLayer))
+      [_shadowLayer mulleGainAccessWithUniquingSet:uniquing];
 
    mulle_pointerarray_for( &_layers, layer)
    {
-      [layer mulleGainAccess];
+      if( mulle_pointerset_insert( uniquing, layer))
+         [layer mulleGainAccessWithUniquingSet:uniquing];
    }
 
    mulle_pointerarray_for( &_trackingAreas, area)
    {
-      [area mulleGainAccess];
+      if( mulle_pointerset_insert( uniquing, area))
+         [area mulleGainAccessWithUniquingSet:uniquing];
    }
 
    UIViewSubviewsFor( self, subview)
    {
-      [subview mulleGainAccess];
+      if( mulle_pointerset_insert( uniquing, subview))
+         [subview mulleGainAccessWithUniquingSet:uniquing];
    }
 }
 
 
 // reverse order for no good reason, except that it looks prettier :)
-- (void) mulleRelinquishAccess
+- (void) mulleRelinquishAccessWithUniquingSet:(struct mulle_pointerset *) uniquing
 {
    UIView        *subview;
    id <UILayer>  layer;
    id            area;
+
+   assert( mulle_pointerset_get( uniquing, self) == self);
 
    assert( ! self->_snapshot);
    assert( ! self->_animationStorage);
 
    UIViewSubviewsFor( self, subview)
    {
-      [subview mulleRelinquishAccess];
+      if( mulle_pointerset_insert( uniquing, subview))
+         [subview mulleRelinquishAccessWithUniquingSet:uniquing];
    }
 
    mulle_pointerarray_for( &_trackingAreas, area)
    {
-      [area mulleRelinquishAccess];
+      if( mulle_pointerset_insert( uniquing, area))
+         [area mulleRelinquishAccessWithUniquingSet:uniquing];
    }
 
    mulle_pointerarray_for( &_layers, layer)
    {
-      [layer mulleRelinquishAccess];
+      if( mulle_pointerset_insert( uniquing, layer))
+         [layer mulleRelinquishAccessWithUniquingSet:uniquing];
    }
 
-   [_shadowLayer mulleRelinquishAccess];
-   [_cacheLayer mulleRelinquishAccess];
-   [_mainLayer mulleRelinquishAccess];
+   if( mulle_pointerset_insert( uniquing, _shadowLayer))
+      [_shadowLayer mulleRelinquishAccessWithUniquingSet:uniquing];
+   if( mulle_pointerset_insert( uniquing, _cacheLayer))
+      [_cacheLayer mulleRelinquishAccessWithUniquingSet:uniquing];
+   if( mulle_pointerset_insert( uniquing, _mainLayer))
+      [_mainLayer mulleRelinquishAccessWithUniquingSet:uniquing];
 
-   [super mulleRelinquishAccess];
+   [super mulleRelinquishAccessWithUniquingSet:uniquing];
 }
 
 
@@ -231,7 +255,7 @@ static struct
    _needsTrackingAreaUpdate         = YES;
    _originalFrame.size.width        = 0.0;
    _userInteractionEnabled          = YES;  // default
-
+   _anchorPoint                     = CGPointMake( 0.5, 0.5);
    _eventCallback                   = defaultHandleEventCallback;
    _mouseMotionEventCallback        = defaultHandleMouseMotionEventCallback;
    _didLayoutLayersCallback         = defaultVoidCallback;
@@ -387,6 +411,9 @@ static struct
    s = _mulle_atomic_pointer_read( &_atomicNameUTF8String);
    mulle_allocator_free( MulleObjCInstanceGetAllocator( self), s);
 
+   s = _mulle_atomic_pointer_read( &_atomicClassUTF8String);
+   mulle_allocator_free( MulleObjCInstanceGetAllocator( self), s);
+
    [super dealloc];
 }
 
@@ -450,9 +477,9 @@ static struct
    copy->_alpha                  = self->_alpha;
    copy->_hidden                 = self->_hidden;
    copy->_debuggingFlags         = self->_debuggingFlags;
-
    copy->_margins                = self->_margins;
    copy->_padding                = self->_padding;
+   copy->_anchorPoint            = self->_anchorPoint;
    copy->_autoresizingMask       = self->_autoresizingMask;
 
    copy->_mainLayer              = [self->_mainLayer copy];
@@ -518,7 +545,9 @@ static struct
 }
 
 
-- (void) setNameUTF8String:(char *) s
+
+- (void) _setAtomicUTF8String:(char *) s
+                atomicPointer:(mulle_atomic_pointer_t) p
 {
    struct mulle_allocator       *allocator;
    struct _mulle_objc_universe  *universe;
@@ -528,11 +557,11 @@ static struct
    // need universe allocator for abafree
    universe  = _mulle_objc_object_get_universe( self);
    allocator = _mulle_objc_universe_get_allocator( universe);
-   old       = _mulle_atomic_pointer_read( &_atomicNameUTF8String);
+   old       = _mulle_atomic_pointer_read( p);
    if( s)
       s = mulle_allocator_strdup( allocator, s);
 
-   actual = __mulle_atomic_pointer_cas( &_atomicNameUTF8String, s, old);
+   actual = __mulle_atomic_pointer_cas( p, s, old);
 
    if( actual == old)
       mulle_allocator_abafree( allocator, old);
@@ -541,9 +570,55 @@ static struct
 }
 
 
+- (void) setNameUTF8String:(char *) s
+{
+   MulleObjCObjectSetAtomicDuplicatedUTF8String( self, &_atomicNameUTF8String, s);
+}
+
+
+- (char *) classUTF8String
+{
+   char  *s;
+
+   s = _mulle_atomic_pointer_read( &_atomicClassUTF8String);
+   if( ! s)
+      s = MulleObjCInstanceGetClassNameUTF8String( self);
+   return( s);
+}
+
+
+- (void) setClassUTF8String:(char *) s
+{
+   MulleObjCObjectSetAtomicDuplicatedUTF8String( self, &_atomicClassUTF8String, s);
+}
+
+
 //
 // FRAME AND BOUNDS
 //
+
+- (CGPoint) position
+{
+   CGPoint   pos;
+
+   pos.x = _frame.origin.x + (_frame.size.width * _anchorPoint.x);
+   pos.y = _frame.origin.y + (_frame.size.height * _anchorPoint.y);
+
+   return( pos);
+}
+
+
+- (void) setPosition:(CGPoint) position
+{
+   CGRect newFrame = _frame;
+
+   newFrame.origin.x = position.x - (_frame.size.width * _anchorPoint.x);
+   newFrame.origin.y = position.y - (_frame.size.height * _anchorPoint.y);
+
+   [self setFrame:newFrame];
+}
+
+
 
 static inline CGRect   getBounds( UIView *self)
 {
@@ -701,7 +776,7 @@ static inline CGRect   getBounds( UIView *self)
 }
 
 
-// this will be clobbered by UIWindow, to also add and remove
+// this will be clobbered by MulleUIWindow, to also add and remove
 // UIViews to tracking areas
 //
 // If you change code here, also change it in UIView+UITrackingArea.m
@@ -1412,86 +1487,25 @@ void  UIViewDumpTrackingAreas( UIView *self)
 }
 #endif
 
+
+- (void) setDrawCallTracer:(FILE *) file
+{
+   id <UILayer>   layer;
+
+   [_mainLayer setDrawCallTracer:file];
+   mulle_pointerarray_for( &_layers, layer)
+   {
+      [layer setDrawCallTracer:file];
+   }
+}
+
+
+- (FILE *) drawCallTracer
+{
+   return( [_mainLayer drawCallTracer]);
+}
+
 @end
 
 
 
-@implementation UINullLayer
-
-- (void) willChange
-{
-   // ignore
-}
-
-- (instancetype) initWithFrame:(CGRect) frame
-{
-   _frame       = frame;
-   _bounds.size = frame.size;
-
-   return( self);
-}
-
-
-- (instancetype) initWithFrame:(CGRect) frame
-                      OSWindow:(id <UIOSWindow>) osWindow
-{
-   return( [self initWithFrame:frame]);
-}
-
-
-
-- (id) copy
-{
-   UINullLayer   *copy;
-
-   copy = [[[self class] alloc] _initWithFrame:self->_frame];
-   if( ! copy)
-      return( copy);
-
-   copy->_bounds = self->_bounds;
-   return( copy);
-}
-
-
-- (void) forgetImplicitAnimations
-{
-}
-
-
-- (char *) nameUTF8String
-{
-   return( NULL);
-}
-
-
-- (void) setNameUTF8String:(char *) s
-{
-   if( s)
-      abort();
-}
-
-
-- (CGSize) sizeThatFits:(CGSize) size
-                context:(id <UILayoutContext>) context
-{
-   return( size);
-}
-
-
-- (void) dumpWithIndent:(NSUInteger) indent
-                   FILE:(FILE *) fp
-{
-   NSUInteger   i;
-
-   for( i = 0; i < indent; i++)
-      fputc( ' ', fp);
-
-   fprintf( fp, "%s: frame=[%s] bounds=[%s]",
-               [self UTF8String],
-               CGRectUTF8String( [self frame]),
-               CGRectUTF8String( [self bounds]));
-   fprintf( fp, "\n");
-}
-
-
-@end

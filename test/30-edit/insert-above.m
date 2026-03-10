@@ -8,18 +8,18 @@ int   main( void)
    NSUInteger   i, n;
    UIView       *buf[ 10];
 
-   view = [UIView object];
+   view = [UIView instance];
 
    for( i = 0; i < 3; i++)
    {
-      subview = [UIView object];
+      subview = [UIView instance];
       [subview setTag:i];
 
       [view insertSubview:subview
                   atIndex:i];
    }
 
-   subview = [UIView object];
+   subview = [UIView instance];
    [subview setTag:3];
 
    [view insertSubview:subview
@@ -30,7 +30,7 @@ int   main( void)
    for( i = 0; i < n; i++)
       printf( "%tu\n", [buf[ i] tag]);
 
-   subview = [UIView object];
+   subview = [UIView instance];
    [subview setTag:4];
 
    [view insertSubview:subview

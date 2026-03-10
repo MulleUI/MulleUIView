@@ -6,8 +6,6 @@
 
 //#import "UIEdgeInsets.h"
 
-#import "UILayoutContext.h"
-
 
 typedef NS_OPTIONS( NSUInteger, UIViewAutoresizing)
 {
@@ -85,7 +83,8 @@ static inline CGContentMode   UIViewAutoresizingGetContentMode( UIViewAutoresizi
 }
 
 
-extern NS_OPTIONS_TABLE( UIViewAutoresizing, 25);
+MULLE_UI_VIEW_GLOBAL
+NS_OPTIONS_TABLE( UIViewAutoresizing, 25);
 
 static inline char  *UIViewAutoresizingUTF8String( UIViewAutoresizing bits)
 {
@@ -95,12 +94,15 @@ static inline char  *UIViewAutoresizingUTF8String( UIViewAutoresizing bits)
 
 // "backwards" compatibility
 
-static inline 
-char   *UIViewAutoresizingMaskUTF8String( UIViewAutoresizing bits)
+static inline char *
+   UIViewAutoresizingMaskUTF8String( UIViewAutoresizing bits)
 {
    return( UIViewAutoresizingUTF8String( bits));
 }
-char   *UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
+
+MULLE_UI_VIEW_GLOBAL
+char *
+UIViewAutoresizingMaskShortUTF8String( UIViewAutoresizing bits);
 
 
 // ..Scale.. is changing the initial frame,
@@ -147,7 +149,7 @@ UIAutoresizingProperties;
 @optional
 - (UIEdgeInsets) margins;  // default UIEdgeInsetsZero;
 
-- (CGRect) autoresizeWithContext:(struct UILayoutContext *) context
+- (CGRect) autoresizeWithLayoutInfo:(struct UILayoutInfo *) context
                 autoresizingMask:(UIViewAutoresizing) autoresizingMask;
 
 PROTOCOLCLASS_END();
@@ -162,7 +164,7 @@ PROTOCOLCLASS_END();
 // @end
 
 
-MULLE_UI_CORE_EXTERN_GLOBAL
+MULLE_UI_VIEW_GLOBAL
 CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
                                      CGRect lastBounds,
                                      CGRect bounds,

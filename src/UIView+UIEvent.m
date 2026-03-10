@@ -159,7 +159,6 @@
 }
 
 
-
 - (id <UIResponder>) nextResponder
 {
    return( _superview);  // AppKit also does direct reads here
@@ -178,14 +177,14 @@
 }
 
 
-// will be clobbered by UIWindow
+// will be clobbered by MulleUIWindow category on UIView
 - (BOOL) becomeFirstResponder
 {
    return( NO);
 }
 
 
-// will be clobbered by UIWindow
+// will be clobbered by MulleUIWindow category on UIView
 - (BOOL) resignFirstResponder
 {
    if( ! [self isFirstResponder])
@@ -195,7 +194,7 @@
 }
 
 
-// will be clobbered by UIWindow
+// will be clobbered by MulleUIWindow category on UIView
 - (BOOL) isFirstResponder
 {
    return( NO);

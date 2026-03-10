@@ -8,11 +8,11 @@ int   main( void)
    NSUInteger   i, n;
    UIView       *buf[ 10];
 
-   view = [UIView object];
+   view = [UIView instance];
 
    for( i = 0; i < 5; i++)
    {
-      subview = [UIView object];
+      subview = [UIView instance];
       [subview setTag:i];
 
       [view insertSubview:subview
@@ -21,7 +21,7 @@ int   main( void)
 
    for( ;i < 10; i++)
    {
-      subview = [UIView object];
+      subview = [UIView instance];
       [subview setTag:i];
 
       [view insertSubview:subview

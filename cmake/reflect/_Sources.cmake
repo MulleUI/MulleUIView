@@ -13,6 +13,7 @@ endif()
 set( SOURCES
 src/UIAutoresizing.m
 src/UIInputEvent+UIView.m
+src/UINullLayer.m
 src/UIView+CGGeometry.m
 src/UIViewController.m
 src/UIView+Layout.m
@@ -26,5 +27,5 @@ src/UIView.m
 # contents selected with patternfile ??-source--stage2-sources
 #
 set( STAGE2_SOURCES
-src/MulleObjCLoader+MulleUIView.m
+src/MulleObjCDeps+MulleUIView.m
 )

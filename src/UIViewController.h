@@ -14,7 +14,7 @@
 
 @class UIView;
 
-struct UILayoutContext;
+struct UILayoutInfo;
 
 //
 // The UIViewController does not retain its views, they are part of the window
@@ -73,8 +73,8 @@ struct UILayoutContext;
 
 // Layout handling, default is NO, did not layout view
 - (BOOL) layoutView:(UIView *) view
-      layoutContext:(struct UILayoutContext *) context
-autoresizingMask:(UIViewAutoresizing) autoresizingMask;
+         layoutInfo:(struct UILayoutInfo *) context
+   autoresizingMask:(UIViewAutoresizing) autoresizingMask;
 
 - (void)   view:(UIView *) view
 didMoveToWindow:(id <UIWindow>) window;

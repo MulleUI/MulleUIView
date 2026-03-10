@@ -300,7 +300,7 @@ static UIEvent  *eventCallback( UIView *view, UIEvent *event)
 
 // the default implementation does nothing
 - (BOOL) layoutView:(UIView *) view
-      layoutContext:(struct UILayoutContext *) context
+      layoutInfo:(struct UILayoutInfo *) context
    autoresizingMask:(UIViewAutoresizing) autoresizingMask
 {
    return( NO);

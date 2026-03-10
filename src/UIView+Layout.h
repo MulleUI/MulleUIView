@@ -5,17 +5,6 @@
 #import "UIView.h"
 
 
-#import "UILayoutContext.h"
-
-
-static inline struct UILayoutContext
-   UILayoutContextMakeWithView( UIView *view)
-{
-   return( UILayoutContextMake( [view contentRect], [view padding]));
-}
-
-
-
 typedef NS_ENUM( NSUInteger, UILayoutStrategy)
 {
    UILayoutStrategyDefault,
@@ -70,6 +59,7 @@ static inline BOOL
 }
 
 
+
 @interface UIView( Layout)
 
 // actual method: context is usually CGContext
@@ -112,15 +102,21 @@ static inline BOOL
 - (void) layout;
 
 //
-// will layout the all layers so that its frame equals the bounds, will leave
+// will layout the main layers so that its frame equals the bounds, will leave
 // all other layers untouched
 //
 - (void) layoutLayer:(id <UILayer>) layer
-              inRect:(CGRect) bounds;
+          layoutInfo:(struct UILayoutInfo *) info;
+
+- (void) layoutMainLayer:(id <UILayer>) layer
+              layoutInfo:(struct UILayoutInfo *) info;
+
+- (void) layoutAuxillaryLayer:(id <UILayer>) layer
+              layoutInfo:(struct UILayoutInfo *) info;
 
 
-- (void) layoutWithContext:(struct UILayoutContext *) context
-          autoresizingMask:(UIViewAutoresizing) autoresizingMask;
+- (void) layoutWithLayoutInfo:(struct UILayoutInfo *) context
+             autoresizingMask:(UIViewAutoresizing) autoresizingMask;
 
 
 // used by UIViewController to set the layouted frame
@@ -151,7 +147,7 @@ static inline BOOL
 
 - (id <UILayoutContext>) layoutContext;
 
-- (void) beginLayout:(void *) info;
+- (void) beginLayout:(void *) info;  // CGFrameInfo
 - (void) endLayout;
 
 // this flag is handled by UIWindow
@@ -159,17 +155,29 @@ static inline BOOL
 - (BOOL) needsLayout       MULLE_OBJC_THREADSAFE_METHOD;
 
 - (void) layoutShadowLayer:(id <UILayer>) layer
-                    inRect:(CGRect) rect;
+                layoutInfo:(struct UILayoutInfo *) info;
 @end
 
 
-MULLE_UI_CORE_EXTERN_GLOBAL
+
+static inline struct UILayoutInfo  UILayoutInfoMakeWithView( UIView *view)
+{
+   assert( [view isKindOfClass:[UIView class]]);
+
+   return( UILayoutInfoMake( [view contentRect],
+                             [view padding],
+                             [view layoutContext]));
+}
+
+
+
+MULLE_UI_VIEW_GLOBAL
 void   UIViewAutoresize( UIView *self,
-                         struct UILayoutContext *context,
+                         struct UILayoutInfo *info,
                          UIViewAutoresizing autoresizingMask);
 
-MULLE_UI_CORE_EXTERN_GLOBAL
-void  UIViewLayoutWithContext( UIView *self, struct UILayoutContext *context);
+MULLE_UI_VIEW_GLOBAL
+void  UIViewLayoutWithViewLayoutInfo( UIView *self, struct UILayoutInfo *context);
 
-MULLE_UI_CORE_EXTERN_GLOBAL
+MULLE_UI_VIEW_GLOBAL
 void   UIViewLayoutSubviewInRect( UIView *self, UIView *view, CGRect contentRect);

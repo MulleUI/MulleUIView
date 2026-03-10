@@ -162,7 +162,7 @@ void   setupSceneInContentView( UIView *contentView)
    for( row = 0; row < ROWS; row++)
       for( column = 0; column < COLS; column++)
       {
-         view  = [UIView object];
+         view  = [UIView instance];
          [view setDrawCallback:(CGGraphicsLayerDrawCallback_t *) drawStuff];
          [view setNameUTF8String:"view"];
          [view setBorderWidth:1.0];

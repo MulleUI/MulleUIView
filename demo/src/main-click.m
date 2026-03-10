@@ -379,8 +379,8 @@ int   main( int argc, char *argv[])
     * window and app
     */
    styleMask = UIWindowStyleMaskDefault;
-   styleMask = UIWindowsStyleMaskBySetting( styleMask, UIWindowStylePlanes, NO);
-   styleMask = UIWindowsStyleMaskBySetting( styleMask, UIWindowStyleResizable, NO);
+   styleMask = UIWindowStyleMaskBySetting( styleMask, UIWindowStylePlanes, NO);
+   styleMask = UIWindowStyleMaskBySetting( styleMask, UIWindowStyleResizable, NO);
 
    window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800, 600)
                       titleUTF8String:"Demo"

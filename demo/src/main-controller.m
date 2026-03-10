@@ -119,7 +119,7 @@ int   main( int argc, char *argv[])
    [bButton setBackgroundColor:CGColorMakeChartreuse()];
    [contentView addSubview:bButton];
 
-   controller = [Controller object];
+   controller = [Controller instance];
    [controller setAButton:aButton];
    [controller setBButton:bButton];
    [window addToViewControllers:controller];

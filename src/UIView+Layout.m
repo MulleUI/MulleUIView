@@ -39,6 +39,14 @@
 }
 
 
+// its here for tests not to croak
+- (id <UILayoutContext>) layoutContext
+{
+   // this will be added by MulleUIOS
+   return( nil);
+}
+
+
 // IDEAS, no gospel!
 //
 // If you have a variably sized view (likely something text based, like a
@@ -92,24 +100,51 @@
 #pragma mark - layout
 
 
+- (void) layoutMainLayer:(id <UILayer>) layer
+              layoutInfo:(struct UILayoutInfo *) info
+{
+   assert( info);
+
+   [layer setFrame:info->rect];
+   [layer layoutWithLayoutInfo:info];
+}
+
+
+- (void) layoutAuxillaryLayer:(id <UILayer>) layer
+                   layoutInfo:(struct UILayoutInfo *) info
+{
+   assert( info);
+
+   [layer layoutWithLayoutInfo:info];
+}
+
+
 //
 // by default, the mainLayer fills the contentRect of
 // its owning UIView.
 //
 - (void) layoutLayer:(id <UILayer>) layer
-              inRect:(CGRect) rect
+          layoutInfo:(struct UILayoutInfo *) info
 {
    if( layer == _shadowLayer)
    {
       [self layoutShadowLayer:layer
-                       inRect:rect];
+                   layoutInfo:info];
+      return;
    }
 
    if( layer == _mainLayer)
    {
-      [layer setFrame:rect];
+      [self layoutMainLayer:layer
+                 layoutInfo:info];
     //  [layer setBounds:[self bounds]]; ??
+      return;
    }
+
+   [self layoutAuxillaryLayer:layer
+                   layoutInfo:info];
+ //  [layer setBounds:[self bounds]]; ??
+   return;
 }
 
 
@@ -134,15 +169,15 @@
 
 - (void) layoutLayers
 {
-   id <UILayer>   layer;
-   CGRect         contentRect;
+   id <UILayer>          layer;
+   struct UILayoutInfo   info;
 
-   contentRect = [self contentRect]; // not layoutRect
+   info = UILayoutInfoMakeWithView( self);
 
 #ifdef HAVE_RENDER_CACHE
    if( _cacheLayer)
    {
-      if( CGRectEqualToRect( contentRect, [_cacheLayer frame]))
+      if( CGRectEqualToRect( info.rect, [_cacheLayer frame]))
          return;
       [_cacheLayer release];
       _cacheLayer = nil;
@@ -154,16 +189,16 @@
       if( _shadowLayer)
       {
          [self layoutLayer:_shadowLayer
-                    inRect:contentRect];
+                layoutInfo:&info];
       }
 
       [self layoutLayer:_mainLayer
-                 inRect:contentRect];
+             layoutInfo:&info];
 
       mulle_pointerarray_for( &_layers, layer)
       {
          [self layoutLayer:layer
-                    inRect:contentRect];
+                layoutInfo:&info];
       }
    }
    (*_didLayoutLayersCallback)( self);
@@ -178,64 +213,71 @@
       frame = UIViewIntegralFrame( frame);
 #endif
    if( ! CGRectEqualToRect( [self frame], frame))
+   {
       [self setFrame:frame];
+   }
 }
 
 
 void   UIViewAutoresize( UIView *self,
-                         struct UILayoutContext *context,
+                         struct UILayoutInfo *info,
                          UIViewAutoresizing autoresizingMask)
 {
    CGRect   frame;
 
-   frame = [self autoresizeWithContext:context
-                      autoresizingMask:autoresizingMask];
+   frame = [self autoresizeWithLayoutInfo:info
+                         autoresizingMask:autoresizingMask];
 
    [self setLayoutedFrame:frame
          autoresizingMask:autoresizingMask];
 }
 
 
-- (void) layoutWithContext:(struct UILayoutContext *) context
-          autoresizingMask:(UIViewAutoresizing) autoresizingMask
+- (void) layoutWithLayoutInfo:(struct UILayoutInfo *) info
+             autoresizingMask:(UIViewAutoresizing) autoresizingMask
 {
    if( [_controller layoutView:self
-                 layoutContext:context
-              autoresizingMask:autoresizingMask])
+                    layoutInfo:info
+                    autoresizingMask:autoresizingMask])
    {
       return;
    }
 
-   UIViewAutoresize( self, context, autoresizingMask);
+   UIViewAutoresize( self, info, autoresizingMask);
 }
 
 
 
-// "legacy" support
+/**
+  * "legacy" support
+  * Lays out a subview within a specified content rectangle using the given autoresizing mask.
+  *
+  * This method handles the layout process for subviews, which involves:
+  * - Positioning the subview within the specified content rectangle
+  * - Applying the provided autoresizing mask to determine layout behavior
+  *
+  * Layout Recursion:
+  * - The layout process can be controlled through callback mechanisms
+  * - Recursion can be initiated or prevented by implementing custom willLayoutSubviewsCallback
+  * - The return value of the callback determines whether subview layout should proceed
+  *
+  * Layer and Subview Layout Considerations:
+  * - Subviews are laid out based on their individual autoresizing masks
+  * - Layers may be implicitly updated during the layout process
+  * - Custom layout logic can be implemented by overriding layoutSubviews method
+  */
+
 - (void) layoutSubview:(UIView *) subview
                 inRect:(CGRect) contentRect
        autoresizingMask:(UIViewAutoresizing) autoresizingMask
 {
-   struct UILayoutContext   context;
+   struct UILayoutInfo   info;
 
-   context = UILayoutContextMake( contentRect, [self padding]);
-   [subview layoutWithContext:&context
-             autoresizingMask:autoresizingMask];
+   info = UILayoutInfoMake( contentRect, UIEdgeInsetsZero, [self layoutContext]);
+   [subview layoutWithLayoutInfo:&info
+                autoresizingMask:autoresizingMask];
 }
 
-
-void  UIViewLayoutWithContext( UIView *self, struct UILayoutContext *context)
-{
-   NSUInteger   autoresizingMask;
-
-   autoresizingMask = [self autoresizingMask];
-   UIViewLayoutLog( "layout Subview %#@ %s (%s)",
-                        self,
-                        CGRectUTF8String( [self frame]),
-                        UIViewAutoresizingMaskShortUTF8String( autoresizingMask));
-   [self layoutWithContext:context
-          autoresizingMask:autoresizingMask];
-}
 
 
 void   UIViewLayoutSubviewInRect( UIView *self, UIView *view, CGRect contentRect)
@@ -253,22 +295,35 @@ void   UIViewLayoutSubviewInRect( UIView *self, UIView *view, CGRect contentRect
 }
 
 
+void  UIViewLayoutWithLayoutInfo( UIView *self, struct UILayoutInfo *info)
+{
+   NSUInteger   autoresizingMask;
+
+   autoresizingMask = [self autoresizingMask];
+   UIViewLayoutLog( "layout Subview %#@ %s (%s)",
+                        self,
+                        CGRectUTF8String( [self frame]),
+                        UIViewAutoresizingMaskShortUTF8String( autoresizingMask));
+   [self layoutWithLayoutInfo:info
+             autoresizingMask:autoresizingMask];
+}
+
 
 - (BOOL) layoutSubviews
 {
-   BOOL                     flag;
-   UIView                   *view;
-   struct UILayoutContext   context;
+   BOOL                  flag;
+   UIView                *view;
+   struct UILayoutInfo   info;
 
    if( (*_willLayoutSubviewsCallback)( self))
    {
       // TODO: could "cull" subviews here, that, after layout, are not
       //       visible.. is this beneficial ?
       //
-      context = UILayoutContextMakeWithView( self);
+      info = UILayoutInfoMakeWithView( self);
       UIViewSubviewsFor( self, view)
       {
-         UIViewLayoutWithContext( view, &context);
+         UIViewLayoutWithLayoutInfo( view, &info);
       }
    }
    flag = (*_didLayoutSubviewsCallback)( self);

@@ -52,6 +52,11 @@ static inline CGRect   UIViewMakeFrameWithRect( CGRect frame)
 }
 
 
+@class UIView;
+
+typedef UIEvent              *UIViewEventCallback( UIView *view, UIEvent *event);
+typedef UIMouseMotionEvent   *UIViewMouseMotionEventCallback( UIView *view, UIMouseMotionEvent *event);
+
 
 //
 // In theory UIView can manage other layer types than CALayer. It might be fun
@@ -62,14 +67,19 @@ static inline CGRect   UIViewMakeFrameWithRect( CGRect frame)
 @property( observable) CGRect           frame;
 @property( observable) CGRect           bounds;
 
-@property( assign) CGAffineTransform    transform;
-@property( assign) CGRect               clipRect;
+@property( assign) CGFloat              rotation;
 @property( assign) CGFloat              alpha;
 @property( assign) NSInteger            tag;
 
-- (instancetype) initWithFrame:(CGRect) frame;
+// used by the render
+// TODO: prefix with render_ so API code knows
+@property( assign) CGAffineTransform    transform;
+@property( assign) CGRect               clipRect;
 
 @property( assign) char                 *nameUTF8String;
+@property( assign) FILE                 *drawCallTracer;
+
+- (instancetype) initWithFrame:(CGRect) frame;
 
 - (void) dumpWithIndent:(NSUInteger) indent
                    FILE:(FILE *) fp;
@@ -77,8 +87,15 @@ static inline CGRect   UIViewMakeFrameWithRect( CGRect frame)
 - (CGSize) sizeThatFits:(CGSize) size
                 context:(id <UILayoutContext>) context;
 
+// default does nothing, it's assumed that the frame of the layer is stable
+// the info contains the padding and contentArea of the view, as well as the
+// layoutContext (for font info)
+// info must not be NULL
+- (void) layoutWithLayoutInfo:(struct UILayoutInfo *) info;
+
 // ugliness?
 - (void) forgetImplicitAnimations;
+
 
 @end
 
@@ -158,6 +175,7 @@ struct CGFrameInfo;
                                   UIAnimatableViewProperties>
 {
    mulle_atomic_pointer_t                  _atomicNameUTF8String;
+   mulle_atomic_pointer_t                  _atomicClassUTF8String;
    UIView                                  *_superview;
 
    NSObject <UIAnimatableViewProperties>   *_snapshot;
@@ -214,7 +232,8 @@ UIAutoresizingProperties;
 // https://stackoverflow.com/questions/10880868/on-ios-if-a-superviews-userinteractionenabled-is-no-then-all-subviews-are-dis
 @property( getter=isUserInteractionEnabled) BOOL   userInteractionEnabled;  // default: YES
 
-@property( assign) NSUInteger  debuggingFlags      MULLE_OBJC_THREADSAFE_PROPERTY;
+@property( assign) NSUInteger       debuggingFlags      MULLE_OBJC_THREADSAFE_PROPERTY;
+@property( assign, dynamic) FILE   *drawCallTracer;  // forward to all layers for NVG trace
 
 @property BOOL        clipsToBounds; // default: YES
 //@property BOOL   needsLayout;      // use setNeedsLayout for marking
@@ -261,23 +280,33 @@ UIAutoresizingProperties;
 
 @property( observable) CGFloat         alpha;
 
+// abused by UIStackView, will be moved away later
+// TODO: how is this different from originalFrame ? Why does originalFrame
+//       need an origin ?
+@property( assign) UIViewAutoresizing  autoresizingMask;
+
+@property( assign) CGSize              mulleLayoutSize;
+
+@property( dynamic) char               *nameUTF8String      MULLE_OBJC_THREADSAFE_PROPERTY;  // useful for debugging and styling
+
+@property( dynamic) char               *classUTF8String     MULLE_OBJC_THREADSAFE_PROPERTY;  // useful for styling
+
+// ANIMATION SUPPORT
+// no support for rotation or pose use the layer for rotation
+
+// anchorPoint is used to determine the position from frame
+@property( observable, assign) CGPoint     anchorPoint;
+
+// position is based on frame and anchorPoint (its dynamically calculated)
+@property( dynamic) CGPoint                position;
+
 
 // call back for view events, your handler should return nil, if it
 // handled the event or wants the event to be discarded.
-@property( assign) UIEvent             *(*eventCallback)( UIView *view, UIEvent *event);
+@property( assign) UIViewEventCallback              *eventCallback;
 
 // mouseMotion events are limited, you can't change their type on return
-@property( assign) UIMouseMotionEvent  *(*mouseMotionEventCallback)( UIView *view, UIMouseMotionEvent *event);
-
-@property( assign) UIViewAutoresizing  autoresizingMask;
-
-
-// abused by UIStackView, will be moved away later 
-// TODO: how is this different from originalFrame ? Why does originalFrame
-//       need an origin ?
-@property( assign) CGSize   mulleLayoutSize;
-
-@property( dynamic) char    *nameUTF8String;  // useful for debugging
+@property( assign) UIViewMouseMotionEventCallback   *mouseMotionEventCallback;
 
 
 // return NO, if default layoutLayers code should not run
@@ -442,28 +471,6 @@ UIAutoresizingProperties;
                    FILE:(FILE *) fp;
 
 @end
-
-//
-// this layer does nothing, it's just there so we can run tests
-// on UIView
-//
-@interface UINullLayer : MulleObject < MulleAutolockingObjectProtocols,
-                                       UILayer>
-
-// not observable, because we don't implement -willChange (this layer
-// shouldn't really be used
-@property( assign) CGRect              frame;
-@property( assign) CGRect              bounds;
-
-@property( assign) CGAffineTransform   transform;
-@property( assign) CGRect              clipRect;
-@property( assign) CGFloat             alpha;
-@property( assign) NSInteger           tag;
-
-@property( dynamic) char               *nameUTF8String;
-
-@end
-
 
 
 //

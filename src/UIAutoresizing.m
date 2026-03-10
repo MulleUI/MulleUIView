@@ -10,7 +10,7 @@
 //# define LEGACY_DEBUG
 #endif
 
-
+MULLE_UI_VIEW_GLOBAL_VAR
 NS_OPTIONS_TABLE( UIViewAutoresizing, 25) =
 {
    NS_OPTIONS_ITEM( UIViewAutoresizingNone),
@@ -206,8 +206,8 @@ CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
 // We get contentRect as rect, which does not include "padding"
 // contentRect is { { 0, 0 }, bounds.size }
 //
-- (CGRect) autoresizeWithContext:(struct UILayoutContext *) context
-                autoresizingMask:(UIViewAutoresizing) autoresizingMask
+- (CGRect) autoresizeWithLayoutInfo:(struct UILayoutInfo *) info
+                   autoresizingMask:(UIViewAutoresizing) autoresizingMask
 {
    CGContentMode   contentMode;
    CGRect          frame;
@@ -248,11 +248,11 @@ CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
 
 
    margins      = [self margins];
-   edges.top    = CGFloatMaximum( context->padding.top, margins.top);
-   edges.left   = CGFloatMaximum( context->padding.left, margins.left);
-   edges.bottom = CGFloatMaximum( context->padding.bottom, margins.bottom);
-   edges.right  = CGFloatMaximum( context->padding.right, margins.right);
-   marginedRect = UIEdgeInsetsInsetRect( context->contentRect, edges);
+   edges.top    = CGFloatMaximum( info->padding.top, margins.top);
+   edges.left   = CGFloatMaximum( info->padding.left, margins.left);
+   edges.bottom = CGFloatMaximum( info->padding.bottom, margins.bottom);
+   edges.right  = CGFloatMaximum( info->padding.right, margins.right);
+   marginedRect = UIEdgeInsetsInsetRect( info->rect, edges);
 
    frame        = [self frame];
 
@@ -329,12 +329,12 @@ CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
       frame.size.height = 0.0;
 
    // use rect here I guess
-   if( ! CGRectContainsRect( context->contentRect, frame))
+   if( ! CGRectContainsRect( info->rect, frame))
    {
       if( autoresizingMask & UIViewAutoresizingCullAtBounds)
          frame.size = CGSizeZero;
       if( autoresizingMask & UIViewAutoresizingClipToBounds)
-         frame = CGRectIntersection( context->contentRect, frame);
+         frame = CGRectIntersection( info->rect, frame);
    }
 
 #ifdef LEGACY_DEBUG

@@ -40,53 +40,49 @@
 @end 
 
 
-static BOOL   drawGrid( CGGraphicsLayer *layer, CGContext *_context)
+static BOOL   drawGrid( CGGraphicsLayer *layer, CGContext *context)
 {
-   CGContext    *context = _context;
    CGRect       canvas;
    CGRect       text;
    CGRect       unused;
    CGRect       bottomSlice;
    CGFloat      xstep, ystep;
-   NVGcontext   *vg;
    NSUInteger   x, y;
    char         *s;
 
    canvas = [layer canvas];
    canvas = CGRectInset( canvas, PADDING, PADDING);  // padding
 
-   vg = CGContextGetNVGContext( context);
-
-   nvgBeginPath( vg);
+   CGContextBeginPath( context);
 
    xstep = DISTANCE;
    ystep = DISTANCE;
 
    for( y = ystep; y < canvas.size.height; y += ystep)
    {
-      nvgMoveTo( vg, 0, y);
-      nvgLineTo( vg, canvas.size.width, y);
+      CGContextMoveTo( context, CGPointMake(0, y));
+      CGContextLineTo( context, CGPointMake(canvas.size.width, y));
    }
 
    for( x = xstep; x < canvas.size.width; x += xstep)
    {
-      nvgMoveTo( vg, x, 0);
-      nvgLineTo( vg, x, canvas.size.height);
+      CGContextMoveTo( context, CGPointMake(x, 0));
+      CGContextLineTo( context, CGPointMake(x, canvas.size.height));
    }
 
-   nvgStrokeWidth( vg, 0.5);
-   nvgStrokeColor( vg, [UIColor darkGrayColor]);
-   nvgStroke( vg);
+   CGContextStrokeWidth( context, 0.5);
+   CGContextStrokeColor( context, [UIColor darkGrayColor]);
+   CGContextStroke( context);
 
    s = [layer labelText];
    if( s)
    {
-      mvgFontSize( vg, 11.0);
+      CGContextFontSize( context, 11.0);
       CGRectDivide( canvas, &bottomSlice, &unused, 13.0, CGRectMaxYEdge);
 
-      mvgTextColor( vg, CGColorMakeBlack());
-      mvgTextBackgroundColor( vg, CGColorMakeWhite());
-      mvgTextInRect( vg, s, (size_t) -1, bottomSlice, CGContentModeLeft, 0);
+      CGContextTextColor( context, CGColorMakeBlack());
+      CGContextTextBackgroundColor( context, CGColorMakeWhite());
+      CGContextTextInRect( context, s, (size_t) -1, bottomSlice, CGContentModeLeft, 0);
    }
 
    return( YES);
@@ -269,7 +265,7 @@ void   setupScene( UIView *plane)
       {
          if( (DEBUG_ROW < 0 || row == DEBUG_ROW) && (DEBUG_COL < 0 || column == DEBUG_COL))
          {
-            view = [UIView object];
+            view = [UIView instance];
             setupViewForRowColumn( view, row, column);
             [plane addSubview:view];
          }
@@ -290,8 +286,8 @@ int   main( void)
    app = [UIApplication sharedInstance];
 
    styleMask = UIWindowStyleMaskDefault;
-   styleMask = UIWindowsStyleMaskBySetting( styleMask, UIWindowStylePlanes, NO);
-   styleMask = UIWindowsStyleMaskBySetting( styleMask, UIWindowStyleResizable, NO);
+   styleMask = UIWindowStyleMaskBySetting( styleMask, UIWindowStylePlanes, NO);
+   styleMask = UIWindowStyleMaskBySetting( styleMask, UIWindowStyleResizable, NO);
 
    window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, WIN_W, WIN_H)
                       titleUTF8String:"Demo"
