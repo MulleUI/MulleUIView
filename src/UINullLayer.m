@@ -55,6 +55,18 @@
 }
 
 
+- (BOOL) animateWithAbsoluteTime:(double) renderTime
+                   animationRate:(double) animationRate
+{
+   return( NO);
+}
+
+
+- (void) renderInContext:(id) context
+{
+}
+
+
 - (char *) nameUTF8String
 {
    return( NULL);
