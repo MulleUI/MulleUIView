@@ -1,23 +1,17 @@
 #import "import-private.h"
 
 #import <string.h>
-
-
 #ifndef LEVELS
 # define LEVELS           3
 # define TRICKY_BOUNDS
 # define OBSCURING_VIEW
 #endif
-
-
 struct Point
 {
    CGPoint   point;
    CGColor   color;
    int       type;
 };
-
-
 static inline void   Circle_init( struct Point *p, CGPoint point, CGColor color)
 {
    if( p)
@@ -27,8 +21,6 @@ static inline void   Circle_init( struct Point *p, CGPoint point, CGColor color)
       p->type  = 0;
    }
 }
-
-
 static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
 {
    if( p)
@@ -38,8 +30,6 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
       p->type  = 1;
    }
 }
-
-
 //
 // The PointsLayer draws an array of points
 //
@@ -49,11 +39,7 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
 }
 
 @end
-
-
 @implementation PointsLayer
-
-
 - (instancetype) initWithFrame:(CGRect) rect
 {
    [super initWithFrame:rect];
@@ -65,15 +51,11 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
                             NULL);
    return( self);
 }
-
-
 - (void) dealloc
 {
    _mulle_structarray_done( &_points);
    [super dealloc];
 }
-
-
 - (void) addCircleAtPoint:(CGPoint) point
                     color:(CGColor) color
 {
@@ -83,8 +65,6 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
 
    _mulle_structarray_add( &_points, &p);
 }
-
-
 - (void) addSquareAtPoint:(CGPoint) point
                     color:(CGColor) color
 {
@@ -94,45 +74,39 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
 
    _mulle_structarray_add( &_points, &p);
 }
-
-
 - (BOOL) drawInContext:(CGContext *) context
 {
-   struct NVGcontext                     *vg;
    struct mulle_structarrayenumerator    rover;
    struct Point                          *p;
 
    if( ! [super drawInContext:context])
       return( NO);
 
-   vg    = CGContextGetNVGContext( context);
    rover = _mulle_structarray_enumerate( &_points);
    while( _mulle_structarrayenumerator_next( &rover, (void **) &p))
    {
-      nvgBeginPath( vg);
-      nvgFillColor( vg, p->color);
+      CGContextBeginPath( context);
+      CGContextFillColor( context, p->color);
       if( p->type)
-         nvgRect( vg, p->point.x - 2.5, p->point.y - 2.5, 5.0, 5.0);
+         CGContextRect( context, CGRectMake(p->point.x - 2.5, p->point.y - 2.5, 5.0, 5.0));
       else
-         nvgCircle( vg, p->point.x, p->point.y, 3.0);
-      nvgFill( vg);
+         CGContextCircle( context, CACircleMakeWithCenterAndRadius( CGPointMake(p->point.x, p->point.y), 3.0));
+      CGContextFill( context);
 
-      nvgBeginPath( vg);
-      nvgStrokeWidth( vg, 0.75);
-      nvgStrokeColor( vg, CGColorDim( CGColorMakeWhite(), 0.15));
-      nvgMoveTo( vg, p->point.x - 2.0, p->point.y);
-      nvgLineTo( vg, p->point.x + 2.0, p->point.y);
-      nvgMoveTo( vg, p->point.x, p->point.y - 2.0);
-      nvgLineTo( vg, p->point.x, p->point.y + 2.0);
-      nvgStroke( vg);
+      CGContextBeginPath( context);
+      CGContextStrokeWidth( context, 0.75);
+      CGContextStrokeColor( context, CGColorDim( CGColorMakeWhite(), 0.15));
+      CGContextMoveTo( context, CGPointMake(p->point.x - 2.0, p->point.y));
+      CGContextLineTo( context, CGPointMake(p->point.x + 2.0, p->point.y));
+      CGContextMoveTo( context, CGPointMake(p->point.x, p->point.y - 2.0));
+      CGContextLineTo( context, CGPointMake(p->point.x, p->point.y + 2.0));
+      CGContextStroke( context);
    }
    _mulle_structarrayenumerator_done( &rover);
    return( YES);
 }
 
 @end
-
-
 //
 // The PointsView uses the PointsLayer to draw points. It accepts events
 // and creates the points.
@@ -140,16 +114,12 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
 @interface UIPointsView : UIView
 @end
 
-
-
 @implementation UIPointsView
 
 + (Class) layerClass
 {
    return( [PointsLayer class]);
 }
-
-
 - (UIMouseButtonEvent *) mouseDown:(UIMouseButtonEvent *) event
 {
    CGPoint        point;
@@ -190,26 +160,18 @@ static inline void   Square_init( struct Point *p, CGPoint point, CGColor color)
 }
 
 @end
-
-
 @interface UIObscuringView : UIView
 @end
-
-
 typedef NS_ENUM( NSUInteger, CGAxis)
 {
    CGHorizontalAxis = 1,
    CGVerticalAxis   = 2
 };
-
-
 static CGPoint   CGRectMirrorPointAlongAxes( CGRect  rect, CGPoint point, CGAxis axes)
 {
    //
    //  p 1,2
    //  r: -1,0,5,4  m: 3,2
-
-
    if( axes & CGHorizontalAxis)
    {
       // move axis to zero
@@ -260,8 +222,6 @@ static CGPoint   CGRectMirrorPointAlongAxes( CGRect  rect, CGPoint point, CGAxis
 }
 
 @end
-
-
 static void   setupScene( UIWindowPlane *contentPlane)
 {
    UIView         *view;
@@ -335,8 +295,6 @@ static void   setupScene( UIWindowPlane *contentPlane)
 # endif
 
    [view addSubview:subview];
-
-
 # if LEVELS > 2
 
    /*
@@ -365,8 +323,6 @@ static void   setupScene( UIWindowPlane *contentPlane)
 #endif
 
 }
-
-
 int   main( int argc, char *argv[])
 {
    UIWindow        *window;

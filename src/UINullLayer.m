@@ -26,6 +26,7 @@
 - (instancetype) initWithFrame:(CGRect) frame
                       OSWindow:(id <UIOSWindow>) osWindow
 {
+   MULLE_C_UNUSED( osWindow);
    return( [self initWithFrame:frame]);
 }
 
@@ -70,6 +71,7 @@
 - (CGSize) sizeThatFits:(CGSize) size
                 context:(id <UILayoutContext>) context
 {
+   MULLE_C_UNUSED( context);
    return( size);
 }
 

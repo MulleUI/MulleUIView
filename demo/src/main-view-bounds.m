@@ -14,10 +14,6 @@ static void  drawStuff( CALayer *layer, CGContext *context)
    NSUInteger          w;
    NSUInteger          h;
    CGRect              canvas;
-   struct NVGcontext   *vg;
-
-   vg = CGContextGetNVGContext( context);
-
    canvas = [layer canvas];
 
    w = (NSUInteger) ceil( canvas.size.width / 20.0);
@@ -26,17 +22,15 @@ static void  drawStuff( CALayer *layer, CGContext *context)
    for( y = 0; y < h; y++)
       for( x = 0; x < w; x++)
       {
-         nvgBeginPath( vg);
-         nvgRect( vg, x * 20.0, y * 20.0, 20.0, 20.0);
+         CGContextBeginPath( context);
+         CGContextRect( context, CGRectMake(x * 20.0, y * 20.0, 20.0, 20.0));
          if( (x ^ y) & 1)
-            nvgFillColor( vg, CGColorMakeWithHSL( 0.2 * y / h + 0.8 * x / w, 1.0, 0.8));
+            CGContextFillColor( context, CGColorMakeWithHSL( 0.2 * y / h + 0.8 * x / w, 1.0, 0.8));
          else
-            nvgFillColor( vg, CGColorMakeWithHSL( 0.8 * y / h + 0.2 * x / w, 0.8, 0.5));
-         nvgFill( vg);
+            CGContextFillColor( context, CGColorMakeWithHSL( 0.8 * y / h + 0.2 * x / w, 0.8, 0.5));
+         CGContextFill( context);
       }
 }
-
-
 // See ![](main-canvas-bounds-frame.png) how it should like.
 //
 // We draw little rectangles exactly 20x20
@@ -44,15 +38,11 @@ static void  drawStuff( CALayer *layer, CGContext *context)
 //
 static void   drawCircle( CALayer *layer, CGContext *context)
 {
-   struct NVGcontext   *vg;
    CGRect              canvas;
-   NVGpaint            paint;
+   CGPaint            *paint;
    CGFloat             rw;
    CGFloat             rh;
    CGFloat             r;
-
-   vg = CGContextGetNVGContext( context);
-
    canvas = [layer canvas];
 
    rw = (canvas.size.width - 2.0) / 2.0;
@@ -60,27 +50,18 @@ static void   drawCircle( CALayer *layer, CGContext *context)
 
    r  = rw > rh ? rh : rw;
 
-   nvgBeginPath( vg);
-   nvgEllipse( vg, canvas.size.width / 2.0 + canvas.origin.x,
-                   canvas.size.height / 2.0 + canvas.origin.y,
-                   rw, rh);
+   CGContextBeginPath( context);
+   CGContextEllipse( context, CGPointMake(canvas.size.width / 2.0 + canvas.origin.x, canvas.size.height / 2.0 + canvas.origin.y), rw, rh);
 
-   paint = nvgRadialGradient( vg, rw,
-                                  rh,
-                                  0.0, r,
-                                  CGColorMakeWithHexColor( 0x0000FFFF),
-                                  CGColorMakeWithHexColor( 0xFF0000FF));
-   nvgFillPaint( vg, paint);
-   nvgFill( vg);
+   CGContextSetFillRadialGradient( context,
+                                  CACircleMake( rw, rh, r),
+                                  CGColorMakeWithHexColor( 0xFF0000FF),
+                                  0.0,
+                                  CGColorMakeWithHexColor( 0x0000FFFF));
+   CGContextFill( context);
 }
-
-
-
-
 #define COLS  3
 #define ROWS  3
-
-
 static BOOL   didLayoutGridView( UIView *view)
 {
    UIGridView   *gridView = (UIGridView *) view;
@@ -129,8 +110,6 @@ static BOOL   didLayoutGridView( UIView *view)
 
    return( YES);
 }
-
-
 void   setupSceneInContentView( UIView *contentView)
 {
    CGRect       contentRect;
@@ -178,8 +157,6 @@ void   setupSceneInContentView( UIView *contentView)
          [view addSubview:subview];
       }
 }
-
-
 int   main()
 {
    UIWindow        *window;

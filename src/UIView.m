@@ -1120,6 +1120,7 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
 
 - (UIWindowDisplayBits) willLayoutWithAbsoluteTime:(mulle_absolutetime_t) time
 {
+   MULLE_C_UNUSED( time);
    return( 0);
 }
 

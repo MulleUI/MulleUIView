@@ -2,8 +2,6 @@
 #import <MulleImage/MulleImage.h>
 
 #import <string.h>
-
-
 static BOOL   drawGradient( CGGraphicsLayer *layer, CGContext *context)
 {
    CGPaint      *paint;
@@ -19,34 +17,24 @@ static BOOL   drawGradient( CGGraphicsLayer *layer, CGContext *context)
    // Replaced mvgFillRectWithPaint with CGContextFillRectWithPaint
    CGContextFillRectWithPaintable( context, canvas, paint);
 
-   // Replaced nvgBeginPath with CGContextBeginPath
    CGContextBeginPath( context);
    for( y = 20; y < canvas.size.height; y += 20)
    {
-      // Replaced nvgMoveTo with CGContextMoveTo using CGPointMake
       CGContextMoveTo( context, CGPointMake(CGRectGetMinX( canvas), y));
-      // Replaced nvgLineTo with CGContextLineTo using CGPointMake
       CGContextLineTo( context, CGPointMake(CGRectGetMaxX( canvas), y));
 
       for( x = 20; x < canvas.size.width; x += 20)
       {
-         // Replaced nvgMoveTo with CGContextMoveTo using CGPointMake
          CGContextMoveTo( context, CGPointMake(x, CGRectGetMinY( canvas)));
-         // Replaced nvgLineTo with CGContextLineTo using CGPointMake
          CGContextLineTo( context, CGPointMake(x, CGRectGetMaxY( canvas)));
       }
    }
-   // Replaced nvgStrokeColor with CGContextStrokeColor
    CGContextStrokeColor( context, CGColorMakeLightGray());
-   // Replaced nvgStrokeWidth with CGContextStrokeWidth
    CGContextStrokeWidth( context, 1.0);
-   // Replaced nvgStroke with CGContextStroke
    CGContextStroke( context);
 
    return( YES);
 }
-
-
 static void   setupSceneInContentPlane( UIWindowPlane  *contentPlane)
 {
    CGRect                frame;
@@ -88,8 +76,6 @@ static void   setupSceneInContentPlane( UIWindowPlane  *contentPlane)
           [contentView addSubview:subview];
        }
 }
-
-
 
 int   main( int argc, char *argv[])
 {

@@ -208,6 +208,7 @@
 - (void) setLayoutedFrame:(CGRect) frame
          autoresizingMask:(UIViewAutoresizing) autoresizingMask
 {
+   MULLE_C_UNUSED( autoresizingMask);
 #ifndef UIVIEW_FRAME_USES_CGRECTINTEGRAL
    if( autoresizingMask & UIViewAutoresizingIntegralFrame)
       frame = UIViewIntegralFrame( frame);

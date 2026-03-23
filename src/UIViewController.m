@@ -109,6 +109,7 @@ static UIEvent  *eventCallback( UIView *view, UIEvent *event)
 - (UIEvent *) handleEvent:(UIEvent *) event
                    ofView:(UIView *) view
 {
+   MULLE_C_UNUSED( view);
    // We  want to have UIResponder functionality so we use it
    // By default, this does nothing, so view will handle the event itself
    // eventually
@@ -303,6 +304,9 @@ static UIEvent  *eventCallback( UIView *view, UIEvent *event)
       layoutInfo:(struct UILayoutInfo *) context
    autoresizingMask:(UIViewAutoresizing) autoresizingMask
 {
+   MULLE_C_UNUSED( view);
+   MULLE_C_UNUSED( context);
+   MULLE_C_UNUSED( autoresizingMask);
    return( NO);
 }
 
