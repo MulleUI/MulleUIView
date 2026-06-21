@@ -128,7 +128,7 @@ char   *UIViewAutoresizingMaskShortUTF8String( NSUInteger bits)
 }
 
 
-PROTOCOLCLASS_IMPLEMENTATION( UIAutoresizing)
+@implementation  UIAutoresizing
 
 
 - (UIEdgeInsets) margins 
@@ -347,4 +347,4 @@ CGRect   UIAutoresizingLegacyResize( CGRect originalFrame,
 }
 
 
-PROTOCOLCLASS_END();
+@end;

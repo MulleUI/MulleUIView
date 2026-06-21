@@ -85,7 +85,7 @@ static struct
    NSUInteger                 _debuggingFlags;
    struct MulleObjCIMPArray   _initCategoryIMPs;
    struct MulleObjCIMPArray   _deallocCategoryIMPs;
-} Self;
+} ClassStatic;
 
 
 + (void) initialize
@@ -103,14 +103,14 @@ static struct
    if( ! s)
       s = getenv( "UIDebuggingFlags");
    if( s)
-      Self._debuggingFlags = strtol( s, NULL, 0);
+      ClassStatic._debuggingFlags = strtol( s, NULL, 0);
 
    allocator = MulleObjCClassGetAllocator( self);
-   MulleObjCIMPArrayInitCategoryOnly( &Self._initCategoryIMPs,
+   MulleObjCIMPArrayInitCategoryOnly( &ClassStatic._initCategoryIMPs,
                                       self,
                                       @selector( initCategory),
                                       allocator);
-   MulleObjCIMPArrayInitCategoryOnly( &Self._deallocCategoryIMPs,
+   MulleObjCIMPArrayInitCategoryOnly( &ClassStatic._deallocCategoryIMPs,
                                       self,
                                       @selector( deallocCategory),
                                       allocator);
@@ -119,14 +119,14 @@ static struct
 
 + (void) deinitialize
 {
-   MulleObjCIMPArrayDone( &Self._deallocCategoryIMPs);
-   MulleObjCIMPArrayDone( &Self._initCategoryIMPs);
+   MulleObjCIMPArrayDone( &ClassStatic._deallocCategoryIMPs);
+   MulleObjCIMPArrayDone( &ClassStatic._initCategoryIMPs);
 }
 
 
 + (void) setDebuggingFlags:(NSUInteger) flag   MULLE_OBJC_THREADSAFE_METHOD
 {
-   Self._debuggingFlags = flag;
+   ClassStatic._debuggingFlags = flag;
 }
 
 
@@ -297,7 +297,7 @@ static struct
 #ifdef UIVIEW_DEBUGGING_FLAGS
    _debuggingFlags = UIVIEW_DEBUGGING_FLAGS;
 #else
-   _debuggingFlags = Self._debuggingFlags;
+   _debuggingFlags = ClassStatic._debuggingFlags;
 #endif
 
    UIViewLayoutLog( "frame %s", CGRectUTF8String( _frame));
@@ -310,7 +310,7 @@ static struct
    mulle_pointerarray_init( &_subviews, 0, allocator);
    mulle_pointerarray_init( &_layers, 0, allocator);
 
-   MulleObjCIMPArrayCallReverse( &Self._initCategoryIMPs, self, self);
+   MulleObjCIMPArrayCallReverse( &ClassStatic._initCategoryIMPs, self, self);
 
    return( self);
 }
@@ -394,7 +394,7 @@ static struct
 {
    char  *s;
 
-   MulleObjCIMPArrayCall( &Self._deallocCategoryIMPs, self, self);
+   MulleObjCIMPArrayCall( &ClassStatic._deallocCategoryIMPs, self, self);
 
    mulle_idarray_release_all( &_trackingAreas);
    mulle_pointerarray_done( &_trackingAreas);
@@ -485,6 +485,10 @@ static struct
    copy->_mainLayer              = [self->_mainLayer copy];
    copy->_shadowLayer            = [self->_shadowLayer copy];
    copy->_cacheLayer             = [self->_cacheLayer retain]; // why not ?
+
+   // in CALayer its useful and used by UIButton to keep track by tag when
+   // copying layers, so its kinda weird if UIView didn't do the same or ?
+   copy->_tag                    = self->_tag;
 
    mulle_pointerarray_init( &copy->_layers, mulle_pointerarray_get_count( &self->_layers), allocator);
    mulle_pointerarray_add_pointerarray( &copy->_layers, &self->_layers, mulle_range_make_all());
@@ -1506,7 +1510,5 @@ void  UIViewDumpTrackingAreas( UIView *self)
    return( [_mainLayer drawCallTracer]);
 }
 
+
 @end
-
-
-

@@ -112,7 +112,7 @@ static inline BOOL
               layoutInfo:(struct UILayoutInfo *) info;
 
 - (void) layoutAuxillaryLayer:(id <UILayer>) layer
-              layoutInfo:(struct UILayoutInfo *) info;
+                   layoutInfo:(struct UILayoutInfo *) info;
 
 
 - (void) layoutWithLayoutInfo:(struct UILayoutInfo *) context
@@ -143,7 +143,7 @@ static inline BOOL
 @end
 
 
-@interface UIView( LayoutFuture)
+@interface UIView( LayoutFuture) < MulleObjCFuture>
 
 - (id <UILayoutContext>) layoutContext;
 

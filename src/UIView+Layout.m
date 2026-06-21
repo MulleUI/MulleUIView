@@ -361,6 +361,31 @@ void  UIViewLayoutWithLayoutInfo( UIView *self, struct UILayoutInfo *info)
 }
 
 
+- (CGRect) rawFrame
+{
+   return( _frame);
+}
+
+
+- (void) setRawFrame:(CGRect) frame
+{
+   BOOL   flag;
+
+   assert( ! [(id) [self window] isLayoutedView:self]);
+
+   [self willChange];
+
+   flag = ! CGRectEqualToRect( _frame, frame);
+   if( flag)
+   {
+      UIViewLayoutLog( "-> frame %s", CGRectUTF8String( _frame));
+      UIViewMouseTrackingEventLog( nil, "Tracking areas need updates");
+      _needsTrackingAreaUpdate = flag;
+   }
+   _frame = frame;
+}
+
+
 - (void) performLayoutOnSubviews
 {
    UIView   *view;

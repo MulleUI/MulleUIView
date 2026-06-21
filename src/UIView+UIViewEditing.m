@@ -109,7 +109,18 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
 
    assert( array);
 
-   count     = _mulle_pointerarray_get_count( array);
+
+   count = _mulle_pointerarray_get_count( array);
+   //
+   // so if someone passed in count to move to "past" current end, we say ok
+   // but its really, the wrong index
+   if( count && to == count)
+      to = count - 1;
+
+   //  avoid trivial non moving code, that could trip us up
+   if( from == to)
+      return;
+
    curr      = array->_storage;
    sentinel  = &curr[ count];
 
@@ -233,9 +244,9 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
 
 
 /*
- *
+ * visually back is first in the array
  */
-- (void) bringSubviewToFront:(UIView *) view
+- (void) sendSubviewToBack:(UIView *) view
 {
    NSUInteger   index;
 
@@ -248,7 +259,7 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
 }
 
 
-- (void) sendSubviewToBack:(UIView *) view
+- (void) bringSubviewToFront:(UIView *) view
 {
    NSUInteger     index;
    unsigned int   count;
@@ -259,7 +270,7 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
       return;
 
    count = mulle_pointerarray_get_count( &_subviews);
-   mulle_pointerarray_move( &_subviews, index, count);
+   mulle_pointerarray_move( &_subviews, index, count - 1);
 }
 
 

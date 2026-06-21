@@ -263,6 +263,10 @@ UIAutoresizingProperties;
 // frame is the position and size relative to the superview
 @property( observable) CGRect          frame;
 
+// rawFrame bypasses integer-pixel rounding (UIViewMakeFrameWithRect).
+// Use this for sub-pixel animation and game physics.
+@property( observable) CGRect          rawFrame;
+
 //
 // bounds is the used to place the layers and subviews. Their frames
 // are relative to the bounds. If there is a size difference between bounds
@@ -443,17 +447,8 @@ UIAutoresizingProperties;
 - (void) addSubview:(UIView *) view;
 - (void) removeFromSubviews:(UIView *) view;
 
-@end
-
-//
-// #2# the controller is not used by UIView, but when a Controller wants
-//     to tap into events, he sets the C callbacks and then queries the
-//     view for -controller. Now [controller handleEvent:] can be called.
-//
-
-
-@interface UIView( UILayerFuture)
-
+// future subclass/category implementations
+@optional
 //
 // the default will be a UINullLayer which will do absolutely nothing
 // not even draw a background
@@ -462,6 +457,12 @@ UIAutoresizingProperties;
 - (void) setNeedsDisplay      MULLE_OBJC_THREADSAFE_METHOD;
 
 @end
+
+//
+// #2# the controller is not used by UIView, but when a Controller wants
+//     to tap into events, he sets the C callbacks and then queries the
+//     view for -controller. Now [controller handleEvent:] can be called.
+//
 
 
 @interface UIView( Dump)
@@ -474,7 +475,7 @@ UIAutoresizingProperties;
 
 
 //
-// these all get fowarded to the "main" layer
+// these all get forwarded to the "main" layer
 // @interface UIView( UILayerForwarding)
 // @end
 // done in MulleUIOS now !

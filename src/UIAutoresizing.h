@@ -140,10 +140,11 @@ static inline BOOL   UIViewAutoresizingIsFlexible( UIViewAutoresizing bits)
 //       UIAutoresizing. But the resized object does not get queried for 
 //       bounds and padding.
 //
-PROTOCOLCLASS_INTERFACE0( UIAutoresizing)
+@mixin UIAutoresizing
 
 UIAutoresizingProperties;
 
+@required
 - (CGRect) frame;         
 
 @optional
@@ -152,7 +153,7 @@ UIAutoresizingProperties;
 - (CGRect) autoresizeWithLayoutInfo:(struct UILayoutInfo *) context
                 autoresizingMask:(UIViewAutoresizing) autoresizingMask;
 
-PROTOCOLCLASS_END();
+@end;
 
 
 // A typical adopting class will look like this:
