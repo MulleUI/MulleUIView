@@ -93,34 +93,36 @@ static struct
    char                     *s;
    struct mulle_allocator   *allocator;
 
-   // don't rerun for subclass
-   if( MulleObjCClassGetID( self) != @selector( UIView))
-      return;
+   MulleObjCClassInitializeOnceDo( self)
+   {
+      s = getenv( MULLE_C_STRINGIFY( UIView) "DebuggingFlags");
+      if( ! s)
+         s = getenv( "UIResponderDebuggingFlags");
+      if( ! s)
+         s = getenv( "UIDebuggingFlags");
+      if( s)
+         ClassStatic._debuggingFlags = strtol( s, NULL, 0);
 
-   s = getenv( MULLE_C_STRINGIFY( UIView) "DebuggingFlags");
-   if( ! s)
-      s = getenv( "UIResponderDebuggingFlags");
-   if( ! s)
-      s = getenv( "UIDebuggingFlags");
-   if( s)
-      ClassStatic._debuggingFlags = strtol( s, NULL, 0);
-
-   allocator = MulleObjCClassGetAllocator( self);
-   MulleObjCIMPArrayInitCategoryOnly( &ClassStatic._initCategoryIMPs,
-                                      self,
-                                      @selector( initCategory),
-                                      allocator);
-   MulleObjCIMPArrayInitCategoryOnly( &ClassStatic._deallocCategoryIMPs,
-                                      self,
-                                      @selector( deallocCategory),
-                                      allocator);
+      allocator = MulleObjCClassGetAllocator( self);
+      MulleObjCIMPArrayInitCategoryOnly( &ClassStatic._initCategoryIMPs,
+                                         self,
+                                         @selector( initCategory),
+                                         allocator);
+      MulleObjCIMPArrayInitCategoryOnly( &ClassStatic._deallocCategoryIMPs,
+                                         self,
+                                         @selector( deallocCategory),
+                                         allocator);
+   }
 }
 
 
 + (void) deinitialize
 {
-   MulleObjCIMPArrayDone( &ClassStatic._deallocCategoryIMPs);
-   MulleObjCIMPArrayDone( &ClassStatic._initCategoryIMPs);
+   MulleObjCClassDeinitializeOnceDo( self)
+   {
+      MulleObjCIMPArrayDone( &ClassStatic._deallocCategoryIMPs);
+      MulleObjCIMPArrayDone( &ClassStatic._initCategoryIMPs);
+   }
 }
 
 
@@ -1004,7 +1006,6 @@ static int   UIViewCompareByOrigin( void **a, void **b, void *userinfo)
    UIView   *view;
 
    // TODO: // need to throw exception here
-
    view = mulle_pointerarray_get( &_subviews, (unsigned int) i);
    return( view);
 }
