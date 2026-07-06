@@ -1,13 +1,15 @@
 {
    project =
    {
-      description="📐 MulleUIView for layout and events";
+      description="![](mulle-tiny-logo-255x256.png)";
       domain="github";
+      language="c";
+      dialect="objc";
       name="MulleUIView";
       user="MulleUI";
       repo="MulleUIView";
       homepage="https://github.com/MulleUI/MulleUIView";
-      license="BSD3-Licensed"
+      license="UNLICENSED";
    };
    dependencies =
    (
@@ -27,5 +29,5 @@
          url="https://github.com/mulle-objc/mulle-objc-list";
          user="mulle-objc";
       }
-   )
+   );
 }
