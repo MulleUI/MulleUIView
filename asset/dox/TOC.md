@@ -5,6 +5,10 @@
 
 **MulleUIView** is a foundational UI framework component that provides hierarchical view management, layout functionality, and event routing. It separates presentation (handled by `CALayer` or other `UILayer` protocol adopters) from structure and interaction. A `UIView` does not draw directly; instead, it positions and organizes layers, manages a parent-child hierarchy of subviews, and routes user input events from the application or window to the appropriate handler code. This library is part of the MulleUI framework and depends on **MulleUIApplication** for event and application abstractions.
 
+**Version:** `MULLE_UI_VIEW_VERSION` is `((0 << 20) | (0 << 8) | 1)` defined in `MulleUIView.h`.
+
+**Related Layout Views:** The UIView ecosystem includes specialized layout-only subclasses like **UIGridView**, **UIStackView**, and **UIScrollView** that provide advanced layout strategies without drawing.
+
 ## 2. Key Concepts & Design Philosophy
 
 ### Separation of Concerns
@@ -46,7 +50,8 @@ The primary class representing a view in the hierarchy.
 - `@property(assign) UIViewController *controller`: Optional controller for event handling logic.
 - `@property(getter=isHidden) BOOL hidden`: Visibility flag (default: NO).
 - `@property(getter=isUserInteractionEnabled) BOOL userInteractionEnabled`: Whether view accepts input events (default: YES).
-- `@property(observable) CGRect frame`: Position and size in superview coordinates.
+- `@property(observable) CGRect frame`: Position and size in superview coordinates (uses integer-pixel rounding via `UIViewMakeFrameWithRect`).
+- `@property(observable) CGRect rawFrame`: Position and size without integer-pixel rounding. Use for sub-pixel animation and game physics.
 - `@property(observable) CGRect bounds`: Internal coordinate space for subviews/layers.
 - `@property(observable) CGFloat alpha`: Opacity (0.0 to 1.0).
 - `@property(observable) UIEdgeInsets padding`: Insets from bounds to contentRect.
@@ -61,6 +66,10 @@ The primary class representing a view in the hierarchy.
 - `@property(dynamic) char *nameUTF8String`: Debugging/styling identifier.
 - `@property(dynamic) char *classUTF8String`: CSS-like class identifier for styling.
 
+**Optional Subclass Methods (declared `@optional` in main interface):**
+- `+ (Class) layerClass`: Override to return a custom `UILayer` class (default is `UINullLayer`).
+- `- (void) setNeedsDisplay`: Default is a no-op on `UIView`.
+
 **Lifecycle Functions:**
 - `+ (instancetype) viewWithFrame:(CGRect)frame`: Factory method to create a view.
 - `+ (instancetype) viewWithLayer:(id<UILayer>)layer`: Factory method with a custom layer.
@@ -73,9 +82,9 @@ The primary class representing a view in the hierarchy.
 - `- (void) removeFromSubviews:(UIView *)view`: Removes a specific subview.
 - `- (void) removeFromSuperview`: Removes self from superview.
 - `- (void) removeAllSubviews`: Removes all subviews.
-- `- (void) insertSubview:(UIView *)subview atIndex:(NSUInteger)index`: Inserts at specific position.
-- `- (void) insertSubview:(UIView *)subview aboveSubview:(UIView *)siblingSubview`: Inserts above sibling.
-- `- (void) insertSubview:(UIView *)subview belowSubview:(UIView *)siblingSubview`: Inserts below sibling.
+- `- (void) removeAllSubviewsOfClass:(Class) class`: Removes all subviews of a given class.
+- `- (void) sortSubviewsByOrigin`: Sorts subviews by their origin position.
+- `- (void) getSubviewsIntersectingRect:(CGRect)rect intoPointerArray:(struct mulle_pointerarray *)views invertIntersectionTest:(BOOL)flag`: Finds subviews intersecting a rect.
 - `- (UIView *) superview`: Returns the parent view.
 - `- (UIView *) subviewAtIndex:(NSUInteger)index`: Gets subview by index.
 - `- (UIView *) subviewWithTag:(NSInteger)tag`: Finds immediate child with tag.
@@ -179,8 +188,6 @@ Manages a group of views and handles their events and layout.
 - `- (void) layoutLayers`: Positions all layers within the view's bounds using `UILayoutInfo`.
 - `- (BOOL) layoutSubviews`: Positions subviews within the content rect. Returns YES to continue recursive layout.
 - `- (void) performLayoutOnSubviews`: Calls `-layout` on all subviews.
-- `- (void) setNeedsLayout`: Marks view as needing layout (handled by UIWindow).
-- `- (BOOL) needsLayout`: Checks if layout is needed.
 
 **Sizing:**
 - `- (CGSize) sizeThatFits:(CGSize)size context:(id<UILayoutContext>)context`: Calculates preferred size given constraints.
@@ -198,7 +205,6 @@ Manages a group of views and handles their events and layout.
 - `- (void) layoutLayer:(id<UILayer>)layer layoutInfo:(struct UILayoutInfo *)info`: Generic layer layout.
 - `- (void) layoutMainLayer:(id<UILayer>)layer layoutInfo:(struct UILayoutInfo *)info`: Layouts main layer (background/border).
 - `- (void) layoutAuxillaryLayer:(id<UILayer>)layer layoutInfo:(struct UILayoutInfo *)info`: Layouts additional layers.
-- `- (void) layoutShadowLayer:(id<UILayer>)layer layoutInfo:(struct UILayoutInfo *)info`: Layouts shadow layer (future).
 
 **Global Functions:**
 - `void UIViewAutoresize(UIView *self, struct UILayoutInfo *info, UIViewAutoresizing autoresizingMask)`: Performs autoresizing.
@@ -207,6 +213,13 @@ Manages a group of views and handles their events and layout.
 
 **Helper Inline:**
 - `struct UILayoutInfo UILayoutInfoMakeWithView(UIView *view)`: Creates layout info from view's content rect, padding, and layout context.
+
+**Future API (`@interface UIView( LayoutFuture) < MulleObjCFuture>`):**
+- `- (id <UILayoutContext>) layoutContext`: Returns layout context.
+- `- (void) beginLayout:(void *)info` / `- (void) endLayout`: Paired begin/end for CGFrameInfo.
+- `- (void) setNeedsLayout`: Marks view as needing layout (handled by UIWindow).
+- `- (BOOL) needsLayout`: Checks if layout is needed.
+- `- (void) layoutShadowLayer:(id <UILayer>)layer layoutInfo:(struct UILayoutInfo *)info`: Layouts shadow layer (future).
 
 ### 3.4. `UIView+UIEvent.h`
 
@@ -237,7 +250,22 @@ Manages a group of views and handles their events and layout.
 - `- (UIView *) subviewAtContentLocation:(CGPoint)point`: Finds subview at point.
 - `- (id<UILayer>) layerAtContentLocation:(CGPoint)point`: Finds layer at point.
 
-### 3.5. `UIView+CGGeometry.h`
+### 3.5. `UIView+UIViewEditing.h`
+
+#### Subview Reordering and Editing Methods
+**Purpose:** Provides methods for manipulating the subview Z-order, inserting views at specific positions, and querying hierarchical relationships.
+
+**Core Operations:**
+- `- (BOOL) isDescendantOfView:(UIView *)view`: Returns YES if self is a descendant of the given view.
+- `- (void) sendSubviewToBack:(UIView *)view`: Moves subview to the lowest Z-order.
+- `- (void) bringSubviewToFront:(UIView *)view`: Moves subview to the highest Z-order.
+- `- (void) insertSubview:(UIView *)view atIndex:(NSInteger)index`: Inserts at specific position.
+- `- (void) insertSubview:(UIView *)view aboveSubview:(UIView *)other`: Inserts above sibling.
+- `- (void) insertSubview:(UIView *)view belowSubview:(UIView *)other`: Inserts below sibling.
+- `- (void) exchangeSubviewAtIndex:(NSInteger)index1 withSubviewAtIndex:(NSInteger)index2`: Swaps two subviews.
+- `- (void) replaceSubview:(UIView *)view withView:(UIView *)other`: Replaces a subview with another.
+
+### 3.6. `UIView+CGGeometry.h`
 
 #### Coordinate Conversion Methods
 **Purpose:** Converts coordinates between view spaces.
@@ -258,7 +286,7 @@ Manages a group of views and handles their events and layout.
 - `- (CGPoint) contentLocationForLocation:(CGPoint)location`: Converts from view space to content space (accounting for bounds transform).
 - `- (CGPoint) locationForContentLocation:(CGPoint)contentLocation`: Converts from content space to view space.
 
-### 3.6. `UIView+UILayer.h`
+### 3.7. `UIView+UILayer.h`
 
 #### Layer Coordinate Conversion
 **Purpose:** Converts coordinates between view and layer spaces.
@@ -270,7 +298,7 @@ Manages a group of views and handles their events and layout.
 - `- (CGRect) convertRect:(CGRect)rect fromLayer:(id<UILayer>)layer`: Converts rect from layer's coordinate space.
 - `- (id<UILayer>) layerHitTest:(CGPoint)point`: Returns layer at point (returns mainLayer if no hit).
 
-### 3.7. `UIAutoresizing.h`
+### 3.8. `UIAutoresizing.h`
 
 #### `typedef NS_OPTIONS(NSUInteger, UIViewAutoresizing)`
 Defines autoresizing behavior for views.
@@ -311,20 +339,21 @@ Defines autoresizing behavior for views.
 **Global Function:**
 - `CGRect UIAutoresizingLegacyResize(CGRect originalFrame, CGRect lastBounds, CGRect bounds, UIViewAutoresizing autoresizingMask)`: Performs legacy flexible resizing calculation.
 
-#### `@protocol UIAutoresizing`
-Protocol for objects that support autoresizing.
+#### `@mixin UIAutoresizing`
+Mixin for objects that support autoresizing.
 
-**Purpose:** Defines interface for autoresizing behavior.
+**Purpose:** Defines the required interface for autoresizing behavior. Adopted by `UIView` via mixin. Other classes can adopt by declaring `UIAutoresizingProperties;` in their `@interface` block.
 
-**Properties:**
+**Included Properties (via `UIAutoresizingProperties` macro):**
 - `@property(assign) CGRect originalFrame`: Original frame before any resizing.
 - `@property(assign) CGRect lastBounds`: Last known bounds of superview.
-- `@property(assign) UIEdgeInsets margins`: Optional margins (default: zero).
 
 **Methods:**
-- `- (CGRect) autoresizeWithLayoutInfo:(struct UILayoutInfo *)context autoresizingMask:(UIViewAutoresizing)autoresizingMask`: Performs autoresizing calculation.
+- `@required - (CGRect) frame`: Returns the current frame.
+- `@optional - (UIEdgeInsets) margins`: Returns optional margins (default: zero).
+- `@optional - (CGRect) autoresizeWithLayoutInfo:(struct UILayoutInfo *)context autoresizingMask:(UIViewAutoresizing)autoresizingMask`: Performs autoresizing calculation.
 
-### 3.8. `UINullLayer.h`
+### 3.9. `UINullLayer.h`
 
 #### `@interface UINullLayer`
 A no-op layer implementation for testing and placeholder use.
@@ -334,7 +363,7 @@ A no-op layer implementation for testing and placeholder use.
 **Properties:**
 All required `UILayer` protocol properties are implemented but do nothing.
 
-### 3.9. `UIInputEvent+UIView.h`
+### 3.10. `UIInputEvent+UIView.h`
 
 #### Category on `UIInputEvent`
 **Purpose:** Associates input events with views during hit testing.

@@ -63,6 +63,7 @@ Key takeaways:
 
 ## Local references
 
+- `src/UIView.h` (animatable properties, rawFrame, animationStorage)
 - `src/UIWindow+Render.m`
 - `src/UIWindow+Layout.m`
 - `src/UIWindow+RenderQueue.m`
@@ -71,4 +72,5 @@ Key takeaways:
 - `src/CATransaction.h`
 - `src/CAAnimation.h`
 - `src/CALayer.h`
-- `demo/src/main-uiview.m`
+- `demo/src/main-view-pathanimation.m`
+- `demo/src/main-autoresize-legacy.m`

@@ -1,4 +1,4 @@
-<!-- keywords: patterns, CATransaction, CAAnimationGroup, preLayoutAnimator, postLayoutAnimator, CAAnimator, animation, frame, opacity -->
+<!-- keywords: patterns, CATransaction, CAAnimationGroup, preLayoutAnimator, postLayoutAnimator, CAAnimator, animation, frame, opacity, CABasicAnimation, CAPathAnimation, rawFrame, setFrameRateHz, willLayoutCallback -->
 # mulle-ui-animation patterns
 
 ## Layout-changing animation → `preLayoutAnimator`
@@ -84,3 +84,81 @@ group2 = [ta2 commit];
 ```
 
 Both groups stay in lockstep automatically — animation progress is a function of the shared `absoluteTime`/`animationRate` clock.
+
+## `CABasicAnimation` on layer properties
+
+Use `CABasicAnimation` to animate a single property on a layer (color, position, etc.):
+
+```objc
+colorProperty = MulleObjCInstanceSearchProperty( layer, @selector(fillColor));
+if( colorProperty)
+{
+   options = CABasicAnimationOptionsMakeEaseInOut(
+                mulle_relativetimerange_make( 0.0, 2.0),  // delay, duration
+                INFINITY,                                   // repeat count
+                YES);                                       // autoreverse
+
+   anim = [[[CABasicAnimation alloc]
+              initWithProperty:colorProperty
+               startColorValue:CGColorMakeWithRGBA(1.0, 0.0, 0.0, 1.0)
+                 endColorValue:CGColorMakeWithRGBA(0.0, 0.0, 1.0, 1.0)
+                       options:&options] autorelease];
+
+   [anim setAnimationObject:view];
+   [[window postLayoutAnimator] addAnimation:anim];
+}
+```
+
+`CABasicAnimationOptionsMakeEaseInOut` / `CABasicAnimationOptionsMakeLinear` control the timing curve.
+
+## `CAPathAnimation` on layers
+
+Use `CAPathAnimation` to animate a layer property along a `CGPath`:
+
+```objc
+pathOptions = CABasicAnimationOptionsMakeLinear(
+                mulle_relativetimerange_make( 0.0, 4.0),
+                INFINITY,
+                NO);
+
+anim = [[[CAPathAnimation alloc]
+           initWithProperty:property
+                       path:circlePath
+              pathValueType:CAPathAnimationValuePositionAsOrigin
+                    options:&pathOptions] autorelease];
+
+[anim setAnimationObject:view];
+[[window preLayoutAnimator] addAnimation:anim];
+```
+
+The `animationObject` associates the animation with a `UIView` (not a layer). The animator ticks the animation at the correct pipeline step based on which animator you choose.
+
+## Per-frame window callbacks (continuous layout animation)
+
+For time-driven animation that changes layout every frame, use window callbacks directly (`demo/src/main-autoresize.m`, `demo/src/main-autoresize-legacy.m`):
+
+```objc
+[window setFrameRateHz:30];
+[window setWillLayoutViewsCallback:^( UIWindow *window, struct CGFrameInfo *info) {
+   CGFloat  anim = fmod( info->now, 3.0) / 3.0;
+   // compute per-frame positions and set frames
+   [view setFrame:newFrame];
+   [view setNeedsLayout];
+}];
+[window setDidRenderFrameCallback:^( ... ) {
+   [(UIWindow *) window setNeedsLayout];
+   return( UIWindowDisplayDidAnimate);
+}];
+```
+
+`frameInfo->now` provides the current time for computing animation progress. Returning `UIWindowDisplayDidAnimate` from `didRenderFrameCallback` signals a continuous animation loop.
+
+## Sub-pixel animation with `rawFrame`
+
+Use `rawFrame` instead of `frame` when you need smooth sub-pixel movement:
+
+```objc
+[view setRawFrame:CGRectMake( x, y, w, h)];
+```
+
+`rawFrame` bypasses the `CGRectIntegral` rounding that `frame` applies. Use it for physics, game loops, and any animation where integer-pixel snapping would produce visible jitter. Reading `frame` still returns the rounded value; reading `rawFrame` returns the exact value.
