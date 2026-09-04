@@ -10,6 +10,9 @@ VERSIONNAME="MULLE_UI_VIEW_VERSION"
 #
 # Other files that get the version written into. Write only. Linefeed separated.
 #
-# VERSIONMIRRORNAME=version
+VERSIONMIRRORNAME=version
 # VERSIONFILEMIRRORS="
 #src/version.txt"
+
+VERSIONFILEMIRRORS="
+cola/properties.plist"

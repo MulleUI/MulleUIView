@@ -98,11 +98,10 @@ if( colorProperty)
                 INFINITY,                                   // repeat count
                 YES);                                       // autoreverse
 
-   anim = [[[CABasicAnimation alloc]
-              initWithProperty:colorProperty
-               startColorValue:CGColorMakeWithRGBA(1.0, 0.0, 0.0, 1.0)
-                 endColorValue:CGColorMakeWithRGBA(0.0, 0.0, 1.0, 1.0)
-                       options:&options] autorelease];
+   anim = [CABasicAnimation animationWithProperty:colorProperty
+                                  startColorValue:CGColorMakeWithRGBA(1.0, 0.0, 0.0, 1.0)
+                                    endColorValue:CGColorMakeWithRGBA(0.0, 0.0, 1.0, 1.0)
+                                          options:&options];
 
    [anim setAnimationObject:view];
    [[window postLayoutAnimator] addAnimation:anim];
@@ -121,11 +120,10 @@ pathOptions = CABasicAnimationOptionsMakeLinear(
                 INFINITY,
                 NO);
 
-anim = [[[CAPathAnimation alloc]
-           initWithProperty:property
-                       path:circlePath
-              pathValueType:CAPathAnimationValuePositionAsOrigin
-                    options:&pathOptions] autorelease];
+anim = [CAPathAnimation pathAnimationWithProperty:property
+                                             path:circlePath
+                                    pathValueType:CAPathAnimationValuePositionAsOrigin
+                                          options:&pathOptions];
 
 [anim setAnimationObject:view];
 [[window preLayoutAnimator] addAnimation:anim];

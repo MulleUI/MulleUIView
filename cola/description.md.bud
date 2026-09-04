@@ -1,8 +1,8 @@
-![](mulle-tiny-logo-255x256.png)
+![mulle tiny logo](mulle-tiny-logo-255x256.png)
 
 A UIView combines one or multiple UILayers. Multiple UIViews form a hierarchy.
 Whereas a UILayer is independent of any other UILayer, a UIView
-can have a parent, siblings and desecendants. UILayer is a protocol,
+can have a parent, siblings and descendants. UILayer is a protocol,
 typically `CALayer` will be the concrete class being used as layer.
 
 A UIView provides two services in a program
@@ -15,9 +15,9 @@ Every UIView must have at least one CALayer. But a CALayer can be invisible.
 
 UIView therefore imposes a structure (layout) on CALayers and facilitates the
 routing of events from the event receiver (usually a UIWindow or the
-UIApplication) to the code managing the CALayer (a UIView subclass ?).
+UIApplication) to the code managing the CALayer (a UIView subclass).
 
-UIView contains these pure layouting views (UIViews that don't draw)
+MulleUIView provides these pure layouting views (UIViews that don't draw)
 
 * UIGridView
 * UIStackView

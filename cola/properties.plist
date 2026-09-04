@@ -1,20 +1,21 @@
 {
    project =
    {
-      description="![](mulle-tiny-logo-255x256.png)";
+      description="🛋 UIView is a layout and event-processing container";
       domain="github";
       language="c";
       dialect="objc";
       name="MulleUIView";
       user="MulleUI";
       repo="MulleUIView";
+      version="0.0.2";
       homepage="https://github.com/MulleUI/MulleUIView";
       license="UNLICENSED";
    };
    dependencies =
    (
       {
-         description="𝄢 MulleUIApplication provides abstract classes like UIApplication and UIEvent";
+         description="🛖 MulleUIApplication provides abstract classes like UIApplication and UIEvent";
          domain="github";
          name="MulleUIApplication";
          repo="MulleUIApplication";

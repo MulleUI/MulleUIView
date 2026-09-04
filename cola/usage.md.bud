@@ -1,0 +1,45 @@
+## Usage
+
+A `UIView` is the interactive building block. It does no drawing itself, it
+imposes a layout structure on its `CALayer`s and routes events. Build a
+hierarchy by nesting views:
+
+``` objc
+#import <MulleUIView/MulleUIView.h>
+
+int  main( void)
+{
+   UIView   *content;
+   UIView   *redView;
+   UIView   *blueView;
+   CGRect   contentRect;
+
+   contentRect = CGRectMake( 0.0, 0.0, 200.0, 200.0);
+
+   content  = [UIView viewWithFrame:contentRect];
+   [content setBackgroundColor:CGColorMakeWhite()];
+
+   redView  = [UIView viewWithFrame:CGRectInset( contentRect, 20.0, 20.0)];
+   [redView setBackgroundColor:CGColorMakeRed()];
+   [content addSubview:redView];
+
+   blueView = [UIView viewWithFrame:CGRectMake( 50.0, 50.0, 40.0, 40.0)];
+   [blueView setBackgroundColor:CGColorMakeBlue()];
+   [redView addSubview:blueView];
+
+   return( 0);
+}
+```
+
+Every `UIView` must have at least one `CALayer`. The pure layouting views
+(`UIGridView`, `UIStackView`, `UIScrollView`) don't draw anything by
+themselves.
+
+## Build the demo
+
+The `demo/` folder is a [mulle-sde](//github.com/mulle-sde) project:
+
+``` sh
+cd demo
+mulle-sde craft
+```

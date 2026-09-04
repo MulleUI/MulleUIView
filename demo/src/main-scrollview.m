@@ -1,4 +1,4 @@
-#import <MulleUIWidgets/MulleUIWidgets.h>
+#import <MulleUIWidget/MulleUIWidget.h>
 #import <MulleImage/MulleImage.h>
 
 #import <string.h>

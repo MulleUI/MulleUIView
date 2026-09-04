@@ -1,12 +1,14 @@
 # MulleUIView
 
-#### ![](mulle-tiny-logo-255x256.png)
+Part of [MulleUI](https://github.com/MulleUI) — UIKit-shaped modular GUI libraries for mulle-objc.
 
-![](mulle-tiny-logo-255x256.png)
+#### 🛋 UIView is a layout and event-processing container
+
+![mulle tiny logo](mulle-tiny-logo-255x256.png)
 
 A UIView combines one or multiple UILayers. Multiple UIViews form a hierarchy.
 Whereas a UILayer is independent of any other UILayer, a UIView
-can have a parent, siblings and desecendants. UILayer is a protocol,
+can have a parent, siblings and descendants. UILayer is a protocol,
 typically `CALayer` will be the concrete class being used as layer.
 
 A UIView provides two services in a program
@@ -19,9 +21,9 @@ Every UIView must have at least one CALayer. But a CALayer can be invisible.
 
 UIView therefore imposes a structure (layout) on CALayers and facilitates the
 routing of events from the event receiver (usually a UIWindow or the
-UIApplication) to the code managing the CALayer (a UIView subclass ?).
+UIApplication) to the code managing the CALayer (a UIView subclass).
 
-UIView contains these pure layouting views (UIViews that don't draw)
+MulleUIView provides these pure layouting views (UIViews that don't draw)
 
 * UIGridView
 * UIStackView
@@ -36,6 +38,58 @@ UIView contains these pure layouting views (UIViews that don't draw)
 
 
 
+## Documentation & Guides
+
+* [API Summary](asset/dox/api/toc)
+* [Coder Guide](asset/howto/coder/mulle-ui-animation)
+* [Debugger Guide](asset/howto/debugger/mulle-ui-animation)
+* [Verifier Guide](asset/howto/verifier/mulle-ui-animation)
+
+## Usage
+
+A `UIView` is the interactive building block. It does no drawing itself, it
+imposes a layout structure on its `CALayer`s and routes events. Build a
+hierarchy by nesting views:
+
+``` objc
+#import <MulleUIView/MulleUIView.h>
+
+int  main( void)
+{
+   UIView   *content;
+   UIView   *redView;
+   UIView   *blueView;
+   CGRect   contentRect;
+
+   contentRect = CGRectMake( 0.0, 0.0, 200.0, 200.0);
+
+   content  = [UIView viewWithFrame:contentRect];
+   [content setBackgroundColor:CGColorMakeWhite()];
+
+   redView  = [UIView viewWithFrame:CGRectInset( contentRect, 20.0, 20.0)];
+   [redView setBackgroundColor:CGColorMakeRed()];
+   [content addSubview:redView];
+
+   blueView = [UIView viewWithFrame:CGRectMake( 50.0, 50.0, 40.0, 40.0)];
+   [blueView setBackgroundColor:CGColorMakeBlue()];
+   [redView addSubview:blueView];
+
+   return( 0);
+}
+```
+
+Every `UIView` must have at least one `CALayer`. The pure layouting views
+(`UIGridView`, `UIStackView`, `UIScrollView`) don't draw anything by
+themselves.
+
+## Build the demo
+
+The `demo/` folder is a [mulle-sde](//github.com/mulle-sde) project:
+
+``` sh
+cd demo
+mulle-sde craft
+```
 
 
 ### You are here
@@ -80,7 +134,7 @@ Install the requirements:
 
 | Requirements                                 | Description
 |----------------------------------------------|-----------------------
-| [MulleUIApplication](https://github.com/MulleUI/MulleUIApplication)             | 𝄢 MulleUIApplication provides abstract classes like UIApplication and UIEvent
+| [MulleUIApplication](https://github.com/MulleUI/MulleUIApplication)             | 🛖 MulleUIApplication provides abstract classes like UIApplication and UIEvent
 | [mulle-objc-list](https://github.com/mulle-objc/mulle-objc-list)             | 📒 Lists mulle-objc runtime information contained in executables.
 
 Download the latest [tar](https://github.com/MulleUI/MulleUIView/archive/refs/tags/latest.tar.gz) or [zip](https://github.com/MulleUI/MulleUIView/archive/refs/tags/latest.zip) archive and unpack it.
