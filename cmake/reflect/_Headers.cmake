@@ -73,6 +73,5 @@ src/UIView+UIEvent.h
 src/UIView+UILayer.h
 src/UIView+UIViewEditing.h
 src/UIView.h
-src/reflect/_MulleUIView-versioncheck.h
 )
 
