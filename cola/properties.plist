@@ -8,7 +8,7 @@
       name="MulleUIView";
       user="MulleUI";
       repo="MulleUIView";
-      version="0.0.2";
+      version="0.0.3";
       homepage="https://github.com/MulleUI/MulleUIView";
       license="UNLICENSED";
    };

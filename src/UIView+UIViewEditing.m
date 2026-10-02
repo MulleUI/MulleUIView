@@ -107,7 +107,7 @@ void  mulle_pointerarray_insert_at_index( struct mulle_pointerarray *array,
       return;
    }
 
-   curr      = array->_storage;
+   curr      = _mulle_pointerarray_get_storage( array);
    insertion = &curr[ i];
    sentinel  = &curr[ count];
    if( insertion > sentinel)
@@ -155,7 +155,7 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
    if( from == to)
       return;
 
-   curr      = array->_storage;
+   curr      = _mulle_pointerarray_get_storage( array);
    sentinel  = &curr[ count];
 
    if( &curr[ from] >= sentinel || &curr[ to] >= sentinel)
@@ -254,9 +254,9 @@ void  mulle_pointerarray_move( struct mulle_pointerarray *array,
    if( index1 >= count || index2 >= count)
       abort();
 
-   curr          = _subviews._storage;
+   curr          = _mulle_pointerarray_get_storage( &_subviews);
    item          = curr[ index1];
-   curr[ index2] = curr[ index1];
+   curr[ index1] = curr[ index2];
    curr[ index2] = item;
 }
 

@@ -32,7 +32,7 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#define MULLE_UI_VIEW_VERSION  ((0UL << 20) | (0 << 8) | 2)
+#define MULLE_UI_VIEW_VERSION  ((0UL << 20) | (0 << 8) | 3)
 
 #import "import.h"
 

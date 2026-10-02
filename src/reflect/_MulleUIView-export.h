@@ -3,11 +3,11 @@
  *   `mulle-sde reflect` and any edits will be lost.
  *   Suppress generation of this file with:
  *
- *      mulle-sde environment set MULLE_MATCH_TO_C_OBJC_HEADERS_FILE DISABLE
+ *      mulle-sde environment --global set MULLE_MATCH_TO_C_OBJC_HEADERS_FILE DISABLE
  *
  *   To not let mulle-match-to-c generate any header files:
  *
- *      mulle-sde environment set MULLE_MATCH_TO_C_RUN DISABLE
+ *      mulle-sde environment --global set MULLE_MATCH_TO_C_RUN DISABLE
  */
 #ifndef _mulle_ui_view__export_h__
 #define _mulle_ui_view__export_h__
@@ -17,13 +17,13 @@
 #import "UIAutoresizing.h"
 #import "UIInputEvent+UIView.h"
 #import "UINullLayer.h"
+#import "UIView.h"
 #import "UIView+CGGeometry.h"
-#import "UIViewController.h"
 #import "UIView+Layout.h"
 #import "UIView+UIEvent.h"
 #import "UIView+UILayer.h"
 #import "UIView+UIViewEditing.h"
-#import "UIView.h"
+#import "UIViewController.h"
 
 
 #endif
