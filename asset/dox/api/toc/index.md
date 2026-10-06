@@ -5,7 +5,7 @@
 
 **MulleUIView** is a foundational UI framework component that provides hierarchical view management, layout functionality, and event routing. It separates presentation (handled by `CALayer` or other `UILayer` protocol adopters) from structure and interaction. A `UIView` does not draw directly; instead, it positions and organizes layers, manages a parent-child hierarchy of subviews, and routes user input events from the application or window to the appropriate handler code. This library is part of the MulleUI framework and depends on **MulleUIApplication** for event and application abstractions.
 
-**Version:** `MULLE_UI_VIEW_VERSION` is `((0 << 20) | (0 << 8) | 1)` defined in `MulleUIView.h`.
+**Version:** `MULLE_UI_VIEW_VERSION` is `((0UL << 20) | (0 << 8) | 3)` defined in `MulleUIView.h`.
 
 **Related Layout Views:** The UIView ecosystem includes specialized layout-only subclasses like **UIGridView**, **UIStackView**, and **UIScrollView** that provide advanced layout strategies without drawing.
 
