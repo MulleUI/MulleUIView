@@ -3,6 +3,7 @@
 
 
 
+
 * `exchangeSubviewAtIndex:withSubviewAtIndex:` now actually exchanges the two subviews instead of overwriting one of them
 * subview pointer array access goes through ``_mulle_pointerarray_get_storage`` rather than touching ``_storage`` directly
 
